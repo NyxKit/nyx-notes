@@ -109,6 +109,7 @@ Before considering any change complete, verify:
 | `docs/architecture/core-domain.md` — the trait signatures | Everything depends on `StorageBackend` and `AuthStore`. Changes here cascade to storage, server, CLI, and tests. |
 | `docs/architecture/vaults-and-teams.md` — the permission matrix | The matrix governs API enforcement, frontend read-only states, and CLI access. Changing a cell silently breaks multiple layers. |
 | `docs/architecture/filesystem-storage.md` — the directory layout and frontmatter format | Changing the on-disk structure is a **migration** — existing notes files would break. Treat this as a breaking change. |
+| `docs/architecture/authentication.md` — the auth mode interface | `GET /api/auth/mode` response shape and the four mode names are depended on by the frontend. Changing mode names or the response schema is a breaking change. |
 | `docs/conventions/README.md` | Conventions are only useful if they're stable. Don't adjust them without a clear reason. |
 
 ---

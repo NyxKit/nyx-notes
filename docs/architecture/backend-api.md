@@ -2,20 +2,39 @@
 
 ## Purpose
 
-An Axum HTTP server that exposes note CRUD operations over a REST API. It wraps a `StorageBackend` (concretely `FsStorage`) and uses Firebase to authenticate requests.
+An Axum HTTP server that exposes note CRUD operations over a REST API. It wraps a `StorageBackend` (concretely `FsStorage`) and delegates authentication to whichever `AuthStore` implementation is configured by `AUTH_MODE`.
 
 ## Responsibilities
 
 - HTTP routing and JSON serialization/deserialization
-- Firebase token verification (via `AuthStore`)
+- Token verification via the active `AuthStore` (mode-agnostic)
 - Map `StorageError` / `AuthError` to appropriate HTTP status codes
+- Expose auth mode discovery endpoint so the frontend knows how to authenticate
 - Optionally serve the built frontend SPA as static files
 
 ## API Routes
 
-All routes under `/api/` require a valid Firebase ID token in the `Authorization: Bearer <token>` header.
+All routes under `/api/` (except `/api/auth/*`) require an `Authorization: Bearer <token>` header. What constitutes a valid token depends on `AUTH_MODE` — see [authentication.md](./authentication.md).
 
 For the full vault and team model including permission matrices, see [vaults-and-teams.md](./vaults-and-teams.md).
+
+### Auth Routes (unauthenticated)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/auth/mode` | Returns the server's auth mode — called by the frontend on startup |
+| `POST` | `/api/auth/login` | `secret_key` mode only — accepts credentials, returns a signed JWT |
+
+#### `GET /api/auth/mode`
+
+```json
+{ "mode": "local" }
+{ "mode": "secret_key" }
+{ "mode": "firebase", "project_id": "my-project" }
+{ "mode": "oidc", "issuer": "https://auth.example.com", "client_id": "nyx-notes" }
+```
+
+The frontend calls this on startup to decide which login UI to render (or to skip login entirely in `local` mode).
 
 ### Note Routes (vault-scoped)
 

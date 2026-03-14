@@ -1,20 +1,97 @@
-# Authentication (Firebase)
+# Authentication
 
-## Purpose
+## Design Principle
 
-Implements the `AuthStore` trait from `notes-core` using Firebase Authentication. The app never manages passwords or sessions itself — Firebase handles identity, and the backend only verifies Firebase ID tokens.
+**Auth is pluggable.** The `AuthStore` trait in `notes-core` abstracts identity verification. The concrete implementation is selected at startup via `AUTH_MODE`. Firebase is one option — not a requirement.
 
-## Design Decision
+This means the app works fully offline, air-gapped, and without any Google account when the right mode is chosen.
 
-**Firebase is used for auth; the filesystem is used for content.** This is a deliberate split:
+---
 
-- Firebase manages user identity, login providers (email, Google, etc.), and session tokens
-- The Rust backend verifies Firebase ID tokens on every request
-- No users table, no session management, no password hashing in this app
+## Auth Modes
 
-This means the backend is **stateless with respect to auth** — it trusts Firebase and uses the verified `uid` as `user_id` for storage namespacing.
+| Mode | Use case | External dependency |
+|---|---|---|
+| `local` | Single-user, local machine, native app | None |
+| `secret_key` | Self-hosted NAS/server, small group | None |
+| `firebase` | Cloud deployment, managed multi-user | Google Firebase |
+| `oidc` | Self-hosted with an identity server | Authentik / Keycloak / Authelia / any OIDC provider |
 
-## Token Verification Flow
+Set via the `AUTH_MODE` environment variable. Default: `local`.
+
+---
+
+## `local` — No Authentication
+
+No verification. The server always returns a hardcoded single user. There is no login screen.
+
+**When to use:** Local machine install, native Tauri app, development, air-gapped environments.
+
+```rust
+pub struct LocalAuthStore {
+    user: User, // constructed from NOTES_LOCAL_USER_NAME env var, defaults to "local"
+}
+
+impl AuthStore for LocalAuthStore {
+    fn verify_token(&self, _token: &str) -> Result<User, AuthError> {
+        Ok(self.user.clone())
+    }
+}
+```
+
+Frontend behaviour: skip `LoginView` entirely. No token is attached to API requests. The backend ignores the `Authorization` header.
+
+---
+
+## `secret_key` — Local JWT Signing
+
+The server generates (or loads) a secret key on startup and signs its own JWTs. No external service. Works offline and air-gapped.
+
+**When to use:** Self-hosted NAS, single-user or small group, no internet dependency.
+
+### Key management
+
+On first run, a random 256-bit key is generated and saved to `$NOTES_SECRET_KEY_PATH` (default: `~/.config/nyx-notes/secret.key`). On subsequent runs it is loaded from that file.
+
+Alternatively, the key can be provided directly via `NOTES_SECRET_KEY` env var (useful in containers).
+
+### Login flow
+
+```
+POST /api/auth/login
+Body: { "username": "...", "password": "..." }
+→ 200 OK  { "token": "<signed JWT>", "expires_in": 86400 }
+→ 401     { "error": "invalid credentials" }
+```
+
+Users are stored as a simple list in `$NOTES_ROOT/.users.json`. Passwords are hashed with Argon2. The first user is created on first run if none exist (interactive or via env vars).
+
+The returned JWT is short-lived (24h by default, configurable). The frontend stores it in memory and refreshes it before expiry.
+
+```rust
+pub struct SecretKeyAuthStore {
+    key: Hmac<Sha256>,
+    users: Arc<RwLock<Vec<LocalUser>>>,
+}
+
+impl AuthStore for SecretKeyAuthStore {
+    fn verify_token(&self, token: &str) -> Result<User, AuthError> {
+        // verify HMAC signature + expiry, extract user_id, look up user
+    }
+}
+```
+
+Frontend behaviour: show a simple login form (username + password). On success, store the token and attach it to all API requests as `Authorization: Bearer <token>`.
+
+---
+
+## `firebase` — Firebase Authentication
+
+Firebase manages user identity and issues ID tokens (JWTs). The backend verifies token signatures using Firebase's public JWKS endpoint.
+
+**When to use:** Cloud deployments, managed multi-user, when you want Google/email login providers without running your own identity server.
+
+### Token verification flow
 
 ```
 Client                  Backend              Firebase
@@ -26,61 +103,83 @@ Client                  Backend              Firebase
   |                   (proceed with uid)        |
 ```
 
-1. The frontend obtains a Firebase ID token via the Firebase JS SDK (`getIdToken()`)
-2. The token is sent as `Authorization: Bearer <token>` on every API request
-3. The backend verifies the JWT signature using Firebase's public keys (fetched from Google's JWKS endpoint and cached)
-4. On success: extract `uid`, `email`, `name` from the token claims → `User`
+Firebase's public keys are fetched from Google's JWKS endpoint and cached per `Cache-Control: max-age` headers.
 
-## Implementation
+### Configuration
+
+| Env var | Required | Description |
+|---|---|---|
+| `FIREBASE_PROJECT_ID` | Yes | Used to validate the `aud` claim |
+
+No service account key is needed for token verification.
 
 ```rust
 pub struct FirebaseAuthStore {
     project_id: String,
-    // cached public keys, refreshed when expired
     jwks_cache: Arc<RwLock<JwksCache>>,
-}
-
-impl AuthStore for FirebaseAuthStore {
-    fn find_user(&self, user_id: &str) -> Result<Option<User>, AuthError> {
-        // Not used in token-only flow; could call Firebase Admin REST API if needed
-        todo!()
-    }
-
-    fn verify_token(&self, token: &str) -> Result<User, AuthError> {
-        // 1. Decode JWT header to get `kid`
-        // 2. Fetch/cache Google public keys for `kid`
-        // 3. Verify signature, expiry, audience (== project_id), issuer
-        // 4. Extract uid, email, display_name from claims
-        // 5. Return User
-        todo!()
-    }
 }
 ```
 
-### JWKS Caching
+Frontend behaviour: Firebase JS SDK handles login UI and token lifecycle (`getIdToken()` for refresh).
 
-Firebase public keys are fetched from Google's JWKS endpoint. The response includes `Cache-Control: max-age=<N>` headers. The implementation must cache keys and only re-fetch when expired.
+---
 
-No Firebase service account key is needed for token verification — only the `FIREBASE_PROJECT_ID` and the public JWKS are required.
+## `oidc` — OpenID Connect
 
-## Configuration
+Verifies tokens issued by any OIDC-compliant identity provider. Drop-in replacement for Firebase for users who self-host their identity layer.
+
+**When to use:** NAS or server with an existing identity provider (Authentik, Keycloak, Authelia, etc.).
+
+### Configuration
 
 | Env var | Required | Description |
 |---|---|---|
-| `FIREBASE_PROJECT_ID` | Yes | Firebase project ID (used to validate `aud` claim) |
+| `OIDC_ISSUER_URL` | Yes | OIDC discovery URL (e.g. `https://auth.example.com`) |
+| `OIDC_CLIENT_ID` | Yes | Client ID registered with the provider |
+| `OIDC_AUDIENCE` | No | Expected `aud` claim value; defaults to `OIDC_CLIENT_ID` |
 
-## Single-User / Dev Mode
+The provider's JWKS endpoint is discovered from `{OIDC_ISSUER_URL}/.well-known/openid-configuration` and cached the same way as Firebase.
 
-For local development without Firebase, a dev-mode bypass can be enabled:
+```rust
+pub struct OidcAuthStore {
+    issuer: String,
+    client_id: String,
+    jwks_cache: Arc<RwLock<JwksCache>>,
+}
+```
 
-- `AUTH_DEV_MODE=true` — skip token verification, use a hardcoded `user_id: "dev"`
-- Should **never** be enabled in production
+Frontend behaviour: redirect to the OIDC provider's login page. On return, exchange the auth code for tokens. Attach the access token as `Bearer` on API requests.
 
-## Multi-User Notes Namespacing
+---
 
-Once a token is verified, the `User.id` (Firebase `uid`) is used as the directory name under `$NOTES_ROOT/users/`. Each user's personal vaults live at `$NOTES_ROOT/users/<uid>/`.
+## Auth Mode Discovery
 
-## Future Considerations
+The frontend needs to know which auth mode the server is running so it can show the correct login UI (or none at all).
 
-- Offline/local-only mode: allow using the app without Firebase (dev or air-gapped)
-- Custom auth backend: `AuthStore` trait makes it swappable
+```
+GET /api/auth/mode
+→ 200 OK  { "mode": "local" | "secret_key" | "firebase" | "oidc", "oidc_issuer"?: "..." }
+```
+
+This endpoint is unauthenticated. The frontend calls it on startup before rendering anything.
+
+---
+
+## Crate Structure
+
+Auth implementations live in separate crates to avoid pulling in unnecessary dependencies:
+
+```
+crates/
+  notes-auth-local/      # LocalAuthStore + SecretKeyAuthStore (no external deps)
+  notes-auth-firebase/   # FirebaseAuthStore
+  notes-auth-oidc/       # OidcAuthStore
+```
+
+`notes-server-axum` selects which crate to link based on the `AUTH_MODE` at runtime (all modes are compiled in; selection is a runtime branch, not a compile-time feature flag, for simplicity).
+
+---
+
+## Removed
+
+The `AUTH_DEV_MODE=true` environment variable hack is replaced by `AUTH_MODE=local`. It should not be used.
