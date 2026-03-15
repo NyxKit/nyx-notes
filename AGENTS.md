@@ -13,19 +13,20 @@ The `docs/` folder is the **authoritative specification** for this project. It i
 
 ## What This Repo Is
 
-**Nyx Notes** is a self-hosted, Markdown-first notes application. It is not yet implemented — this repository currently holds architecture, design specs, and workspace scaffolding only.
+**Nyx Notes** is a self-hosted, Markdown-first notes application. The Rust backend (domain, storage, HTTP API, CLI) is implemented. The Vue frontend is in progress.
 
 The stack:
 
-| Layer | Technology | Location |
-|---|---|---|
-| Domain logic | Rust (`notes-core`) | `crates/notes-core/` |
-| Storage | Rust (`notes-storage-fs`) | `crates/notes-storage-fs/` |
-| HTTP API | Rust/Axum (`notes-server-axum`) | `crates/notes-server-axum/` |
-| CLI | Rust (`notes-cli`) | `crates/notes-cli/` |
-| Frontend | Vue 3 + nyx-kit + TipTap | `frontend/` |
-| Auth | Pluggable (`local`, `secret_key`, `oidc`) | — |
-| Content storage | Plain `.md` files on disk | `$NOTES_ROOT/` |
+| Layer | Technology | Location | Status |
+|---|---|---|---|
+| Domain logic | Rust (`notes-core`) | `crates/notes-core/` | ✅ built |
+| Storage | Rust (`notes-storage-fs`) | `crates/notes-storage-fs/` | ✅ built |
+| HTTP API | Rust/Axum (`notes-server-axum`) | `crates/notes-server-axum/` | ✅ built |
+| CLI | Rust (`notes-cli`) | `crates/notes-cli/` | ✅ built |
+| Frontend | Vue 3 + nyx-kit + NyxEditor | `frontend/src/` | 🚧 in progress |
+| Native app | Tauri (embeds Axum server) | `frontend/native/` | 🔜 planned |
+| Auth | Pluggable (`local`, `secret_key`, `oidc`) | — | 🔜 planned |
+| Content storage | Plain `.md` files on disk | `$NOTES_ROOT/` | ✅ built |
 
 The filesystem is the source of truth for content. Auth is pluggable via `AUTH_MODE`. The backend is stateless with respect to auth.
 

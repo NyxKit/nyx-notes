@@ -10,7 +10,7 @@ A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to
 |---|---|
 | Framework | Vue 3 (Composition API) |
 | Component library | `@nyxkit/nyx-kit` |
-| Editor | TipTap (with Markdown extensions) |
+| Editor | `NyxEditor` from `@nyxkit/nyx-kit` (wraps TipTap internally) |
 | Auth | Mode-adaptive (none / form / OIDC redirect) |
 | HTTP client | `fetch` / `ofetch` |
 | Build | Vite |
@@ -24,7 +24,7 @@ frontend/
     components/
       VaultSwitcher.vue      # dropdown: switch between personal and team vaults
       NoteList.vue           # sidebar: list of notes in the active vault
-      NoteEditor.vue         # TipTap editor pane
+      NoteEditor.vue         # thin wrapper around <NyxEditor> from nyx-kit
       NoteToolbar.vue        # save, delete, tags, permission selector
       CommentSidebar.vue     # comment thread panel (right of editor)
       CommentThread.vue      # single thread: anchor quote + replies
@@ -83,26 +83,21 @@ frontend/
 
 ## Editor (`NoteEditor.vue`)
 
-Uses TipTap with the following extensions:
+The editor is provided by `NyxEditor` from `@nyxkit/nyx-kit`. `NoteEditor.vue` is a thin wrapper that passes props and relays events — it does not configure TipTap directly.
 
-- `StarterKit` (headings, bold, italic, lists, blockquote, code blocks, horizontal rule)
-- `Markdown` extension (serialize/deserialize Markdown, so the backend stores `.md` files)
-- `Placeholder`
-- `CharacterCount` (optional)
-- `CommentMark` — custom extension, see [Inline Comments](#inline-comments) below
+TipTap, the Markdown extension, `CommentMark`, and all editor internals live in nyx-kit. This keeps the notes-core frontend clean of editor implementation details.
 
-The editor works in **Markdown storage mode**: the in-memory TipTap document is a rich prosemirror node tree, but the value saved to and loaded from the API is always raw Markdown.
-
-```ts
-// composables/useNoteEditor.ts
-const editor = useEditor({
-  extensions: [StarterKit, Markdown],
-  content: markdownToHtml(note.content), // on load
-  onUpdate: ({ editor }) => {
-    draftContent.value = editor.storage.markdown.getMarkdown()
-  },
-})
+```vue
+<!-- components/NoteEditor.vue -->
+<NyxEditor
+  v-model="draftContent"
+  :editable="canEdit"
+  :comments="comments"
+  @comment:create="onCommentCreate"
+/>
 ```
+
+The editor works in **Markdown storage mode**: content passed in and emitted out is always raw Markdown. The rich ProseMirror document tree is internal to NyxEditor.
 
 ## Vault Switcher (`VaultSwitcher.vue`)
 
@@ -267,43 +262,11 @@ Comments are anchored by **quoted text** — the exact string the user selected 
 
 On load, the frontend scans the document for each comment's `quoted_text` and applies a `CommentMark` decoration at the first match.
 
-### TipTap `CommentMark` Extension
+### `CommentMark` Extension
 
-A custom TipTap mark that highlights text associated with a comment thread.
+The `CommentMark` TipTap extension is implemented in `@nyxkit/nyx-kit` as part of `NyxEditor`. It highlights text associated with a comment thread using a `span[data-comment-id]` decoration.
 
-```ts
-// extensions/CommentMark.ts
-import { Mark } from '@tiptap/core'
-
-export const CommentMark = Mark.create({
-  name: 'comment',
-
-  addAttributes() {
-    return {
-      commentId: { default: null },
-      resolved: { default: false },
-    }
-  },
-
-  parseHTML() {
-    return [{ tag: 'span[data-comment-id]' }]
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ['span', {
-      'data-comment-id': HTMLAttributes.commentId,
-      class: HTMLAttributes.resolved ? 'comment-mark--resolved' : 'comment-mark',
-    }, 0]
-  },
-
-  // Does NOT serialize to Markdown — marks are applied in-memory only
-  addKeyboardShortcuts() {
-    return {}
-  },
-})
-```
-
-The mark is **not serialized to Markdown**. It is applied as a ProseMirror decoration each time the note loads, based on `quoted_text` matching.
+The mark is **not serialized to Markdown**. It is applied as an in-memory ProseMirror decoration each time a note loads, based on `quoted_text` matching. The note body on disk stays clean.
 
 ### User Interaction Flow
 
@@ -332,6 +295,29 @@ Comments require new API routes and storage. See [../architecture/backend-api.md
 | Action | Shortcut |
 |---|---|
 | Add comment on selection | `Cmd/Ctrl + Alt + M` |
+
+## Implementation Layers
+
+The frontend is built incrementally. Each layer produces reviewable, running code before the next begins.
+
+| # | Layer | Goal | Key files |
+|---|---|---|---|
+| 1 | Scaffold | Buildable Vite + Vue 3 + TS project, bare `App.vue` | `package.json`, `vite.config.ts`, `main.ts`, `App.vue` |
+| 2 | Types + API client | TS interfaces mirroring Rust domain types; `ofetch` client with auth header injection | `src/types/`, `src/api/` |
+| 3 | Auth composable + router | Mode discovery, token management, login view, route guards | `useAuth.ts`, `router/index.ts`, `LoginView.vue` |
+| 4 | Vault + note composables | CRUD state and operations consumed by views | `useVaults.ts`, `useNotes.ts` |
+| 5 | App shell + NoteView | Layout, vault switcher, note list, first navigable view | `App.vue`, `VaultSwitcher.vue`, `NoteList.vue`, `NoteView.vue` |
+| 6 | Editor | `NoteEditor.vue` wrapping `NyxEditor`, toolbar with permission selector | `NoteEditor.vue`, `NoteToolbar.vue` |
+| 7 | Comments | Comment composable, sidebar, thread, composer | `useComments.ts`, `CommentSidebar.vue`, `CommentThread.vue`, `CommentComposer.vue` |
+| 8 | Settings views | Vault and team management UI | `VaultSettingsView.vue`, `TeamSettingsView.vue`, `useTeams.ts` |
+
+**Layer 5 dependency**: requires `@nyxkit/nyx-kit` components (`NyxButton`, `NyxInput`, etc.).
+
+**Layer 6 dependency**: requires `NyxEditor` to be implemented and published in `@nyxkit/nyx-kit`.
+
+**Layer 7 dependency**: requires new backend routes and `FsStorage` sidecar support for `.comments.json` files. These must be implemented before or alongside this layer.
+
+---
 
 ## Non-Goals
 
