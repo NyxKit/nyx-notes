@@ -20,14 +20,16 @@ $NOTES_ROOT/
   users/
     <uid>/                    # one directory per user
       home/                   # default personal vault (always exists)
+        .vault.json           # vault metadata: id, name, slug (no permission field)
         <slug>.md
       <vault-slug>/           # additional personal vaults
+        .vault.json
         <slug>.md
   teams/
     <team-id>/
       .team.json              # team metadata: name, members, roles
       home/                   # default team vault (always exists)
-        .vault.json           # vault metadata: name, permission
+        .vault.json           # vault metadata: id, name, slug, permission
         <slug>.md
       <vault-slug>/
         .vault.json
@@ -89,6 +91,14 @@ impl FsStorage {
 }
 ```
 
+### Vault ID Resolution
+
+Methods that accept a bare `vault_id: &str` (such as `list_notes`, `load_note`, `delete_vault`) need to resolve that ID to a filesystem path. `FsStorage` does this by scanning all vault directories and reading their `.vault.json` files until a match is found.
+
+This is intentionally simple: the expected number of vaults per installation is small (tens, not thousands), so a linear scan on each operation is acceptable. If this becomes a bottleneck, a startup index built into `FsStorage::new` can be added without changing the `StorageBackend` trait.
+
+All vault directories — personal and team alike — carry a `.vault.json` file. This uniformity is what makes the scan possible. See the `.vault.json` format below.
+
 ### `list_notes(vault_id)`
 
 - Resolve the vault path from `vault_id`
@@ -139,8 +149,9 @@ impl FsStorage {
 
 ## Dependencies
 
-- `tokio::fs` for async IO
-- `serde` + `serde_yaml` for frontmatter
+- `std::fs` for synchronous IO (no async runtime dependency; the server layer handles blocking via `tokio::task::spawn_blocking`)
+- `serde` + `serde_yaml` for frontmatter (YAML)
+- `serde_json` for `.vault.json` and `.team.json` (JSON)
 - `walkdir` for recursive directory traversal
 
 ## Non-Goals

@@ -1,0 +1,19 @@
+[package]
+name = "notes-server-axum"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "notes-server"
+path = "src/main.rs"
+
+[dependencies]
+notes-core = { path = "../notes-core" }
+notes-storage-fs = { path = "../notes-storage-fs" }
+notes-auth-local = { path = "../notes-auth-local" }
+axum = { version = "0.7", features = ["json", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }

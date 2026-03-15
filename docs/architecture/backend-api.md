@@ -154,13 +154,35 @@ Response: `200 OK` with updated `Team`.
 
 ```rust
 #[derive(Clone)]
-struct AppState {
-    storage: Arc<dyn StorageBackend>,
-    auth: Arc<dyn AuthStore>,
+pub struct AppState {
+    pub storage: AsyncStorageAdapter,
+    pub auth: Arc<dyn AuthStore>,
 }
 ```
 
-> Use `Arc<dyn Trait>` instead of generics on `AppState` to keep handler signatures clean and avoid monomorphization complexity.
+`AsyncStorageAdapter` is a thin newtype over `Arc<dyn StorageBackend>` that exposes async versions of every storage method via `tokio::task::spawn_blocking`. Handlers call `state.storage.list_notes(vault_id).await` and never touch the sync trait directly.
+
+```rust
+#[derive(Clone)]
+pub struct AsyncStorageAdapter(Arc<dyn StorageBackend>);
+
+impl AsyncStorageAdapter {
+    pub fn new(storage: Arc<dyn StorageBackend>) -> Self {
+        Self(storage)
+    }
+
+    pub async fn list_notes(&self, vault_id: String) -> Result<Vec<NoteMeta>, StorageError> {
+        let s = Arc::clone(&self.0);
+        tokio::task::spawn_blocking(move || s.list_notes(&vault_id))
+            .await
+            .map_err(|e| StorageError::IoError(std::io::Error::other(e)))?
+    }
+
+    // … one method per StorageBackend method
+}
+```
+
+**Why not `async fn` on the trait itself?** `StorageBackend` uses `dyn Trait` dispatch (`Arc<dyn StorageBackend>`). Rust's native AFIT is not yet object-safe with `dyn`. The `async-trait` crate would work but introduces a dependency into `notes-core` — the pure domain crate. `spawn_blocking` in a dedicated adapter keeps `notes-core` dependency-free and makes the CLI usable without a Tokio runtime.
 
 ## Permission Enforcement
 
@@ -172,7 +194,7 @@ async fn get_note(
     AuthenticatedUser(user): AuthenticatedUser,
     Path((vault_id, id)): Path<(String, String)>,
 ) -> Result<Json<Note>, AppError> {
-    let note = state.storage.load_note(&vault_id, &id)?;
+    let note = state.storage.load_note(vault_id, id).await?;
 
     if note.meta.author_id != user.id {
         match note.meta.permission {

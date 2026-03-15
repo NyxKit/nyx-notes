@@ -66,6 +66,7 @@ Implementations live in separate crates (e.g. `notes-storage-fs`). The backend m
 pub trait StorageBackend: Send + Sync {
     // Vault management
     fn list_vaults(&self, owner: &VaultOwner) -> Result<Vec<Vault>, StorageError>;
+    fn load_vault(&self, vault_id: &str) -> Result<Vault, StorageError>;
     fn create_vault(&self, vault: &Vault) -> Result<(), StorageError>;
     fn delete_vault(&self, vault_id: &str) -> Result<(), StorageError>;
     fn update_vault_permission(&self, vault_id: &str, permission: NotePermission) -> Result<(), StorageError>;
@@ -74,6 +75,7 @@ pub trait StorageBackend: Send + Sync {
     fn load_team(&self, team_id: &str) -> Result<Team, StorageError>;
     fn save_team(&self, team: &Team) -> Result<(), StorageError>;
     fn delete_team(&self, team_id: &str) -> Result<(), StorageError>;
+    fn list_teams_for_user(&self, user_id: &str) -> Result<Vec<Team>, StorageError>;
 
     // Notes (vault-scoped; vault_id is always required)
     fn list_notes(&self, vault_id: &str) -> Result<Vec<NoteMeta>, StorageError>;
@@ -94,9 +96,19 @@ pub struct User {
     pub display_name: String,
 }
 
+/// Returned by `AuthStore::login` on success.
+pub struct LoginToken {
+    pub token: String,
+    pub expires_in: u64,  // seconds
+}
+
 pub trait AuthStore: Send + Sync {
     fn find_user(&self, user_id: &str) -> Result<Option<User>, AuthError>;
     fn verify_token(&self, token: &str) -> Result<User, AuthError>;
+
+    /// Authenticate with username + password. Only `secret_key` mode implements this.
+    /// Default returns `AuthError::ServiceError("login not supported")`.
+    fn login(&self, username: &str, password: &str) -> Result<LoginToken, AuthError> { ... }
 }
 ```
 
@@ -116,6 +128,7 @@ pub enum StorageError {
 pub enum AuthError {
     InvalidToken,
     UserNotFound,
+    InvalidCredentials,
     ServiceError(String),
 }
 ```
