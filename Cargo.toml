@@ -1,0 +1,9 @@
+[workspace]
+members = [
+    "crates/notes-core",
+    "crates/notes-storage-fs",
+    "crates/notes-auth-local",
+    "crates/notes-server-axum",
+    "crates/notes-cli",
+]
+resolver = "2"

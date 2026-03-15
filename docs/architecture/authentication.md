@@ -69,16 +69,23 @@ The returned JWT is short-lived (24h by default, configurable). The frontend sto
 
 ```rust
 pub struct SecretKeyAuthStore {
-    key: Hmac<Sha256>,
+    encoding_key: jsonwebtoken::EncodingKey,
+    decoding_key: jsonwebtoken::DecodingKey,
     users: Arc<RwLock<Vec<LocalUser>>>,
 }
 
 impl AuthStore for SecretKeyAuthStore {
     fn verify_token(&self, token: &str) -> Result<User, AuthError> {
-        // verify HMAC signature + expiry, extract user_id, look up user
+        // decode JWT (HS256), verify signature + expiry, extract sub (user_id), look up user
+    }
+
+    fn login(&self, username: &str, password: &str) -> Result<LoginToken, AuthError> {
+        // find user by username, verify Argon2 password hash, issue signed JWT
     }
 }
 ```
+
+**Dependencies:** `jsonwebtoken` for JWT encode/decode (HS256); `argon2` for password hashing. Both live in `notes-auth-local` only — not pulled into `notes-core` or `notes-server-axum`.
 
 Frontend behaviour: show a simple login form (username + password). On success, store the token and attach it to all API requests as `Authorization: Bearer <token>`.
 

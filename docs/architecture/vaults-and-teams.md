@@ -95,14 +95,16 @@ $NOTES_ROOT/
   users/
     <uid>/                     # one directory per user
       home/                    # default personal vault (always exists)
+        .vault.json            # vault metadata (id, name, slug — no permission)
         note-slug.md
       <vault-slug>/            # additional personal vaults
+        .vault.json
         note-slug.md
   teams/
     <team-id>/
       .team.json               # team metadata (name, members, roles)
       home/                    # default team vault (always exists)
-        .vault.json            # vault metadata (name, permission)
+        .vault.json            # vault metadata (id, name, slug, permission)
         note-slug.md
       <vault-slug>/
         .vault.json
@@ -125,12 +127,25 @@ $NOTES_ROOT/
 
 ### `.vault.json`
 
-Only present in **team** vault directories. Personal vaults have no metadata file.
+Present in **all** vault directories (personal and team). This allows `FsStorage` to resolve a vault by its `id` without maintaining a separate index.
+
+Personal vault example (no `permission` field — personal vaults are always restricted to the owner):
+
+```json
+{
+  "id": "vault-abc123",
+  "name": "Home",
+  "slug": "home"
+}
+```
+
+Team vault example:
 
 ```json
 {
   "id": "vault-xyz456",
   "name": "Home",
+  "slug": "home",
   "permission": "comment"
 }
 ```
@@ -181,4 +196,5 @@ All note operations are scoped to a vault:
 
 - On first login, a personal `home` vault is created for the user if it doesn't exist.
 - On team creation, a team `home` vault is created automatically with `permission: restricted`.
+  - The home vault's `id` is derived as `"{team_id}-home"` (e.g. `"team-abc123-home"`). This convention is used by `FsStorage::save_team` when initialising the default vault.
 - New notes created within a team vault inherit the vault's permission as their default.
