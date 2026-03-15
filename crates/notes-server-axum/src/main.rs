@@ -21,9 +21,10 @@ async fn main() {
 
     let (auth, auth_config): (Arc<dyn AuthStore>, AuthConfig) = match auth_mode.as_str() {
         "local" => {
+            let user_id = std::env::var("NOTES_USER_ID").unwrap_or_else(|_| "local".into());
             let name =
                 std::env::var("NOTES_LOCAL_USER_NAME").unwrap_or_else(|_| "Local User".into());
-            (Arc::new(LocalAuthStore::new(name)), AuthConfig::Local)
+            (Arc::new(LocalAuthStore::new(user_id, name)), AuthConfig::Local)
         }
         "secret_key" => {
             let key = load_or_generate_key();
@@ -45,7 +46,7 @@ async fn main() {
             );
             #[allow(unreachable_code)]
             (
-                Arc::new(LocalAuthStore::new("oidc-placeholder".into())),
+                Arc::new(LocalAuthStore::new("local".into(), "oidc-placeholder".into())),
                 AuthConfig::Oidc { issuer, client_id },
             )
         }

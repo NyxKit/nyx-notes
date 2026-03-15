@@ -57,6 +57,23 @@ nyx-notes/
 
 - Rust (stable) — [rustup.rs](https://rustup.rs)
 
+### Environment
+
+Copy `.env.example` to `.env` and adjust to your machine, then source it before running anything:
+
+```sh
+cp .env.example .env
+# edit .env — set NOTES_ROOT and NOTES_USER_ID
+
+# bash / zsh
+source .env && export $(cut -d= -f1 .env)
+
+# fish
+export (grep -v '^#' .env | xargs -L1)
+```
+
+> **Note:** `NOTES_USER_ID` must match between the CLI and the server (see [Configuration](#configuration)).
+
 ### Build
 
 ```sh
@@ -66,8 +83,7 @@ cargo build
 ### CLI
 
 ```sh
-export NOTES_ROOT=/tmp/nyx-notes
-export NOTES_USER_ID=alice
+# (after sourcing .env)
 
 # Create your home vault
 cargo run -p notes-cli -- vault new --slug home --name Home
@@ -96,7 +112,7 @@ cargo run -p notes-cli -- vault new --slug journal --name Journal
 ### Server
 
 ```sh
-export NOTES_ROOT=/tmp/nyx-notes
+# (after sourcing .env)
 cargo run -p notes-server-axum
 # Listening on http://localhost:8080
 ```
@@ -124,10 +140,12 @@ curl "http://localhost:8080/api/vaults/<vault-id>/notes"
 | Setting | Env var | Default | Config key |
 |---|---|---|---|
 | Notes root | `NOTES_ROOT` | `~/notes` | `notes_root` |
-| User ID | `NOTES_USER_ID` | `"default"` | `user_id` |
+| User ID | `NOTES_USER_ID` | `"local"` | `user_id` |
 | Active vault | `NOTES_VAULT` | `"home"` | `vault` |
 | Editor | `EDITOR` | `vi` | — |
 | Server port | `PORT` | `8080` | — |
+
+> **Note:** `NOTES_USER_ID` must match between the CLI and the server. Both read from `users/<NOTES_USER_ID>/` on disk — if they differ you will see different vaults.
 
 CLI config file: `~/.config/nyx-notes/config.toml`
 

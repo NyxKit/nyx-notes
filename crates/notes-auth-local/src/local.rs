@@ -10,12 +10,13 @@ pub struct LocalAuthStore {
 }
 
 impl LocalAuthStore {
-    /// `name` is taken from `NOTES_LOCAL_USER_NAME`, defaulting to `"Local User"`.
-    pub fn new(name: String) -> Self {
+    /// `user_id` is taken from `NOTES_USER_ID` (defaults to `"local"`).
+    /// `name` is taken from `NOTES_LOCAL_USER_NAME` (defaults to `"Local User"`).
+    pub fn new(user_id: String, name: String) -> Self {
         Self {
             user: User {
-                id: "local".into(),
-                email: "local@localhost".into(),
+                id: user_id.clone(),
+                email: format!("{user_id}@localhost"),
                 display_name: name,
             },
         }
@@ -24,7 +25,7 @@ impl LocalAuthStore {
 
 impl AuthStore for LocalAuthStore {
     fn find_user(&self, user_id: &str) -> Result<Option<User>, AuthError> {
-        if user_id == "local" {
+        if user_id == self.user.id {
             Ok(Some(self.user.clone()))
         } else {
             Ok(None)

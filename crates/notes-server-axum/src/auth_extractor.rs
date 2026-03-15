@@ -24,7 +24,8 @@ impl FromRequestParts<AppState> for AuthenticatedUser {
         state: &AppState,
     ) -> Result<Self, Self::Rejection> {
         if state.auth_config == AuthConfig::Local {
-            return Ok(AuthenticatedUser(local_user()));
+            let user = state.auth.verify_token("").map_err(AppError::from)?;
+            return Ok(AuthenticatedUser(user));
         }
 
         let token = bearer_token(&parts.headers)
@@ -43,12 +44,4 @@ fn bearer_token(headers: &HeaderMap) -> Option<&str> {
         .get(axum::http::header::AUTHORIZATION)
         .and_then(|v| v.to_str().ok())
         .and_then(|v| v.strip_prefix("Bearer "))
-}
-
-pub fn local_user() -> User {
-    User {
-        id: "local".into(),
-        email: "local@localhost".into(),
-        display_name: "Local User".into(),
-    }
 }
