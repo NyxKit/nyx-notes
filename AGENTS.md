@@ -24,10 +24,10 @@ The stack:
 | HTTP API | Rust/Axum (`notes-server-axum`) | `crates/notes-server-axum/` |
 | CLI | Rust (`notes-cli`) | `crates/notes-cli/` |
 | Frontend | Vue 3 + nyx-kit + TipTap | `frontend/` |
-| Auth | Firebase (JWT verification only) | — |
+| Auth | Pluggable (`local`, `secret_key`, `oidc`) | — |
 | Content storage | Plain `.md` files on disk | `$NOTES_ROOT/` |
 
-The filesystem is the source of truth for content. Firebase handles identity. The backend is stateless with respect to auth.
+The filesystem is the source of truth for content. Auth is pluggable via `AUTH_MODE`. The backend is stateless with respect to auth.
 
 ---
 
@@ -47,7 +47,7 @@ nyx-notes-core/
       core-domain.md  # canonical types, StorageBackend/AuthStore traits
       filesystem-storage.md  # directory layout, frontmatter format, FsStorage impl
       backend-api.md  # Axum routes, permission enforcement, error mapping
-      authentication.md  # Firebase JWT verification, JWKS caching
+      authentication.md  # auth modes (local, secret_key, oidc), JWKS caching
       vaults-and-teams.md  # vault/team model, roles, permission matrices
     interface/        # user-facing surfaces
       README.md

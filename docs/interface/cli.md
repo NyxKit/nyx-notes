@@ -193,5 +193,5 @@ fn main() {
 ## Non-Goals
 
 - No HTTP calls to the backend server
-- No Firebase auth (operates in single-user mode via `NOTES_USER_ID`)
+- No auth (operates in single-user mode via `NOTES_USER_ID`)
 - No TUI (interactive terminal UI) — plain command invocations only

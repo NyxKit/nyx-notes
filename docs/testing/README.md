@@ -89,6 +89,6 @@ What to test:
 
 ## What Not to Test
 
-- Don't test the Firebase JWKS endpoint (mock the HTTP client in auth tests)
+- Don't test the OIDC provider's JWKS endpoint (mock the HTTP client in auth tests)
 - Don't test nyx-kit component internals
 - Don't test that `serde_yaml` parses YAML correctly — trust the dependency

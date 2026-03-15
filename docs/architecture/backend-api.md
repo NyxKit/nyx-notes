@@ -30,7 +30,6 @@ For the full vault and team model including permission matrices, see [vaults-and
 ```json
 { "mode": "local" }
 { "mode": "secret_key" }
-{ "mode": "firebase", "project_id": "my-project" }
 { "mode": "oidc", "issuer": "https://auth.example.com", "client_id": "nyx-notes" }
 ```
 
@@ -145,7 +144,7 @@ Response: `201 Created` with the created `Team`.
 
 ### `POST /api/teams/:team_id/members`
 
-Request body: `{ "user_id": "firebase-uid", "role": "member" }`.
+Request body: `{ "user_id": "uid", "role": "member" }`.
 
 Valid roles: `"admin"`, `"member"`. (Only one owner is allowed; ownership is transferred separately.)
 
@@ -240,7 +239,6 @@ This allows a single binary deployment where the Rust server handles both API an
 | Env var | Default | Description |
 |---|---|---|
 | `NOTES_ROOT` | `./notes` | Passed to `FsStorage` |
-| `FIREBASE_PROJECT_ID` | — | Required for token verification |
 | `PORT` | `8080` | Listening port |
 | `FRONTEND_DIST` | `./dist` | Path to compiled frontend (optional) |
 
@@ -251,4 +249,4 @@ This allows a single binary deployment where the Rust server handles both API an
 - `serde` / `serde_json` — JSON
 - `tower-http` — `ServeDir`, CORS, tracing middleware
 - `notes-core`, `notes-storage-fs` — storage
-- Firebase auth crate (see [authentication.md](./authentication.md))
+- `notes-auth-local`, `notes-auth-oidc` — auth implementations (see [authentication.md](./authentication.md))

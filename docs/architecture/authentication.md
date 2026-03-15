@@ -2,9 +2,9 @@
 
 ## Design Principle
 
-**Auth is pluggable.** The `AuthStore` trait in `notes-core` abstracts identity verification. The concrete implementation is selected at startup via `AUTH_MODE`. Firebase is one option — not a requirement.
+**Auth is pluggable.** The `AuthStore` trait in `notes-core` abstracts identity verification. The concrete implementation is selected at startup via `AUTH_MODE`.
 
-This means the app works fully offline, air-gapped, and without any Google account when the right mode is chosen.
+This means the app works fully offline, air-gapped, and without any external dependencies when the right mode is chosen.
 
 ---
 
@@ -14,8 +14,7 @@ This means the app works fully offline, air-gapped, and without any Google accou
 |---|---|---|
 | `local` | Single-user, local machine, native app | None |
 | `secret_key` | Self-hosted NAS/server, small group | None |
-| `firebase` | Cloud deployment, managed multi-user | Google Firebase |
-| `oidc` | Self-hosted with an identity server | Authentik / Keycloak / Authelia / any OIDC provider |
+| `oidc` | Any deployment with an identity provider | Any OIDC provider (Authentik, Keycloak, Authelia, Firebase, etc.) |
 
 Set via the `AUTH_MODE` environment variable. Default: `local`.
 
@@ -85,48 +84,9 @@ Frontend behaviour: show a simple login form (username + password). On success, 
 
 ---
 
-## `firebase` — Firebase Authentication
-
-Firebase manages user identity and issues ID tokens (JWTs). The backend verifies token signatures using Firebase's public JWKS endpoint.
-
-**When to use:** Cloud deployments, managed multi-user, when you want Google/email login providers without running your own identity server.
-
-### Token verification flow
-
-```
-Client                  Backend              Firebase
-  |                        |                    |
-  |-- Bearer <id_token> -->|                    |
-  |                        |-- verify JWT ----->|
-  |                        |<-- uid, email -----|
-  |                        |                    |
-  |                   (proceed with uid)        |
-```
-
-Firebase's public keys are fetched from Google's JWKS endpoint and cached per `Cache-Control: max-age` headers.
-
-### Configuration
-
-| Env var | Required | Description |
-|---|---|---|
-| `FIREBASE_PROJECT_ID` | Yes | Used to validate the `aud` claim |
-
-No service account key is needed for token verification.
-
-```rust
-pub struct FirebaseAuthStore {
-    project_id: String,
-    jwks_cache: Arc<RwLock<JwksCache>>,
-}
-```
-
-Frontend behaviour: Firebase JS SDK handles login UI and token lifecycle (`getIdToken()` for refresh).
-
----
-
 ## `oidc` — OpenID Connect
 
-Verifies tokens issued by any OIDC-compliant identity provider. Drop-in replacement for Firebase for users who self-host their identity layer.
+Verifies tokens issued by any OIDC-compliant identity provider. Suitable for any deployment: self-hosted (Authentik, Keycloak, Authelia), cloud-managed (Firebase Auth, Auth0), or any other OIDC provider.
 
 **When to use:** NAS or server with an existing identity provider (Authentik, Keycloak, Authelia, etc.).
 
@@ -138,7 +98,7 @@ Verifies tokens issued by any OIDC-compliant identity provider. Drop-in replacem
 | `OIDC_CLIENT_ID` | Yes | Client ID registered with the provider |
 | `OIDC_AUDIENCE` | No | Expected `aud` claim value; defaults to `OIDC_CLIENT_ID` |
 
-The provider's JWKS endpoint is discovered from `{OIDC_ISSUER_URL}/.well-known/openid-configuration` and cached the same way as Firebase.
+The provider's JWKS endpoint is discovered from `{OIDC_ISSUER_URL}/.well-known/openid-configuration` and cached per `Cache-Control: max-age` headers.
 
 ```rust
 pub struct OidcAuthStore {
@@ -158,7 +118,7 @@ The frontend needs to know which auth mode the server is running so it can show 
 
 ```
 GET /api/auth/mode
-→ 200 OK  { "mode": "local" | "secret_key" | "firebase" | "oidc", "oidc_issuer"?: "..." }
+→ 200 OK  { "mode": "local" | "secret_key" | "oidc", "oidc_issuer"?: "..." }
 ```
 
 This endpoint is unauthenticated. The frontend calls it on startup before rendering anything.
@@ -172,7 +132,6 @@ Auth implementations live in separate crates to avoid pulling in unnecessary dep
 ```
 crates/
   notes-auth-local/      # LocalAuthStore + SecretKeyAuthStore (no external deps)
-  notes-auth-firebase/   # FirebaseAuthStore
   notes-auth-oidc/       # OidcAuthStore
 ```
 
@@ -182,4 +141,5 @@ crates/
 
 ## Removed
 
-The `AUTH_DEV_MODE=true` environment variable hack is replaced by `AUTH_MODE=local`. It should not be used.
+- The `AUTH_DEV_MODE=true` environment variable hack is replaced by `AUTH_MODE=local`. It should not be used.
+- The `firebase` auth mode has been removed. Users who want Google/email login or other managed identity should use `AUTH_MODE=oidc` with Firebase Auth as the OIDC provider (`OIDC_ISSUER_URL=https://securetoken.google.com/<project-id>`).

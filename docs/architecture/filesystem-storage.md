@@ -18,7 +18,7 @@ Notes are organized by vault, and vaults are owned by either a user or a team. S
 ```
 $NOTES_ROOT/
   users/
-    <uid>/                    # one directory per Firebase user
+    <uid>/                    # one directory per user
       home/                   # default personal vault (always exists)
         <slug>.md
       <vault-slug>/           # additional personal vaults

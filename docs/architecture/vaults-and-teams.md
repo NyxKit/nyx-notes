@@ -26,7 +26,7 @@ A vault is owned by either a user (personal) or a team.
 
 ```rust
 pub enum VaultOwner {
-    User(String),   // Firebase uid
+    User(String),   // user id
     Team(String),   // team id
 }
 ```
@@ -58,7 +58,7 @@ pub struct Team {
 }
 
 pub struct TeamMember {
-    pub user_id: String,        // Firebase uid
+    pub user_id: String,        // user id
     pub role: TeamRole,
 }
 
@@ -93,7 +93,7 @@ For team vaults, the effective access is determined by combining the user's `Tea
 ```
 $NOTES_ROOT/
   users/
-    <uid>/                     # one directory per Firebase user
+    <uid>/                     # one directory per user
       home/                    # default personal vault (always exists)
         note-slug.md
       <vault-slug>/            # additional personal vaults
@@ -116,9 +116,9 @@ $NOTES_ROOT/
   "id": "team-abc123",
   "name": "Engineering",
   "members": [
-    { "user_id": "firebase-uid-1", "role": "owner" },
-    { "user_id": "firebase-uid-2", "role": "admin" },
-    { "user_id": "firebase-uid-3", "role": "member" }
+    { "user_id": "uid-1", "role": "owner" },
+    { "user_id": "uid-2", "role": "admin" },
+    { "user_id": "uid-3", "role": "member" }
   ]
 }
 ```

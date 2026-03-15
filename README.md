@@ -6,7 +6,7 @@ A self-hosted, Markdown-first notes app.
 - Backend: portable Rust server (Axum) — runs on any Linux server, NAS, or local machine
 - Frontend: Vue 3 SPA using [nyx-kit](https://github.com/nyxkit/nyx-kit) and TipTap
 - CLI: terminal-first workflows, operates directly on the filesystem with no server required
-- Auth: pluggable — `local` (no auth), `secret_key` (self-hosted JWT), `firebase`, or `oidc`; no Google account required
+- Auth: pluggable — `local` (no auth), `secret_key` (self-hosted JWT), or `oidc` (any OIDC provider); no external dependency required for local or self-hosted deployments
 - Native app: Tauri desktop app for macOS, Windows, and Linux
 - Future: optional end-to-end encryption and optional AI assistant (never required)
 
@@ -30,7 +30,6 @@ nyx-notes/
     notes-core/           # domain types and traits — no IO or frameworks
     notes-storage-fs/     # filesystem implementation of StorageBackend
     notes-auth-local/     # LocalAuthStore + SecretKeyAuthStore (no external deps)
-    notes-auth-firebase/  # FirebaseAuthStore
     notes-auth-oidc/      # OidcAuthStore
     notes-server-axum/    # Axum HTTP API server
     notes-cli/            # CLI — direct filesystem access, no server required
@@ -57,6 +56,6 @@ nyx-notes/
 1. Single-user, local-mode Axum API + Vue frontend + CLI
 2. Tauri native app (embedded server, local auth)
 3. Multi-user vault namespacing + `secret_key` auth (self-hosted)
-4. `firebase` and `oidc` auth modes (cloud/managed)
+4. `oidc` auth mode (cloud/managed, any OIDC provider)
 5. Optional E2EE
 6. Optional AI/integrations (never required)

@@ -2,7 +2,7 @@
 
 ## Purpose
 
-A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to the Axum backend API, authenticates via Firebase, and uses TipTap as the rich Markdown editor.
+A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to the Axum backend API, adapts its auth UI to the server's `AUTH_MODE`, and uses TipTap as the rich Markdown editor.
 
 ## Stack
 
@@ -11,7 +11,7 @@ A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to
 | Framework | Vue 3 (Composition API) |
 | Component library | `@nyxkit/nyx-kit` |
 | Editor | TipTap (with Markdown extensions) |
-| Auth | Firebase JS SDK |
+| Auth | Mode-adaptive (none / form / OIDC redirect) |
 | HTTP client | `fetch` / `ofetch` |
 | Build | Vite |
 | Routing | Vue Router |
@@ -32,13 +32,13 @@ frontend/
     views/
       HomeView.vue           # redirect to last note or empty state
       NoteView.vue           # editor for a specific note (:vault_id/:id)
-      LoginView.vue          # Firebase login
+      LoginView.vue          # login UI (adapts to auth mode)
       VaultSettingsView.vue  # rename vault, change permission (team vaults), delete vault
       TeamSettingsView.vue   # manage members, roles, and team vaults
     composables/
       useVaults.ts           # vault list and active vault state
       useNotes.ts            # CRUD operations against the API (vault-scoped)
-      useAuth.ts             # Firebase auth state
+      useAuth.ts             # auth state and token management
       useComments.ts         # comment CRUD and anchor resolution
       useTeams.ts            # team management (members, roles, team vaults)
     router/index.ts
@@ -50,7 +50,10 @@ frontend/
 ### `LoginView`
 
 - Rendered at `/login`
-- Firebase sign-in UI (email/password or Google OAuth)
+- UI adapts to the server's `AUTH_MODE`:
+  - `secret_key`: username + password form, submits to `POST /api/auth/login`
+  - `oidc`: redirects to the OIDC provider's login page; exchanges the auth code for a token on return
+  - `local`: never rendered (login is skipped entirely)
 - On success: redirects to `/`
 
 ### `HomeView`
@@ -74,7 +77,7 @@ frontend/
 
 - Rename team
 - Member list: display name, role, remove button
-- Add member by email (looks up Firebase user by email via the API)
+- Add member by email (looks up user by email via the API)
 - Change member role (owner only can promote/demote admins)
 - List of team vaults with a link to each vault's settings
 
@@ -121,20 +124,23 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
 
 ## Auth Flow
 
+On startup, the frontend calls `GET /api/auth/mode` to discover which auth mode the server is running, then renders the appropriate login UI (or skips it for `local` mode).
+
 ```ts
 // composables/useAuth.ts
-import { getAuth, onAuthStateChanged, signInWithPopup } from 'firebase/auth'
-
-const user = ref<FirebaseUser | null>(null)
+const authMode = ref<'local' | 'secret_key' | 'oidc' | null>(null)
 const idToken = ref<string | null>(null)
 
-onAuthStateChanged(getAuth(), async (firebaseUser) => {
-  user.value = firebaseUser
-  idToken.value = firebaseUser ? await firebaseUser.getIdToken() : null
+onMounted(async () => {
+  const { mode, oidc_issuer } = await fetch('/api/auth/mode').then(r => r.json())
+  authMode.value = mode
+  if (mode === 'local') return  // no login needed
+  if (mode === 'oidc') initOidcClient(oidc_issuer)
+  // secret_key: token is set on login form submit
 })
 ```
 
-The `idToken` is attached to every API request:
+The token is attached to every API request:
 
 ```ts
 await fetch(`/api/vaults/${vaultId}/notes/${id}`, {
@@ -167,15 +173,12 @@ Use `@nyxkit/nyx-kit` components for all UI primitives:
 The built `dist/` can be:
 
 1. **Served by the Rust server** (zero extra infrastructure): `ServeDir::new("dist")` in Axum
-2. **Deployed to Firebase Hosting** with `/api/*` proxied to the Rust server
+2. **Deployed separately** to Netlify / Cloudflare Pages with `/api/*` proxied to the Rust server
 
 ## Environment Variables
 
 | Variable | Description |
 |---|---|
-| `VITE_FIREBASE_API_KEY` | Firebase web app config |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase web app config |
-| `VITE_FIREBASE_PROJECT_ID` | Firebase web app config |
 | `VITE_API_BASE_URL` | Backend base URL (defaults to `/` for same-origin) |
 
 ## Note Permissions

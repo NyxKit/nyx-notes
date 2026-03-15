@@ -10,7 +10,7 @@ Nyx Notes is designed to run in multiple configurations without code changes —
 |---|---|---|---|---|
 | [Local](#local) | Your machine (background process) | `local` | Local disk | Native app (Tauri) or `localhost` |
 | [Self-hosted](#self-hosted-nas--home-server) | Your NAS or home server | `secret_key` or `oidc` | NAS disk | Browser or native app |
-| [Cloud](#cloud) | VPS / container / managed hosting | `firebase` or `oidc` | Mounted volume | Browser or native app |
+| [Cloud](#cloud) | VPS / container / managed hosting | `oidc` | Mounted volume | Browser or native app |
 | [Native app](#native-app-tauri) | Embedded in the app itself | `local` | Local disk | Tauri webview |
 
 ---
@@ -68,19 +68,18 @@ PORT        = 8080
 Run on a VPS, container platform, or managed hosting. Multiple users, public internet access.
 
 ```
-NOTES_ROOT           = /data/notes   # mounted volume
-AUTH_MODE            = firebase       # or oidc
-FIREBASE_PROJECT_ID  = my-project     # if AUTH_MODE=firebase
-PORT                 = 8080
+NOTES_ROOT      = /data/notes   # mounted volume
+AUTH_MODE       = oidc
+OIDC_ISSUER_URL = https://auth.example.com
+OIDC_CLIENT_ID  = nyx-notes
+PORT            = 8080
 ```
 
-**`firebase` auth:** Delegates identity to Google Firebase. Enables email/password and OAuth login providers (Google, GitHub, etc.) without managing user accounts.
-
-**`oidc` auth:** Use your own OIDC provider for full control over identity.
+**`oidc` auth:** Use any OIDC provider — self-hosted (Authentik, Keycloak, Authelia) or managed (Firebase Auth, Auth0). Full control over identity with no proprietary SDK required.
 
 **Frontend deployment options:**
 - Served by the Rust server at `/` (single binary, zero extra infra)
-- Deployed separately to Firebase Hosting / Netlify / Cloudflare Pages with `/api/*` proxied to the server
+- Deployed separately to Netlify / Cloudflare Pages with `/api/*` proxied to the server
 
 ---
 
@@ -126,6 +125,5 @@ All configuration is via environment variables (or `~/.config/nyx-notes/config.t
 | `FRONTEND_DIST` | `./dist` | Server modes |
 | `NOTES_SECRET_KEY_PATH` | `~/.config/nyx-notes/secret.key` | `secret_key` |
 | `NOTES_SECRET_KEY` | — | `secret_key` (alternative to file) |
-| `FIREBASE_PROJECT_ID` | — | `firebase` |
 | `OIDC_ISSUER_URL` | — | `oidc` |
 | `OIDC_CLIENT_ID` | — | `oidc` |

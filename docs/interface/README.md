@@ -14,7 +14,7 @@ User-facing interfaces for Nyx Notes. There are two: a web frontend and a CLI.
 
 ### Frontend
 
-A Vue 3 SPA using `@nyxkit/nyx-kit` as the component library and TipTap as the Markdown editor. Auth UI adapts to the server's `AUTH_MODE` — no login screen in `local` mode, a simple form in `secret_key` mode, redirect flow in `oidc` mode, Firebase SDK in `firebase` mode. Three-panel layout: vault/note list · editor · comment sidebar.
+A Vue 3 SPA using `@nyxkit/nyx-kit` as the component library and TipTap as the Markdown editor. Auth UI adapts to the server's `AUTH_MODE` — no login screen in `local` mode, a simple form in `secret_key` mode, redirect flow in `oidc` mode. Three-panel layout: vault/note list · editor · comment sidebar.
 
 Key views: `NoteView`, `VaultSettingsView`, `TeamSettingsView`, `LoginView`.
 

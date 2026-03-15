@@ -44,7 +44,7 @@ Replace Axum routes with Tauri commands for direct Rust↔frontend calls (no HTT
 
 `AUTH_MODE=local` is hardcoded for the embedded server. There is no login screen. The app is single-user by default.
 
-**Remote server mode:** The user can configure a remote server URL in app settings. When set, the webview talks to that server instead of the embedded one, and the auth mode of the remote server applies (e.g. `secret_key` for a home NAS, `firebase` for a cloud instance).
+**Remote server mode:** The user can configure a remote server URL in app settings. When set, the webview talks to that server instead of the embedded one, and the auth mode of the remote server applies (e.g. `secret_key` for a home NAS, `oidc` for a cloud instance).
 
 ## Project Structure
 

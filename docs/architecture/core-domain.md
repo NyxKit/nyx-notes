@@ -56,7 +56,7 @@ pub struct Note {
 | Delete note | ✓ | ✗ | ✗ | ✗ |
 | Change permission | ✓ | ✗ | ✗ | ✗ |
 
-> "Any authenticated user" means any user who can successfully present a valid Firebase ID token. Specific per-user sharing (an allowlist) is a future feature.
+> "Any authenticated user" means any user who can successfully present a valid token for the configured auth mode. Specific per-user sharing (an allowlist) is a future feature.
 
 ## Storage Trait
 
@@ -100,7 +100,7 @@ pub trait AuthStore: Send + Sync {
 }
 ```
 
-> For Firebase auth, `verify_token` validates a Firebase ID token (JWT). Passwords are never stored by this app.
+> For `oidc` mode, `verify_token` validates a JWT issued by the configured OIDC provider. For `secret_key` mode, it validates an HMAC-signed JWT issued by the server itself. Passwords are never stored by this app in `oidc` mode.
 
 ## Error Types
 
