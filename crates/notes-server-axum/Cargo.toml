@@ -11,6 +11,7 @@ path = "src/main.rs"
 notes-core = { path = "../notes-core" }
 notes-storage-fs = { path = "../notes-storage-fs" }
 notes-auth-local = { path = "../notes-auth-local" }
+async-trait = "0.1"
 axum = { version = "0.7", features = ["json", "macros"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 serde = { version = "1", features = ["derive"] }

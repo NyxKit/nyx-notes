@@ -15,6 +15,7 @@ use crate::{error::AppError, types::AuthConfig, AppState};
 /// validated by the configured `AuthStore`.
 pub struct AuthenticatedUser(pub User);
 
+#[async_trait::async_trait]
 impl FromRequestParts<AppState> for AuthenticatedUser {
     type Rejection = AppError;
 

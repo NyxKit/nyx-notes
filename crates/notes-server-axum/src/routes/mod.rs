@@ -4,7 +4,7 @@ pub mod teams;
 pub mod vaults;
 
 use axum::{
-    routing::{delete, get, patch, post, put},
+    routing::{delete, get, patch, post},
     Router,
 };
 

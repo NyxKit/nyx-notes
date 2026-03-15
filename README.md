@@ -66,7 +66,7 @@ cargo build
 ### CLI
 
 ```sh
-export NOTES_ROOT=/tmp/nyx-test
+export NOTES_ROOT=/tmp/nyx-notes
 export NOTES_USER_ID=alice
 
 # Create your home vault
@@ -96,7 +96,7 @@ cargo run -p notes-cli -- vault new --slug journal --name Journal
 ### Server
 
 ```sh
-export NOTES_ROOT=/tmp/nyx-test
+export NOTES_ROOT=/tmp/nyx-notes
 cargo run -p notes-server-axum
 # Listening on http://localhost:8080
 ```

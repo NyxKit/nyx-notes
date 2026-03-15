@@ -1,11 +1,11 @@
 use std::process::Command as Process;
 
 use chrono::Utc;
-use notes_core::{Note, NoteMeta, Vault};
+use notes_core::{Note, NoteMeta, StorageBackend, Vault};
 use notes_storage_fs::FsStorage;
 use uuid::Uuid;
 
-use crate::output::{print_notes_table, relative_time};
+use crate::output::print_notes_table;
 
 pub fn list(
     storage: &FsStorage,

@@ -1,4 +1,4 @@
-use notes_core::{NotePermission, Vault, VaultOwner};
+use notes_core::{NotePermission, StorageBackend, Vault, VaultOwner};
 use notes_storage_fs::FsStorage;
 use uuid::Uuid;
 

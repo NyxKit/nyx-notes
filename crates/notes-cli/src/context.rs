@@ -1,4 +1,4 @@
-use notes_core::{Note, StorageError, Vault, VaultOwner};
+use notes_core::{Note, StorageBackend, StorageError, Vault, VaultOwner};
 use notes_storage_fs::FsStorage;
 
 /// Resolve a vault specifier to a `Vault`.
@@ -42,7 +42,7 @@ pub fn find_note(
         match storage.load_note(&vault.id, note_id) {
             Ok(note) => return Ok((vault, note)),
             Err(StorageError::NotFound) => continue,
-            Err(e) => return Err(e.into()),
+            Err(e) => return Err(anyhow::Error::from(e)),
         }
     }
     // Team vaults
@@ -51,7 +51,7 @@ pub fn find_note(
             match storage.load_note(&vault.id, note_id) {
                 Ok(note) => return Ok((vault, note)),
                 Err(StorageError::NotFound) => continue,
-                Err(e) => return Err(e.into()),
+                Err(e) => return Err(anyhow::Error::from(e)),
             }
         }
     }

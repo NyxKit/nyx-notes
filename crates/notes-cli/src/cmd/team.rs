@@ -1,3 +1,4 @@
+use notes_core::StorageBackend;
 use notes_storage_fs::FsStorage;
 
 pub fn list(storage: &FsStorage, user_id: &str) -> anyhow::Result<()> {
