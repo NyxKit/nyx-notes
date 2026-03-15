@@ -115,6 +115,74 @@ Before considering any change complete, verify:
 
 ---
 
+## Audits
+
+When asked to perform an audit, create a new file in `docs/audits/` named `YYYYMMDD-HHMM.md` using the current date and time (e.g. `20260315-1944.md`). Do not reuse or overwrite existing audit files.
+
+### Audit standard
+
+Every audit of nyx-notes-core must be performed as a **senior-level codebase review** — not a shallow summary. Treat this as production infrastructure: the backend runs on personal servers, stores private notes, and must be correct, secure, and maintainable.
+
+**Role:** Act as a principal engineer / systems architect. Be highly critical, practical, and specific. Reference actual files, crates, modules, and patterns. Do not praise unnecessarily.
+
+**Inspect all of the following where relevant:**
+domain model design, trait signatures, crate boundaries and layering, `StorageBackend` / `AuthStore` implementations, filesystem layout correctness, frontmatter parsing robustness, Axum route structure and handler correctness, permission enforcement, auth flow and token handling, error mapping (`StorageError` → `AppError`), `AsyncStorageAdapter` correctness, CLI ergonomics and config handling, Vue composable design, API client patterns, route guards and auth flows, TypeScript type coverage, component API consistency, frontend state management, environment variable handling, build setup (Cargo workspace + Vite), dead code and duplication, docs coverage, test coverage, security posture (injection risks, auth bypasses, path traversal, data leakage).
+
+**Evaluate whether the project is:**
+1. Correct — does the implementation match what the docs specify?
+2. Secure — are there auth bypasses, path traversal risks, or data leakage vectors?
+3. Consistent — do the CLI, server, and frontend agree on user IDs, vault slugs, and data formats?
+4. Maintainable — are crate boundaries clean, is logic in the right layer?
+5. Resilient — are errors handled correctly at every layer boundary?
+6. Developer-friendly — can a new contributor understand and run the project quickly?
+
+**Explicitly check for:**
+- Permission checks missing or in the wrong layer (should be in API handlers, not `FsStorage`)
+- `NOTES_USER_ID` / `NOTES_ROOT` mismatches between CLI and server
+- Path traversal risks in `find_vault_path` or note file resolution
+- `local_user()` / hardcoded user IDs that ignore env config
+- Auth extractor returning wrong user in `local` mode
+- Frontmatter parsing edge cases (missing fields, malformed YAML)
+- `StorageError` variants that silently swallow detail
+- `AppError` variants that leak internal paths or stack info to the client
+- Axum routes that return 200 where they should return 201 / 204
+- `AsyncStorageAdapter` methods that are missing (coverage gaps vs. `StorageBackend` trait)
+- Vue composables that share module-level state incorrectly across vault contexts
+- Frontend API calls that don't handle non-2xx responses
+- `ofetch` error handling gaps in `api/client.ts`
+- TypeScript types that diverge from the Rust types (field names, nullable vs. optional)
+- Frontend routes that load stale vault/note state after navigation
+- Missing `NOTES_USER_ID` export in `.env.example` or README mismatches
+- Dead code, unreachable branches (e.g. `oidc` placeholder panic)
+- Docs that describe a different interface than what is implemented
+- Test coverage gaps at each layer (unit, integration, E2E)
+
+**Output format — every audit must follow this structure:**
+
+```
+# Nyx Notes Core Audit — YYYYMMDD-HHMM
+
+## 1. Executive summary
+## 2. Severity overview (Critical / High / Medium / Low)
+   Each finding: Title, Severity, Why it matters, Evidence (file:line), Recommended fix, Breaking or not
+## 3. Backend architectural assessment (crate boundaries, trait design, layering)
+## 4. Storage and filesystem assessment (FsStorage correctness, path handling, frontmatter)
+## 5. API and auth assessment (routes, permission enforcement, auth extractor, error mapping)
+## 6. CLI assessment (commands, config, user ID handling)
+## 7. Frontend assessment (composables, API client, routing, TypeScript types)
+## 8. Security assessment (auth bypass, path traversal, data leakage, input validation)
+## 9. Testing assessment (coverage gaps, what is tested vs. assumed)
+## 10. Docs assessment (accuracy, completeness, divergence from implementation)
+## 11. Top 10 improvements (ranked by impact, with effort, risk, breaking flag)
+## 12. Refactor roadmap (Phase 1: quick wins / Phase 2: structural / Phase 3: breaking)
+## 13. Scorecard (1–10): Architecture, Security, API correctness, CLI ergonomics,
+        Frontend quality, Type safety, Error handling, Test coverage, Docs accuracy, Operability
+```
+
+**Style:** Write like an expert reviewer addressing a senior engineer. Concise, structured, sharp, and practical. Distinguish between objectively risky issues, stylistic preferences, and possible future improvements. When uncertain, say so explicitly.
+
+---
+
 ## Divergence Log
 
 When you notice that something in the codebase or docs is out of sync, record it here before fixing it.
