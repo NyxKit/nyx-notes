@@ -32,7 +32,7 @@ Coding conventions, naming rules, and file organization standards for Nyx Notes.
 - Use the Composition API exclusively; no Options API
 - Composables return plain `ref`/`computed` values — avoid returning reactive objects with nested refs
 - All API calls go through composables, not directly from components
-- Use `@nyxkit/nyx-kit` for all UI primitives; do not introduce additional component libraries
+- Use `nyx-kit` for all UI primitives; do not introduce additional component libraries
 
 ## Git
 

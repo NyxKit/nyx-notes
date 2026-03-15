@@ -9,8 +9,8 @@ A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to
 | Concern | Technology |
 |---|---|
 | Framework | Vue 3 (Composition API) |
-| Component library | `@nyxkit/nyx-kit` |
-| Editor | `NyxEditor` from `@nyxkit/nyx-kit` (wraps TipTap internally) |
+| Component library | `nyx-kit` |
+| Editor | `NyxEditor` from `nyx-kit` (wraps TipTap internally) |
 | Auth | Mode-adaptive (none / form / OIDC redirect) |
 | HTTP client | `fetch` / `ofetch` |
 | Build | Vite |
@@ -83,7 +83,7 @@ frontend/
 
 ## Editor (`NoteEditor.vue`)
 
-The editor is provided by `NyxEditor` from `@nyxkit/nyx-kit`. `NoteEditor.vue` is a thin wrapper that passes props and relays events — it does not configure TipTap directly.
+The editor is provided by `NyxEditor` from `nyx-kit`. `NoteEditor.vue` is a thin wrapper that passes props and relays events — it does not configure TipTap directly.
 
 TipTap, the Markdown extension, `CommentMark`, and all editor internals live in nyx-kit. This keeps the notes-core frontend clean of editor implementation details.
 
@@ -157,7 +157,7 @@ A navigation guard redirects unauthenticated users to `/login`.
 
 ## Component Library (`nyx-kit`)
 
-Use `@nyxkit/nyx-kit` components for all UI primitives:
+Use `nyx-kit` components for all UI primitives:
 
 - Buttons, inputs, tags/chips → nyx-kit components
 - Layout (sidebar + main panel) → nyx-kit layout components if available, otherwise custom
@@ -264,7 +264,7 @@ On load, the frontend scans the document for each comment's `quoted_text` and ap
 
 ### `CommentMark` Extension
 
-The `CommentMark` TipTap extension is implemented in `@nyxkit/nyx-kit` as part of `NyxEditor`. It highlights text associated with a comment thread using a `span[data-comment-id]` decoration.
+The `CommentMark` TipTap extension is implemented in `nyx-kit` as part of `NyxEditor`. It highlights text associated with a comment thread using a `span[data-comment-id]` decoration.
 
 The mark is **not serialized to Markdown**. It is applied as an in-memory ProseMirror decoration each time a note loads, based on `quoted_text` matching. The note body on disk stays clean.
 
@@ -311,9 +311,9 @@ The frontend is built incrementally. Each layer produces reviewable, running cod
 | 7 | Comments | Comment composable, sidebar, thread, composer | `useComments.ts`, `CommentSidebar.vue`, `CommentThread.vue`, `CommentComposer.vue` |
 | 8 | Settings views | Vault and team management UI | `VaultSettingsView.vue`, `TeamSettingsView.vue`, `useTeams.ts` |
 
-**Layer 5 dependency**: requires `@nyxkit/nyx-kit` components (`NyxButton`, `NyxInput`, etc.).
+**Layer 5 dependency**: requires `nyx-kit` components (`NyxButton`, `NyxInput`, etc.).
 
-**Layer 6 dependency**: requires `NyxEditor` to be implemented and published in `@nyxkit/nyx-kit`.
+**Layer 6 dependency**: requires `NyxEditor` to be implemented and published in `nyx-kit`.
 
 **Layer 7 dependency**: requires new backend routes and `FsStorage` sidecar support for `.comments.json` files. These must be implemented before or alongside this layer.
 
