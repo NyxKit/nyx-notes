@@ -51,6 +51,94 @@ nyx-notes/
 
 ---
 
+## Getting Started
+
+### Prerequisites
+
+- Rust (stable) — [rustup.rs](https://rustup.rs)
+
+### Build
+
+```sh
+cargo build
+```
+
+### CLI
+
+```sh
+export NOTES_ROOT=/tmp/nyx-test
+export NOTES_USER_ID=alice
+
+# Create your home vault
+cargo run -p notes-cli -- vault new --slug home --name Home
+
+# Create a note
+cargo run -p notes-cli -- new --title "Hello world" --tags "test"
+
+# List notes
+cargo run -p notes-cli -- list
+
+# Show a note (use the ID from the list output)
+cargo run -p notes-cli -- show <id>
+
+# Search
+cargo run -p notes-cli -- search "hello"
+cargo run -p notes-cli -- search "hello" --body   # include note body
+
+# Tags
+cargo run -p notes-cli -- tags
+
+# Vault management
+cargo run -p notes-cli -- vault list
+cargo run -p notes-cli -- vault new --slug journal --name Journal
+```
+
+### Server
+
+```sh
+export NOTES_ROOT=/tmp/nyx-test
+cargo run -p notes-server-axum
+# Listening on http://localhost:8080
+```
+
+```sh
+# Auth mode discovery
+curl http://localhost:8080/api/auth/mode
+
+# Create a vault
+curl -s -X POST http://localhost:8080/api/vaults \
+  -H 'Content-Type: application/json' \
+  -d '{"slug":"home","name":"Home"}'
+
+# Create a note (use the vault id from above)
+curl -s -X POST "http://localhost:8080/api/vaults/<vault-id>/notes" \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Hello","content":"My first note","tags":["test"]}'
+
+# List notes
+curl "http://localhost:8080/api/vaults/<vault-id>/notes"
+```
+
+### Configuration
+
+| Setting | Env var | Default | Config key |
+|---|---|---|---|
+| Notes root | `NOTES_ROOT` | `~/notes` | `notes_root` |
+| User ID | `NOTES_USER_ID` | `"default"` | `user_id` |
+| Active vault | `NOTES_VAULT` | `"home"` | `vault` |
+| Editor | `EDITOR` | `vi` | — |
+| Server port | `PORT` | `8080` | — |
+
+CLI config file: `~/.config/nyx-notes/config.toml`
+
+```toml
+notes_root = "/mnt/data/notes"
+user_id = "alice"
+vault = "home"
+```
+
+---
+
 ## Roadmap
 
 1. Single-user, local-mode Axum API + Vue frontend + CLI
