@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { NyxSelect } from 'nyx-kit/components'
+import { NyxSize } from 'nyx-kit/types'
+import type { NyxSelectOptionGroup } from 'nyx-kit/types'
 import { useVaults } from '@/composables/useVaults'
 import { useTeams } from '@/composables/useTeams'
 import type { Vault } from '@/types'
@@ -25,6 +28,31 @@ const teamGroups = computed(() => {
   return groups
 })
 
+const vaultSelectOptions = computed((): NyxSelectOptionGroup[] => {
+  const groups: NyxSelectOptionGroup[] = []
+  if (personalVaults.value.length) {
+    groups.push({
+      label: 'Personal',
+      options: personalVaults.value.map(v => ({ label: v.name, value: v.id }))
+    })
+  }
+  for (const [tid, tvaults] of teamGroups.value.entries()) {
+    groups.push({
+      label: teamName(tid),
+      options: tvaults.map(v => ({ label: v.name, value: v.id }))
+    })
+  }
+  return groups
+})
+
+const selectedVaultId = computed({
+  get: () => activeVault.value?.id ?? '',
+  set: (id: string) => {
+    const vault = vaults.value.find(v => v.id === id)
+    if (vault) select(vault)
+  }
+})
+
 function select(vault: Vault) {
   setActive(vault)
   router.push(`/vaults/${vault.id}/notes`)
@@ -34,29 +62,12 @@ function select(vault: Vault) {
 <template>
   <div class="vault-switcher">
     <div class="vault-switcher__row">
-      <select
-        :value="activeVault?.id ?? ''"
+      <NyxSelect
+        v-model="selectedVaultId"
+        :options="vaultSelectOptions"
+        :size="NyxSize.Small"
         class="vault-switcher__select"
-        @change="e => {
-          const vault = vaults.find(v => v.id === (e.target as HTMLSelectElement).value)
-          if (vault) select(vault)
-        }"
-      >
-        <optgroup v-if="personalVaults.length" label="Personal">
-          <option v-for="v in personalVaults" :key="v.id" :value="v.id">
-            {{ v.name }}
-          </option>
-        </optgroup>
-        <optgroup
-          v-for="[tid, tvaults] in teamGroups"
-          :key="tid"
-          :label="teamName(tid)"
-        >
-          <option v-for="v in tvaults" :key="v.id" :value="v.id">
-            {{ v.name }}
-          </option>
-        </optgroup>
-      </select>
+      />
 
       <RouterLink
         v-if="activeVault"
@@ -94,12 +105,6 @@ function select(vault: Vault) {
 .vault-switcher__select {
   flex: 1;
   min-width: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  outline: none;
 }
 
 .vault-switcher__settings {

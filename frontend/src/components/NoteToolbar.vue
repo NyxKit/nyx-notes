@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { NyxInput, NyxButton } from 'nyx-kit/components'
+import { NyxSize, NyxVariant } from 'nyx-kit/types'
 import type { NotePermission } from '@/types'
 
 const props = defineProps<{
@@ -8,29 +10,26 @@ const props = defineProps<{
   saving: boolean
   readonly: boolean
   isAuthor: boolean
+  isSourceView: boolean
 }>()
 
 const emit = defineEmits<{
-  'update:title': [value: string]
-  'update:permission': [value: NotePermission]
+  'update:title': [value: string],
+  'toggle:source': []
 }>()
 
-const permissionOptions: { label: string; value: NotePermission }[] = [
-  { label: 'Restricted', value: 'restricted' },
-  { label: 'Comment', value: 'comment' },
-  { label: 'Edit', value: 'edit' },
-]
 </script>
 
 <template>
   <div class="note-toolbar">
-    <input
+    <NyxInput
       class="note-toolbar__title"
-      type="text"
-      :value="props.title"
-      :disabled="props.readonly"
+      :model-value="props.title"
+      :variant="NyxVariant.Text"
+      :size="NyxSize.XLarge"
+      :readonly="props.readonly"
       placeholder="Untitled"
-      @input="emit('update:title', ($event.target as HTMLInputElement).value)"
+      @update:model-value="emit('update:title', $event)"
     />
 
     <div class="note-toolbar__meta">
@@ -38,48 +37,34 @@ const permissionOptions: { label: string; value: NotePermission }[] = [
         <span v-for="tag in props.tags" :key="tag" class="note-toolbar__tag">{{ tag }}</span>
       </span>
 
-      <select
-        v-if="props.isAuthor"
-        class="note-toolbar__permission"
-        :value="props.permission"
-        @change="emit('update:permission', ($event.target as HTMLSelectElement).value as NotePermission)"
-      >
-        <option v-for="opt in permissionOptions" :key="opt.value" :value="opt.value">
-          {{ opt.label }}
-        </option>
-      </select>
-      <span v-else class="note-toolbar__permission-badge">{{ props.permission }}</span>
-
       <span class="note-toolbar__status">
         <span v-if="props.saving" class="note-toolbar__status--saving">Saving…</span>
       </span>
     </div>
+
+    <NyxButton
+      v-if="props.isAuthor"
+      class="note-toolbar__source-view-toggle"
+      :variant="NyxVariant.Ghost"
+      :size="NyxSize.Small"
+      @click="emit('toggle:source')"
+    >
+      Toggle source view
+    </NyxButton>
   </div>
 </template>
 
 <style scoped>
 .note-toolbar {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 0.5rem;
-  padding: 1.25rem 1.5rem 0.75rem;
   border-bottom: 1px solid var(--nyx-color-border, #e2e8f0);
 }
 
 .note-toolbar__title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: inherit;
-  width: 100%;
-  font-family: inherit;
-}
-
-.note-toolbar__title:disabled {
-  opacity: 0.7;
-  cursor: default;
+  --nyx-font-size-input: 2.5rem;
+  flex: 1;
 }
 
 .note-toolbar__meta {
@@ -104,14 +89,8 @@ const permissionOptions: { label: string; value: NotePermission }[] = [
   font-size: 0.75rem;
 }
 
-.note-toolbar__permission {
-  border: 1px solid var(--nyx-color-border, #e2e8f0);
-  border-radius: 0.25rem;
-  padding: 0.125rem 0.375rem;
-  font-size: 0.75rem;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
+.note-toolbar__source-view-toggle {
+  margin: 1.5rem;
 }
 
 .note-toolbar__permission-badge {

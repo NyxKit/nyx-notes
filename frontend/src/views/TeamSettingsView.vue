@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { NyxSelect } from 'nyx-kit/components'
+import { NyxSize } from 'nyx-kit/types'
+import type { NyxSelectOption } from 'nyx-kit/types'
 import { useAuth } from '@/composables/useAuth'
 import { useTeams } from '@/composables/useTeams'
 import { useVaults } from '@/composables/useVaults'
@@ -110,16 +113,21 @@ async function onDeleteTeam() {
   }
 }
 
-const roleOptions: { label: string; value: Exclude<TeamRole, 'owner'> }[] = [
+const roleOptions: NyxSelectOption[] = [
   { label: 'Admin', value: 'admin' },
   { label: 'Member', value: 'member' },
 ]
 
-const permissionOptions: { label: string; value: NotePermission }[] = [
+const permissionOptions: NyxSelectOption[] = [
   { label: 'Restricted', value: 'restricted' },
   { label: 'Comment', value: 'comment' },
   { label: 'Edit', value: 'edit' },
 ]
+
+const newMemberRoleModel = computed({
+  get: () => newMemberRole.value as string,
+  set: (v: string) => { newMemberRole.value = v as Exclude<TeamRole, 'owner'> }
+})
 </script>
 
 <template>
@@ -162,16 +170,13 @@ const permissionOptions: { label: string; value: NotePermission }[] = [
               <tr v-for="member in team.members" :key="member.user_id">
                 <td class="settings-table__mono">{{ member.user_id }}</td>
                 <td>
-                  <select
+                  <NyxSelect
                     v-if="isOwner && member.role !== 'owner'"
-                    class="settings-select settings-select--inline"
-                    :value="member.role"
-                    @change="onRoleChange(member.user_id, ($event.target as HTMLSelectElement).value)"
-                  >
-                    <option v-for="opt in roleOptions" :key="opt.value" :value="opt.value">
-                      {{ opt.label }}
-                    </option>
-                  </select>
+                    :model-value="member.role"
+                    :options="roleOptions"
+                    :size="NyxSize.Small"
+                    @update:model-value="onRoleChange(member.user_id, $event as string)"
+                  />
                   <span v-else class="settings-badge">{{ member.role }}</span>
                 </td>
                 <td v-if="isOwner">
@@ -195,11 +200,11 @@ const permissionOptions: { label: string; value: NotePermission }[] = [
               placeholder="User ID"
               @keydown.enter="onAddMember"
             />
-            <select v-model="newMemberRole" class="settings-select settings-select--inline">
-              <option v-for="opt in roleOptions" :key="opt.value" :value="opt.value">
-                {{ opt.label }}
-              </option>
-            </select>
+            <NyxSelect
+              v-model="newMemberRoleModel"
+              :options="roleOptions"
+              :size="NyxSize.Small"
+            />
             <button
               class="settings-btn settings-btn--primary"
               :disabled="!newMemberId.trim() || addMemberLoading"
@@ -254,15 +259,12 @@ const permissionOptions: { label: string; value: NotePermission }[] = [
               class="settings-vault-row"
             >
               <span class="settings-vault-row__name">{{ vault.name }}</span>
-              <select
-                class="settings-select settings-select--inline"
-                :value="vault.permission"
-                @change="onVaultPermissionChange(vault.id, ($event.target as HTMLSelectElement).value as NotePermission)"
-              >
-                <option v-for="opt in permissionOptions" :key="opt.value" :value="opt.value">
-                  {{ opt.label }}
-                </option>
-              </select>
+              <NyxSelect
+                :model-value="vault.permission"
+                :options="permissionOptions"
+                :size="NyxSize.Small"
+                @update:model-value="onVaultPermissionChange(vault.id, $event as NotePermission)"
+              />
               <button
                 v-if="isOwner"
                 class="settings-link settings-link--danger"
@@ -442,22 +444,6 @@ const permissionOptions: { label: string; value: NotePermission }[] = [
   text-transform: capitalize;
 }
 
-.settings-select {
-  width: 100%;
-  padding: 0.5rem 0.625rem;
-  border: 1px solid var(--nyx-color-border, #e2e8f0);
-  border-radius: 0.375rem;
-  font-family: inherit;
-  font-size: 0.875rem;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
-
-.settings-select--inline {
-  width: auto;
-  padding: 0.25rem 0.375rem;
-}
 
 .settings-add-form {
   display: flex;

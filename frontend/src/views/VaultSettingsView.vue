@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { NyxSelect } from 'nyx-kit/components'
+import type { NyxSelectOption } from 'nyx-kit/types'
 import { useVaults } from '@/composables/useVaults'
 import type { NotePermission } from '@/types'
 
@@ -41,11 +43,16 @@ async function onDelete() {
   }
 }
 
-const permissionOptions: { label: string; value: NotePermission }[] = [
+const permissionOptions: NyxSelectOption[] = [
   { label: 'Restricted — only team members with explicit access', value: 'restricted' },
   { label: 'Comment — all team members can comment', value: 'comment' },
   { label: 'Edit — all team members can edit', value: 'edit' },
 ]
+
+const permissionModel = computed({
+  get: () => vault.value?.permission ?? 'restricted',
+  set: (v: string) => onPermissionChange(v as NotePermission)
+})
 </script>
 
 <template>
@@ -85,15 +92,10 @@ const permissionOptions: { label: string; value: NotePermission }[] = [
             Controls what team members can do with notes in this vault by default.
             Note authors can override this per note.
           </p>
-          <select
-            class="settings-select"
-            :value="vault.permission"
-            @change="onPermissionChange(($event.target as HTMLSelectElement).value as NotePermission)"
-          >
-            <option v-for="opt in permissionOptions" :key="opt.value" :value="opt.value">
-              {{ opt.label }}
-            </option>
-          </select>
+          <NyxSelect
+            v-model="permissionModel"
+            :options="permissionOptions"
+          />
           <p v-if="permissionError" class="settings-error">{{ permissionError }}</p>
         </section>
 
@@ -218,17 +220,6 @@ const permissionOptions: { label: string; value: NotePermission }[] = [
   font-family: monospace;
 }
 
-.settings-select {
-  width: 100%;
-  padding: 0.5rem 0.625rem;
-  border: 1px solid var(--nyx-color-border, #e2e8f0);
-  border-radius: 0.375rem;
-  font-family: inherit;
-  font-size: 0.875rem;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
 
 .settings-btn {
   font-size: 0.875rem;
