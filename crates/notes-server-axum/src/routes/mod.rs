@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod comments;
 pub mod notes;
 pub mod teams;
 pub mod vaults;
@@ -29,6 +30,23 @@ pub fn router() -> Router<AppState> {
         .route(
             "/api/vaults/:vault_id/notes/:id/permission",
             patch(notes::patch_note_permission),
+        )
+        // Comments (note-scoped)
+        .route(
+            "/api/vaults/:vault_id/notes/:note_id/comments",
+            get(comments::list_comments).post(comments::create_comment),
+        )
+        .route(
+            "/api/vaults/:vault_id/notes/:note_id/comments/:comment_id",
+            patch(comments::patch_comment).delete(comments::delete_comment),
+        )
+        .route(
+            "/api/vaults/:vault_id/notes/:note_id/comments/:comment_id/replies",
+            post(comments::create_reply),
+        )
+        .route(
+            "/api/vaults/:vault_id/notes/:note_id/comments/:comment_id/replies/:reply_id",
+            delete(comments::delete_reply),
         )
         // Personal vaults
         .route(

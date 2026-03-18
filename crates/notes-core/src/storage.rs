@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::domain::{Note, NoteMeta, NotePermission, Team, Vault, VaultOwner};
+use crate::domain::{Comment, Note, NoteMeta, NotePermission, Team, Vault, VaultOwner};
 
 #[derive(Debug, Error)]
 pub enum StorageError {
@@ -40,4 +40,13 @@ pub trait StorageBackend: Send + Sync {
     /// vault_id is taken from note.meta.vault_id
     fn save_note(&self, note: &Note) -> Result<(), StorageError>;
     fn delete_note(&self, vault_id: &str, id: &str) -> Result<(), StorageError>;
+
+    // Comments (note-scoped sidecar; stored as `<note_id>.comments.json` in the vault dir)
+    fn load_comments(&self, vault_id: &str, note_id: &str) -> Result<Vec<Comment>, StorageError>;
+    fn save_comments(
+        &self,
+        vault_id: &str,
+        note_id: &str,
+        comments: &[Comment],
+    ) -> Result<(), StorageError>;
 }

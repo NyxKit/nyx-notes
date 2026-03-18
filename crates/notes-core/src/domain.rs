@@ -1,6 +1,28 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentReply {
+    pub id: String,
+    pub author_id: String,
+    pub author_name: String,
+    pub body: String,
+    pub created_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Comment {
+    pub id: String,
+    pub note_id: String,
+    pub author_id: String,
+    pub author_name: String,
+    pub body: String,
+    pub quoted_text: String,
+    pub resolved: bool,
+    pub created_at: DateTime<Utc>,
+    pub replies: Vec<CommentReply>,
+}
+
 /// Controls who (beyond the owner) can interact with a note or team vault.
 /// The owner always retains full access regardless of this value.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

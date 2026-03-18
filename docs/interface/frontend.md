@@ -309,13 +309,13 @@ The frontend is built incrementally. Each layer produces reviewable, running cod
 | 5 | App shell + NoteView | Layout, vault switcher, note list, first navigable view | `App.vue`, `VaultSwitcher.vue`, `NoteList.vue`, `NoteView.vue` |
 | 6 | Editor | `NoteEditor.vue` wrapping `NyxEditor`, toolbar with permission selector | `NoteEditor.vue`, `NoteToolbar.vue` |
 | 7 | Comments | Comment composable, sidebar, thread, composer | `useComments.ts`, `CommentSidebar.vue`, `CommentThread.vue`, `CommentComposer.vue` |
-| 8 | Settings views | Vault and team management UI | `VaultSettingsView.vue`, `TeamSettingsView.vue`, `useTeams.ts` |
+| 8 | Settings views ✅ | Vault and team management UI | `VaultSettingsView.vue`, `TeamSettingsView.vue`, `useTeams.ts` |
 
 **Layer 5 dependency**: requires `nyx-kit` components (`NyxButton`, `NyxInput`, etc.).
 
-**Layer 6 dependency**: requires `NyxEditor` to be implemented and published in `nyx-kit`.
+**Layer 6 dependency**: requires `NyxEditor` to be implemented and published in `nyx-kit`. ✅ Satisfied by `nyx-kit` 1.3.3.
 
-**Layer 7 dependency**: requires new backend routes and `FsStorage` sidecar support for `.comments.json` files. These must be implemented before or alongside this layer.
+**Layer 7 dependency**: requires new backend routes and `FsStorage` sidecar support for `.comments.json` files. ✅ Implemented alongside this layer.
 
 ---
 

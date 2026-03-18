@@ -5,6 +5,8 @@ import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 import VaultSwitcher from '@/components/VaultSwitcher.vue'
 import NoteList from '@/components/NoteList.vue'
+import NoteEditor from '@/components/NoteEditor.vue'
+import CommentSidebar from '@/components/CommentSidebar.vue'
 
 const route = useRoute()
 const { vaults, load: loadVaults, setActive } = useVaults()
@@ -42,18 +44,14 @@ watch(
     </aside>
 
     <main class="note-view__editor">
-      <!-- NoteEditor + NoteToolbar — Layer 6 -->
-      <div v-if="activeNote" class="note-view__placeholder">
-        <h2>{{ activeNote.meta.title || 'Untitled' }}</h2>
-        <pre class="note-view__content">{{ activeNote.content }}</pre>
-      </div>
+      <NoteEditor v-if="activeNote" :note="activeNote" />
       <div v-else class="note-view__placeholder note-view__placeholder--empty">
         Select a note
       </div>
     </main>
 
     <aside class="note-view__comments">
-      <!-- CommentSidebar — Layer 7 -->
+      <CommentSidebar v-if="activeNote" :note="activeNote" />
     </aside>
   </div>
 </template>
@@ -83,12 +81,6 @@ watch(
   border-left: 1px solid var(--nyx-color-border, #e2e8f0);
 }
 
-.note-view__placeholder {
-  padding: 2rem;
-  flex: 1;
-  overflow-y: auto;
-}
-
 .note-view__placeholder--empty {
   display: flex;
   align-items: center;
@@ -96,9 +88,4 @@ watch(
   color: var(--nyx-color-muted, #718096);
 }
 
-.note-view__content {
-  white-space: pre-wrap;
-  font-family: inherit;
-  line-height: 1.7;
-}
 </style>

@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { Team, CreateTeamRequest, AddMemberRequest, PatchMemberRequest } from '@/types'
+import type { Team, Vault, CreateTeamRequest, AddMemberRequest, PatchMemberRequest } from '@/types'
 
 export function fetchTeams() {
   return api<Team[]>('/api/teams')
@@ -27,4 +27,12 @@ export function patchMember(teamId: string, userId: string, body: PatchMemberReq
 
 export function removeMember(teamId: string, userId: string) {
   return api(`/api/teams/${teamId}/members/${userId}`, { method: 'DELETE' })
+}
+
+export function createTeamVault(teamId: string, body: { slug: string; name: string }) {
+  return api<Vault>(`/api/teams/${teamId}/vaults`, { method: 'POST', body })
+}
+
+export function deleteTeamVault(teamId: string, vaultId: string) {
+  return api(`/api/teams/${teamId}/vaults/${vaultId}`, { method: 'DELETE' })
 }

@@ -77,6 +77,24 @@ pub struct CreateVaultRequest {
     pub name: String,
 }
 
+// --- Comment request types ---
+
+#[derive(Deserialize)]
+pub struct CreateCommentRequest {
+    pub quoted_text: String,
+    pub body: String,
+}
+
+#[derive(Deserialize)]
+pub struct CreateReplyRequest {
+    pub body: String,
+}
+
+#[derive(Deserialize)]
+pub struct PatchCommentRequest {
+    pub resolved: bool,
+}
+
 // --- Team request types ---
 
 #[derive(Deserialize)]

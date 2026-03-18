@@ -4,7 +4,7 @@ mod meta;
 use std::path::{Path, PathBuf};
 
 use notes_core::{
-    Note, NoteMeta, NotePermission, StorageBackend, StorageError, Team, Vault, VaultOwner,
+    Comment, Note, NoteMeta, NotePermission, StorageBackend, StorageError, Team, Vault, VaultOwner,
 };
 
 use meta::{TeamJson, VaultJson};
@@ -362,6 +362,49 @@ impl StorageBackend for FsStorage {
         }
 
         std::fs::remove_file(&note_path)?;
+
+        // Best-effort: remove the sidecar if it exists.
+        let comments_path = vault_dir.join(format!("{id}.comments.json"));
+        if comments_path.is_file() {
+            let _ = std::fs::remove_file(&comments_path);
+        }
+
+        Ok(())
+    }
+
+    // --- Comments ---
+
+    fn load_comments(&self, vault_id: &str, note_id: &str) -> Result<Vec<Comment>, StorageError> {
+        let vault_dir = self.find_vault_path(vault_id)?;
+        let path = vault_dir.join(format!("{note_id}.comments.json"));
+
+        if !path.is_file() {
+            return Ok(Vec::new());
+        }
+
+        let content = std::fs::read_to_string(&path)?;
+        serde_json::from_str(&content).map_err(|e| StorageError::ParseError(e.to_string()))
+    }
+
+    fn save_comments(
+        &self,
+        vault_id: &str,
+        note_id: &str,
+        comments: &[Comment],
+    ) -> Result<(), StorageError> {
+        let vault_dir = self.find_vault_path(vault_id)?;
+        let path = vault_dir.join(format!("{note_id}.comments.json"));
+
+        if comments.is_empty() {
+            if path.is_file() {
+                std::fs::remove_file(&path)?;
+            }
+            return Ok(());
+        }
+
+        let content =
+            serde_json::to_string_pretty(comments).map_err(|e| StorageError::ParseError(e.to_string()))?;
+        std::fs::write(&path, content)?;
         Ok(())
     }
 }

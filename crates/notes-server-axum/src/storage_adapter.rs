@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use notes_core::{
-    Note, NoteMeta, NotePermission, StorageBackend, StorageError, Team, Vault, VaultOwner,
+    Comment, Note, NoteMeta, NotePermission, StorageBackend, StorageError, Team, Vault, VaultOwner,
 };
 
 /// Async wrapper around `Arc<dyn StorageBackend>`.
@@ -119,6 +119,31 @@ impl AsyncStorageAdapter {
     pub async fn delete_note(&self, vault_id: String, id: String) -> Result<(), StorageError> {
         let s = Arc::clone(&self.0);
         tokio::task::spawn_blocking(move || s.delete_note(&vault_id, &id))
+            .await
+            .map_err(Self::wrap_join_err)?
+    }
+
+    // --- Comments ---
+
+    pub async fn load_comments(
+        &self,
+        vault_id: String,
+        note_id: String,
+    ) -> Result<Vec<Comment>, StorageError> {
+        let s = Arc::clone(&self.0);
+        tokio::task::spawn_blocking(move || s.load_comments(&vault_id, &note_id))
+            .await
+            .map_err(Self::wrap_join_err)?
+    }
+
+    pub async fn save_comments(
+        &self,
+        vault_id: String,
+        note_id: String,
+        comments: Vec<Comment>,
+    ) -> Result<(), StorageError> {
+        let s = Arc::clone(&self.0);
+        tokio::task::spawn_blocking(move || s.save_comments(&vault_id, &note_id, &comments))
             .await
             .map_err(Self::wrap_join_err)?
     }
