@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { NyxEditor } from 'nyx-kit/components'
-import { NyxEditorFormat, NyxEditorMode } from 'nyx-kit/types'
+import { NyxEditorFormat, NyxEditorMode, NyxEditorToolbar, NyxVariant, NyxEditorSelection } from 'nyx-kit/types'
 import { useAuth } from '@/composables/useAuth'
 import { useNotes } from '@/composables/useNotes'
 import NoteToolbar from '@/components/NoteToolbar.vue'
@@ -9,6 +9,12 @@ import type { Note, NotePermission } from '@/types'
 
 const props = defineProps<{
   note: Note
+  isCommentsOpen: boolean
+}>()
+
+const emit = defineEmits<{
+  'toggle:comments': [],
+  'comment': [selection: NyxEditorSelection]
 }>()
 
 const { authMode, currentUser } = useAuth()
@@ -17,12 +23,14 @@ const { save, saving, updatePermission } = useNotes()
 // Local editable copies — reset when the note changes
 const localTitle = ref(props.note.meta.title)
 const localContent = ref(props.note.meta.is_encrypted ? '' : props.note.content)
+const isSourceView = ref(false)
 
 watch(
   () => props.note.meta.id,
   () => {
     localTitle.value = props.note.meta.title
     localContent.value = props.note.meta.is_encrypted ? '' : props.note.content
+    isSourceView.value = false
     pendingSave = false
     clearTimeout(saveTimer)
   }
@@ -72,6 +80,11 @@ function onContentChange(value: string) {
 async function onPermissionChange(permission: NotePermission) {
   await updatePermission(props.note.meta.vault_id, props.note.meta.id, permission)
 }
+
+function onComment(selection: NyxEditorSelection) {
+  console.log('onComment', selection)
+  emit('comment', selection)
+}
 </script>
 
 <template>
@@ -83,8 +96,12 @@ async function onPermissionChange(permission: NotePermission) {
       :saving="saving"
       :readonly="readonly"
       :is-author="isAuthor"
+      :is-source-view="isSourceView"
+      :is-comments-open="props.isCommentsOpen"
       @update:title="onTitleChange"
       @update:permission="onPermissionChange"
+      @toggle:source="isSourceView = !isSourceView"
+      @toggle:comments="emit('toggle:comments')"
     />
 
     <div v-if="note.meta.is_encrypted" class="note-editor__encrypted">
@@ -95,12 +112,15 @@ async function onPermissionChange(permission: NotePermission) {
       v-else
       class="note-editor__body"
       :model-value="localContent"
+      :source="isSourceView"
+      :variant="NyxVariant.Text"
+      :toolbar="NyxEditorToolbar.Full"
       :format="NyxEditorFormat.Markdown"
-      :mode="NyxEditorMode.Toolbar"
+      :mode="NyxEditorMode.Zen"
       :disabled="readonly"
-      :has-source-toggle="true"
       placeholder="Start writing…"
       @change="onContentChange"
+      @comment="onComment"
     />
   </div>
 </template>

@@ -11,11 +11,13 @@ const props = defineProps<{
   readonly: boolean
   isAuthor: boolean
   isSourceView: boolean
+  isCommentsOpen: boolean
 }>()
 
 const emit = defineEmits<{
   'update:title': [value: string],
   'toggle:source': []
+  'toggle:comments': []
 }>()
 
 </script>
@@ -50,6 +52,15 @@ const emit = defineEmits<{
       @click="emit('toggle:source')"
     >
       Toggle source view
+    </NyxButton>
+
+    <NyxButton
+      class="note-toolbar__toggle-comments"
+      :variant="NyxVariant.Ghost"
+      :size="NyxSize.Small"
+      @click="emit('toggle:comments')"
+    >
+      {{ props.isCommentsOpen ? 'Hide comments' : 'Show comments' }}
     </NyxButton>
   </div>
 </template>

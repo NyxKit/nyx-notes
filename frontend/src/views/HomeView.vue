@@ -6,22 +6,29 @@ import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 
 const router = useRouter()
-const { vaults, load: loadVaults, setActive } = useVaults()
-const { loadList, notes, create } = useNotes()
+const { vaults, load: loadVaults, setActive, create: createVault } = useVaults()
+const { loadList, notes, create: createNote } = useNotes()
 
 const LAST_NOTE_KEY = 'nyx_last_note'
 
 onMounted(async () => {
-  // Try restoring the last visited note
+  // Load vaults first — needed for both the restore path and the fallback scan
+  await loadVaults()
+
+  // Try restoring the last visited note, but only if the vault still exists
   const last = localStorage.getItem(LAST_NOTE_KEY)
   if (last) {
-    const { vaultId, noteId } = JSON.parse(last)
-    router.replace(`/vaults/${vaultId}/notes/${noteId}`)
-    return
+    try {
+      const { vaultId, noteId } = JSON.parse(last)
+      if (vaults.value.some(v => v.id === vaultId)) {
+        router.replace(`/vaults/${vaultId}/notes/${noteId}`)
+        return
+      }
+    } catch { /* malformed entry */ }
+    localStorage.removeItem(LAST_NOTE_KEY)
   }
 
   // Otherwise find the most recently updated note across all vaults
-  await loadVaults()
   for (const vault of vaults.value) {
     await loadList(vault.id)
     if (notes.value.length > 0) {
@@ -36,11 +43,14 @@ onMounted(async () => {
 
 async function createFirst() {
   await loadVaults()
-  if (!vaults.value.length) return
 
-  const vault = vaults.value.find(v => v.slug === 'home') ?? vaults.value[0]
+  let vault = vaults.value.find(v => v.slug === 'home') ?? vaults.value[0]
+  if (!vault) {
+    vault = await createVault({ slug: 'home', name: 'Home' })
+  }
+
   setActive(vault)
-  const meta = await create(vault.id, { title: 'My first note', content: '' })
+  const meta = await createNote(vault.id, { title: 'My first note', content: '' })
   router.push(`/vaults/${vault.id}/notes/${meta.id}`)
 }
 </script>

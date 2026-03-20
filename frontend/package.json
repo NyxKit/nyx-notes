@@ -7,12 +7,13 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "clean": "rm -rf node_modules && rm -rf dist && rm -rf .vite && rm -rf .vue-tsc && rm -rf .tauri"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
-    "nyx-kit": "^1.4.2",
+    "nyx-kit": "^1.4.4",
     "ofetch": "^1.5.1",
     "vue": "^3.5.13",
     "vue-router": "^5.0.3"
