@@ -45,7 +45,7 @@ async function createFirst() {
   }
 
   setActive(vault)
-  const meta = await createNote(vault.id, { title: 'Untitled', content: '' })
+  const meta = await createNote(vault.id, { title: '', content: '' })
   router.push(`/vaults/${vault.id}/notes/${meta.id}`)
 }
 </script>

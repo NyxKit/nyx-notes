@@ -19,7 +19,7 @@ const vaultId = computed(() => activeVault.value?.id ?? '')
 
 async function newNote() {
   if (!vaultId.value) return
-  const meta = await create(vaultId.value, { title: 'Untitled', content: '' })
+  const meta = await create(vaultId.value, { title: '', content: '' })
   router.push(`/vaults/${vaultId.value}/notes/${meta.id}`)
 }
 </script>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 import VaultSwitcher from '@/components/VaultSwitcher.vue'
@@ -15,7 +15,7 @@ const isSidebarOpen = ref(false)
 const isCommentsOpen = ref(false)
 
 const { vaults, load: loadVaults, setActive, activeVault } = useVaults()
-const { loadNote, activeNote, saving } = useNotes()
+const { loadNote, activeNote, saving, remove } = useNotes()
 
 const LAST_NOTE_KEY = 'nyx_last_note'
 
@@ -39,9 +39,23 @@ const wordCount = computed(() => {
 // Sidebar is always visible on non-notes sections; toggleable on the editor
 const sidebarVisible = computed(() => section.value !== 'notes' || isSidebarOpen.value)
 
+async function pruneIfEmpty() {
+  const note = activeNote.value
+  if (!note) return
+  if (!note.meta.title.trim() && !note.content.trim()) {
+    await remove(note.meta.vault_id, note.meta.id)
+  }
+}
+
+// When leaving NoteView entirely (e.g. to settings or home)
+onBeforeRouteLeave(pruneIfEmpty)
+
 watch(
   () => [route.params.vault_id, route.params.id] as [string, string],
-  async ([vaultId, noteId]) => {
+  async ([vaultId, noteId], prev) => {
+    // When switching notes, prune the previous one if it was empty
+    if (prev?.[1]) await pruneIfEmpty()
+
     if (!vaultId || !noteId) return
 
     if (!vaults.value.length) await loadVaults()
