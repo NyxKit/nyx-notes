@@ -4,6 +4,8 @@ import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 import { useEditorStore } from '@/stores/editor'
+import { NyxModal, NyxButton } from 'nyx-kit/components'
+import { NyxVariant, NyxTheme } from 'nyx-kit/types'
 import VaultSwitcher from '@/components/VaultSwitcher.vue'
 import SidebarNav from '@/components/SidebarNav.vue'
 import NoteList from '@/components/NoteList.vue'
@@ -43,7 +45,6 @@ function toggleFavorite() {
 async function confirmDelete() {
   const note = activeNote.value
   if (!note) return
-  showDeleteConfirm.value = false
   await remove(note.meta.vault_id, note.meta.id)
   router.replace(`/vaults/${note.meta.vault_id}/notes`)
 }
@@ -270,17 +271,17 @@ watch(
     </div>
 
     <!-- Delete confirmation modal -->
-    <Teleport to="body">
-      <div v-if="showDeleteConfirm" class="app-modal-backdrop" @click.self="showDeleteConfirm = false">
-        <div class="app-modal" role="dialog" aria-modal="true">
-          <p class="app-modal__message">Delete this note? This cannot be undone.</p>
-          <div class="app-modal__actions">
-            <button class="app-modal__btn app-modal__btn--cancel" @click="showDeleteConfirm = false">Cancel</button>
-            <button class="app-modal__btn app-modal__btn--confirm" @click="confirmDelete">Delete</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <NyxModal
+      v-model="showDeleteConfirm"
+      title="Delete note"
+      @cancel="showDeleteConfirm = false"
+    >
+      <p>This note will be permanently deleted. This cannot be undone.</p>
+      <template #footer>
+        <NyxButton :variant="NyxVariant.Ghost" @click="showDeleteConfirm = false">Cancel</NyxButton>
+        <NyxButton :theme="NyxTheme.Danger" @click="confirmDelete">Delete</NyxButton>
+      </template>
+    </NyxModal>
 
   </div>
 </template>
@@ -509,67 +510,4 @@ watch(
   background: rgba(236, 124, 138, 0.08);
 }
 
-/* ── Delete confirm modal ────────────────────────────────────── */
-.app-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.app-modal {
-  background: var(--nyx-c-bg-soft);
-  border-radius: var(--nyx-radius-lg);
-  padding: 1.5rem;
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.app-modal__message {
-  margin: 0;
-  font-size: 0.875rem;
-  color: var(--nyx-c-text-1);
-  line-height: 1.5;
-}
-
-.app-modal__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-}
-
-.app-modal__btn {
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem 1rem;
-  border-radius: var(--nyx-radius-md);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  font-family: inherit;
-  transition: background 0.2s, color 0.2s;
-}
-
-.app-modal__btn--cancel {
-  background: var(--nyx-c-bg-mute);
-  color: var(--nyx-c-text-2);
-}
-
-.app-modal__btn--cancel:hover {
-  color: var(--nyx-c-text-1);
-}
-
-.app-modal__btn--confirm {
-  background: rgba(236, 124, 138, 0.15);
-  color: #ec7c8a;
-}
-
-.app-modal__btn--confirm:hover {
-  background: rgba(236, 124, 138, 0.25);
-}
 </style>

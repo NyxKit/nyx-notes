@@ -11,6 +11,16 @@ The `docs/` folder is the **authoritative specification** for this project. It i
 
 ---
 
+## nyx-kit Components
+
+**Always use nyx-kit base components** when a suitable one exists. Do not build custom equivalents.
+
+Available components include (but are not limited to): `NyxButton`, `NyxInput`, `NyxSelect`, `NyxModal`, `NyxEditor`, `NyxCard`. Check `../nyx-kit/src/components/` for the full list.
+
+If a needed UI primitive is **not** available in nyx-kit, flag it to the user before building a custom one.
+
+---
+
 ## Design
 
 The visual design of this application is governed by `DESIGN.md` at the repo root. Read it before making any frontend or UI changes.
