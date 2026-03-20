@@ -1,0 +1,145 @@
+/* Silent Atelier — design system overrides for nyx-kit
+ *
+ * All values derive from DESIGN.md. Override nyx-kit CSS custom properties
+ * here rather than inside component styles, so the theme is centralised.
+ * -------------------------------------------------------------------------- */
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&family=Inter:wght@300..700&family=Newsreader:ital,wght@0,300..700;1,300..700&display=swap');
+
+/* -------------------------------------------------------------------------
+ * Surface palette
+ * Surface hierarchy is achieved through background shifts, never borders.
+ * surface           #0e0e10  — main writing canvas (base layer)
+ * surface-soft      #131316  — sidebars, navigation
+ * surface-mute      #1f1f24  — cards, nested containers
+ * surface-highest   #25252b  — floating menus, popovers
+ * surface-bright    #2b2c32  — hover state for glassmorphic elements
+ * ------------------------------------------------------------------------- */
+
+:root {
+  --nyx-c-bg:      #0e0e10;
+  --nyx-c-bg-soft: #131316;
+  --nyx-c-bg-mute: #1f1f24;
+
+  /* -------------------------------------------------------------------------
+   * Dividers — ghost borders only (felt, not seen)
+   * outline-variant #47474d at 20% opacity
+   * ------------------------------------------------------------------------- */
+  --nyx-c-divider:       rgba(71, 71, 77, 0.20);
+  --nyx-c-divider-light: rgba(71, 71, 77, 0.12);
+
+  /* -------------------------------------------------------------------------
+   * Text
+   * on-surface         #e6e4ec — body text, editor content
+   * on-surface-variant #abaab1 — UI labels, secondary info
+   * ------------------------------------------------------------------------- */
+  --nyx-c-text-1: #e6e4ec;
+  --nyx-c-text-2: #abaab1;
+  --nyx-c-text-3: rgba(171, 170, 177, 0.55);
+  --nyx-c-text-4: rgba(171, 170, 177, 0.25);
+
+  /* -------------------------------------------------------------------------
+   * Primary accent — desaturated, low-key purple
+   * primary           #cbc2e4
+   * primary-container #49435f  (used for active states, gradients)
+   * on-primary-cont.  #d5cbee
+   * ------------------------------------------------------------------------- */
+  --nyx-c-primary:           #cbc2e4;
+  --nyx-c-primary-light:     #d5cbee;
+  --nyx-c-primary-dark:      #49435f;
+  --nyx-c-primary-highlight: #bdb4d5;
+  --nyx-c-primary-alt:       #d5cbee;
+  --nyx-rgb-primary:         203, 194, 228;
+
+  /* Default (used by most nyx-kit components as their base color) */
+  --nyx-c-default:           #cbc2e4;
+  --nyx-c-default-light:     #d5cbee;
+  --nyx-c-default-dark:      #49435f;
+  --nyx-c-default-highlight: #bdb4d5;
+  --nyx-c-default-alt:       #d5cbee;
+  --nyx-rgb-default:         203, 194, 228;
+
+  /* -------------------------------------------------------------------------
+   * Typography
+   * Interface: Manrope (headings) + Inter (labels)
+   * Writing canvas: Newsreader (applied scoped to the editor below)
+   * ------------------------------------------------------------------------- */
+  --nyx-font-family-base: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, sans-serif;
+
+  /* -------------------------------------------------------------------------
+   * Shadows — ambient only, no muddy black drops
+   * blur 24px, spread -4px, on-surface color at 6% opacity
+   * ------------------------------------------------------------------------- */
+  --nyx-shadow-xs: 0 0 24px -4px rgba(230, 228, 236, 0.04);
+  --nyx-shadow-sm: 0 0 24px -4px rgba(230, 228, 236, 0.06);
+  --nyx-shadow-md: 0 0 32px -4px rgba(230, 228, 236, 0.08);
+  --nyx-shadow-lg: 0 0 40px -4px rgba(230, 228, 236, 0.10);
+  --nyx-shadow-xl: 0 0 48px -4px rgba(230, 228, 236, 0.12);
+
+  /* -------------------------------------------------------------------------
+   * Motion — "sliding silk" feel
+   * ------------------------------------------------------------------------- */
+  --nyx-speed-regular: 0.3s;
+
+  /* -------------------------------------------------------------------------
+   * Radius — subtle, not blobby
+   * ------------------------------------------------------------------------- */
+  --nyx-radius-xs: 0.125rem;
+  --nyx-radius-sm: 0.25rem;
+  --nyx-radius-md: 0.375rem;
+  --nyx-radius-lg: 0.5rem;
+  --nyx-radius-xl: 0.75rem;
+}
+
+/* -------------------------------------------------------------------------
+ * App-level aliases used in component scoped styles
+ * ------------------------------------------------------------------------- */
+:root {
+  --nyx-color-border:         var(--nyx-c-divider);
+  --nyx-color-muted:          var(--nyx-c-text-3);
+  --nyx-color-surface-raised: var(--nyx-c-bg-soft);
+  --nyx-color-surface-hover:  var(--nyx-c-bg-mute);
+  --nyx-color-surface-muted:  var(--nyx-c-bg-soft);
+  --nyx-color-accent:         var(--nyx-c-primary);
+}
+
+/* -------------------------------------------------------------------------
+ * Editor — Newsreader for the writing canvas
+ * Scoped so that UI chrome stays on the interface font stack.
+ * ------------------------------------------------------------------------- */
+.nyx-editor__body,
+.nyx-editor [contenteditable] {
+  font-family: 'Newsreader', Georgia, 'Times New Roman', serif;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+/* -------------------------------------------------------------------------
+ * Component overrides
+ * ------------------------------------------------------------------------- */
+
+/* Buttons — primary uses the signature gradient */
+.nyx-button--primary,
+.nyx-button--variant-primary {
+  --nyx-c-button: #cbc2e4;
+  --nyx-c-button-text: #1a1821;
+  background: linear-gradient(135deg, #cbc2e4, #49435f) !important;
+  border: none;
+}
+
+/* Input / Editor borders — ghost borders only */
+.nyx-input,
+.nyx-textarea,
+.nyx-editor {
+  --nyx-border-size-input:    0;
+  --nyx-border-size-textarea: 0;
+  --nyx-border-size-editor:   0;
+}
+
+/* Focused inputs — ghost border via outline */
+.nyx-input:focus-within,
+.nyx-textarea:focus-within {
+  outline: 1px solid rgba(71, 71, 77, 0.20);
+  outline-offset: 0;
+}

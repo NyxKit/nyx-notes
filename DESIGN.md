@@ -19,12 +19,12 @@ The palette is rooted in deep obsidian tones and a low-saturation, modern purple
 ## 3. Typography: The Editorial Voice
 We use a dual-font approach to separate the "Act of Organizing" from the "Act of Writing."
 
-*   **Interface (The Framework):** We use **Manrope** and **Inter**. These are clinical, modern, and precise. 
-    *   `display` and `headline` scales use **Manrope** to provide a structural, architectural feel.
-    *   `label` scales use **Inter** for maximum legibility at micro-sizes.
+*   **Interface (The Framework):** We use **Manrope** and **Inter**. These are clinical, modern, and precise.
+    *   Headings and large UI text use **Manrope** for a structural, architectural feel.
+    *   Small labels and micro-text use **Inter** for maximum legibility.
 *   **The Writing Canvas (The Soul):** We use **Newsreader**. This is a high-end serif that mimics the experience of a luxury literary journal.
-    *   `body-lg` (1rem / 16px) is the standard for the editor. 
-    *   `title-lg` (1.375rem) provides a soft, elegant header for document titles without feeling "loud."
+    *   Body text in the editor: 1rem / 16px.
+    *   Document title: 1.375rem — soft and elegant without feeling loud.
 *   **Hierarchy Logic:** Contrast is achieved through weight and scale, not color. Interface labels should use `on-surface-variant` (#abaab1) to stay unobtrusive, while the text being written uses `on-surface` (#e6e4ec).
 
 ## 4. Elevation & Depth
@@ -37,39 +37,39 @@ Traditional drop shadows are too "software-like." We use **Tonal Layering**.
 ## 5. Component Guidelines
 
 ### Full-Width Editor
-*   **Padding:** Use `spacing-16` (5.5rem) or `spacing-20` (7rem) for lateral margins to create a focused column.
+*   **Padding:** Use 5.5–7rem of lateral margin to create a focused column.
 *   **Caret:** Use `primary` (#cbc2e4) with a slight outer glow to guide the eye.
 
 ### Sliding Sidebars
 *   **Background:** `surface-container-low` (#131316).
-*   **Transition:** Use a `300ms cubic-bezier(0.4, 0, 0.2, 1)` for a "sliding silk" feel. 
-*   **Divider Replacement:** Use `spacing-4` (1.4rem) of empty space to separate the navigation list from the footer.
+*   **Transition:** Use a `300ms cubic-bezier(0.4, 0, 0.2, 1)` for a "sliding silk" feel.
+*   **Divider Replacement:** Use ~1.4rem of empty space to separate the navigation list from the footer.
 
 ### Subtle Tag Pills
-*   **Style:** No background. Use a "Ghost Border" (`outline-variant` at 20%) and `label-md` typography. 
-*   **Active State:** Background `primary-container` (#49435f), text `on-primary-container` (#d5cbee). No sharp corners; use `rounded-full`.
+*   **Style:** No background. Use a "Ghost Border" (`outline-variant` at 20%) and small label text (0.75rem).
+*   **Active State:** Background `primary-container` (#49435f), text `on-primary-container` (#d5cbee). Fully rounded (`border-radius: 50%`).
 
 ### Vault Switcher
 *   **Style:** A glassmorphic card using `surface-container-high` at 70% opacity.
 *   **Interaction:** On hover, the background shifts to `surface-bright` (#2b2c32).
 
 ### Threaded Comment Cards
-*   **Structure:** Avoid lines. Use an indentation of `spacing-3` (1rem) and a slight background shift to `surface-container-lowest` for each nested reply. 
+*   **Structure:** Avoid lines. Use 1rem of indentation and a slight background shift to `surface-container-lowest` (#000000) for each nested reply.
 *   **Connectors:** If needed, use a 1px vertical track of `surface-variant` (#25252b) at 30% opacity.
 
 ### Buttons & Inputs
-*   **Primary Button:** `rounded-md` (0.375rem). Use the Signature Texture gradient.
-*   **Icon Toggles:** No background or border in default state. Use `on-surface-variant`. On hover, shift to `primary-dim` (#bdb4d5) at 10% opacity.
-*   **Checkboxes:** Custom squares with `rounded-sm`. Checked state uses `primary` background with `on-primary` icon.
+*   **Primary Button:** `--nyx-radius-sm` (0.25rem). Use the Signature Texture gradient.
+*   **Icon Toggles:** No background or border in default state. Use `on-surface-variant` (#abaab1). On hover, shift to (#bdb4d5) at 10% opacity background.
+*   **Checkboxes:** Custom squares with a small radius (`--nyx-radius-xs`). Checked state uses `primary` background with light icon.
 
 ## 6. Do's and Don'ts
 
 ### Do
-*   **Use Vertical White Space:** Use `spacing-8` or `12` to separate thoughts and sections instead of dividers.
+*   **Use Vertical White Space:** Use 2–3rem of vertical space to separate thoughts and sections instead of dividers.
 *   **Prioritize Typography:** Let the `Newsreader` font do the heavy lifting for the "High-End Editorial" feel.
 *   **Embrace the Dark:** Ensure `surface` (#0e0e10) remains the dominant color to keep the environment distraction-free.
 
 ### Don't
-*   **Don't use pure white:** Never use `#ffffff` for text. Use `on-surface` (#e6e4ec) to prevent light bleed/glare.
+*   **Don't use pure white:** Never use `#ffffff` for text. Use `#e6e4ec to prevent light bleed/glare.
 *   **Don't use 100% opaque borders:** They break the "Silent Atelier" illusion and feel like a generic dashboard.
 *   **Don't use standard shadows:** Avoid "muddy" black shadows. Stick to the Ambient Shadow spec to maintain the dark-mode depth.
