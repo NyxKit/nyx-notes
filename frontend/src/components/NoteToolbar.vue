@@ -9,13 +9,10 @@ const props = defineProps<{
   permission: NotePermission
   saving: boolean
   readonly: boolean
-  isAuthor: boolean
-  isSourceView: boolean
 }>()
 
 const emit = defineEmits<{
   'update:title': [value: string]
-  'toggle:source': []
 }>()
 </script>
 
@@ -39,18 +36,6 @@ const emit = defineEmits<{
       <span class="note-toolbar__status">
         <span v-if="props.saving" class="note-toolbar__saving">Saving…</span>
       </span>
-
-      <button
-        v-if="props.isAuthor"
-        class="note-toolbar__source-btn"
-        :class="{ 'note-toolbar__source-btn--active': props.isSourceView }"
-        :title="props.isSourceView ? 'Exit source view' : 'Source view'"
-        @click="emit('toggle:source')"
-      >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-          <path d="M4 3L1 7l3 4M10 3l3 4-3 4M8 2l-2 10" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
     </div>
   </div>
 </template>
@@ -105,26 +90,4 @@ const emit = defineEmits<{
   color: var(--nyx-c-text-3);
 }
 
-.note-toolbar__source-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--nyx-c-text-3);
-  padding: 0.25rem;
-  border-radius: var(--nyx-radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s, background 0.2s;
-  line-height: 0;
-}
-
-.note-toolbar__source-btn:hover {
-  color: var(--nyx-c-text-2);
-  background: var(--nyx-c-bg-mute);
-}
-
-.note-toolbar__source-btn--active {
-  color: var(--nyx-c-primary);
-}
 </style>

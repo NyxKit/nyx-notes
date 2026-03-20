@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
+import { useEditorStore } from '@/stores/editor'
 import VaultSwitcher from '@/components/VaultSwitcher.vue'
 import SidebarNav from '@/components/SidebarNav.vue'
 import NoteList from '@/components/NoteList.vue'
@@ -13,6 +14,39 @@ const route = useRoute()
 const router = useRouter()
 const isSidebarOpen = ref(false)
 const isCommentsOpen = ref(false)
+const showDeleteConfirm = ref(false)
+const editorStore = useEditorStore()
+
+const FAVORITES_KEY = 'nyx_favorites'
+
+function isFavorited(noteId: string): boolean {
+  try {
+    const ids: string[] = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? '[]')
+    return ids.includes(noteId)
+  } catch { return false }
+}
+
+const favorited = computed(() => activeNote.value ? isFavorited(activeNote.value.meta.id) : false)
+
+function toggleFavorite() {
+  const note = activeNote.value
+  if (!note) return
+  try {
+    const ids: string[] = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? '[]')
+    const idx = ids.indexOf(note.meta.id)
+    if (idx === -1) ids.push(note.meta.id)
+    else ids.splice(idx, 1)
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids))
+  } catch { /* ignore */ }
+}
+
+async function confirmDelete() {
+  const note = activeNote.value
+  if (!note) return
+  showDeleteConfirm.value = false
+  await remove(note.meta.vault_id, note.meta.id)
+  router.replace(`/vaults/${note.meta.vault_id}/notes`)
+}
 
 const { vaults, load: loadVaults, setActive, activeVault } = useVaults()
 const { loadNote, activeNote, saving, remove } = useNotes()
@@ -70,6 +104,7 @@ watch(
     if (vault) setActive(vault)
 
     await loadNote(vaultId, noteId)
+    editorStore.reset()
 
     localStorage.setItem(LAST_NOTE_KEY, JSON.stringify({ vaultId, noteId }))
   },
@@ -141,9 +176,41 @@ watch(
           </button>
           <span class="app-shell__note-title">{{ noteTitle }}</span>
         </div>
-        <div class="app-shell__header-right">
+        <div v-if="section === 'notes' && activeNote" class="app-shell__header-right">
+          <!-- Source view -->
           <button
-            v-if="section === 'notes'"
+            class="app-shell__icon-btn"
+            :class="{ 'app-shell__icon-btn--active': editorStore.isSourceView }"
+            title="Toggle source view"
+            @click="editorStore.toggleSourceView()"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M5 4L1 9l4 5M13 4l4 5-4 5M10 2l-2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <!-- Favorite -->
+          <button
+            class="app-shell__icon-btn"
+            :class="{ 'app-shell__icon-btn--active': favorited }"
+            title="Toggle favorite"
+            @click="toggleFavorite()"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M9 2l1.5 4.5H15l-3.5 2.75 1.5 4.75L9 11.25 5 14l1.5-4.75L3 6.5h4.5L9 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" :fill="favorited ? 'currentColor' : 'none'"/>
+            </svg>
+          </button>
+          <!-- Delete -->
+          <button
+            class="app-shell__icon-btn app-shell__icon-btn--danger"
+            title="Delete note"
+            @click="showDeleteConfirm = true"
+          >
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M3 5h12M7 5V3h4v2M6 5l.75 10h4.5L12 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <!-- Comments -->
+          <button
             class="app-shell__icon-btn"
             :class="{ 'app-shell__icon-btn--active': isCommentsOpen }"
             title="Toggle comments"
@@ -201,6 +268,19 @@ watch(
       </footer>
 
     </div>
+
+    <!-- Delete confirmation modal -->
+    <Teleport to="body">
+      <div v-if="showDeleteConfirm" class="app-modal-backdrop" @click.self="showDeleteConfirm = false">
+        <div class="app-modal" role="dialog" aria-modal="true">
+          <p class="app-modal__message">Delete this note? This cannot be undone.</p>
+          <div class="app-modal__actions">
+            <button class="app-modal__btn app-modal__btn--cancel" @click="showDeleteConfirm = false">Cancel</button>
+            <button class="app-modal__btn app-modal__btn--confirm" @click="confirmDelete">Delete</button>
+          </div>
+        </div>
+      </div>
+    </Teleport>
 
   </div>
 </template>
@@ -422,5 +502,74 @@ watch(
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--nyx-c-text-3);
+}
+
+.app-shell__icon-btn--danger:hover {
+  color: #ec7c8a;
+  background: rgba(236, 124, 138, 0.08);
+}
+
+/* ── Delete confirm modal ────────────────────────────────────── */
+.app-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.app-modal {
+  background: var(--nyx-c-bg-soft);
+  border-radius: var(--nyx-radius-lg);
+  padding: 1.5rem;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.app-modal__message {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--nyx-c-text-1);
+  line-height: 1.5;
+}
+
+.app-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.app-modal__btn {
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: var(--nyx-radius-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: inherit;
+  transition: background 0.2s, color 0.2s;
+}
+
+.app-modal__btn--cancel {
+  background: var(--nyx-c-bg-mute);
+  color: var(--nyx-c-text-2);
+}
+
+.app-modal__btn--cancel:hover {
+  color: var(--nyx-c-text-1);
+}
+
+.app-modal__btn--confirm {
+  background: rgba(236, 124, 138, 0.15);
+  color: #ec7c8a;
+}
+
+.app-modal__btn--confirm:hover {
+  background: rgba(236, 124, 138, 0.25);
 }
 </style>
