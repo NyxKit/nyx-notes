@@ -15,6 +15,16 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/vaults/:vault_id/favorites',
+      component: () => import('@/views/NoteView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/vaults/:vault_id/drafts',
+      component: () => import('@/views/NoteView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/vaults/:vault_id/settings',
       component: () => import('@/views/VaultSettingsView.vue'),
       meta: { requiresAuth: true },

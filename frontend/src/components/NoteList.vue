@@ -8,7 +8,7 @@ import { getRelativeTime } from '@/utils/time'
 
 const router = useRouter()
 const { activeVault } = useVaults()
-const { notes, loading, loadList, create, activeNote } = useNotes()
+const { notes, loading, loadList, activeNote } = useNotes()
 const { currentUser } = useAuth()
 
 const search = ref('')
@@ -26,15 +26,6 @@ watch(activeVault, vault => {
   if (vault) loadList(vault.id)
 }, { immediate: true })
 
-async function newNote() {
-  if (!activeVault.value) return
-  const meta = await create(activeVault.value.id, {
-    title: 'Untitled',
-    content: '',
-  })
-  router.push(`/vaults/${activeVault.value.id}/notes/${meta.id}`)
-}
-
 function permissionIcon(permission: string): string {
   if (permission === 'comment') return '💬'
   if (permission === 'edit') return '✏️'
@@ -44,16 +35,6 @@ function permissionIcon(permission: string): string {
 
 <template>
   <div class="note-list">
-
-    <!-- New note CTA -->
-    <div class="note-list__cta">
-      <button class="note-list__new-btn" @click="newNote">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-          <path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-        New Note
-      </button>
-    </div>
 
     <!-- Search -->
     <div class="note-list__search-wrap">
@@ -66,7 +47,7 @@ function permissionIcon(permission: string): string {
     </div>
 
     <!-- Section label -->
-    <div class="note-list__section-label">Notes</div>
+    <div class="note-list__section-label">Recent Notes</div>
 
     <div v-if="loading" class="note-list__empty">Loading…</div>
 
@@ -105,34 +86,6 @@ function permissionIcon(permission: string): string {
   flex: 1;
   overflow: hidden;
   min-height: 0;
-}
-
-/* New note CTA */
-.note-list__cta {
-  padding: 0.75rem 1rem 0.5rem;
-  flex-shrink: 0;
-}
-
-.note-list__new-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  border-radius: var(--nyx-radius-md);
-  background: linear-gradient(135deg, #cbc2e4 0%, #49435f 100%);
-  color: #1a1821;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  font-family: 'Manrope', sans-serif;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.note-list__new-btn:hover {
-  opacity: 0.9;
 }
 
 /* Search */

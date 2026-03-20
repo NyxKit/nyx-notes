@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 import VaultSwitcher from '@/components/VaultSwitcher.vue'
+import SidebarNav from '@/components/SidebarNav.vue'
 import NoteList from '@/components/NoteList.vue'
 import NoteEditor from '@/components/NoteEditor.vue'
 import CommentSidebar from '@/components/CommentSidebar.vue'
@@ -18,7 +19,17 @@ const { loadNote, activeNote, saving } = useNotes()
 
 const LAST_NOTE_KEY = 'nyx_last_note'
 
-const noteTitle = computed(() => activeNote.value?.meta.title || 'Untitled Note')
+const section = computed(() => {
+  if (route.path.includes('/favorites')) return 'favorites'
+  if (route.path.includes('/drafts')) return 'drafts'
+  return 'notes'
+})
+
+const noteTitle = computed(() => {
+  if (section.value === 'favorites') return 'Favorites'
+  if (section.value === 'drafts') return 'Drafts'
+  return activeNote.value?.meta.title || 'Untitled Note'
+})
 
 const wordCount = computed(() => {
   const text = activeNote.value?.content ?? ''
@@ -47,6 +58,18 @@ watch(
   },
   { immediate: true }
 )
+
+// Ensure vault is set when navigating to section pages without a note id
+watch(
+  () => route.params.vault_id as string,
+  async (vaultId) => {
+    if (!vaultId || route.params.id) return
+    if (!vaults.value.length) await loadVaults()
+    const vault = vaults.value.find(v => v.id === vaultId)
+    if (vault) setActive(vault)
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -69,6 +92,7 @@ watch(
       </div>
       <div class="app-shell__header-right">
         <button
+          v-if="section === 'notes'"
           class="app-shell__icon-btn"
           :class="{ 'app-shell__icon-btn--active': isCommentsOpen }"
           title="Toggle comments"
@@ -88,28 +112,41 @@ watch(
       <aside class="app-shell__sidebar" :class="{ 'app-shell__sidebar--open': isSidebarOpen }">
         <div class="app-shell__sidebar-inner">
           <VaultSwitcher />
+          <SidebarNav />
           <NoteList />
           <div class="app-shell__sidebar-footer">
             <RouterLink
               v-if="activeVault"
               :to="`/vaults/${activeVault.id}/settings`"
-              class="app-shell__sidebar-link"
+              class="app-shell__footer-nav-item"
             >
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" stroke-width="1.25"/>
+                <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.75 2.75l1.06 1.06M11.19 11.19l1.06 1.06M2.75 12.25l1.06-1.06M11.19 3.81l1.06-1.06" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+              </svg>
               Settings
             </RouterLink>
-            <a href="#" class="app-shell__sidebar-link">Help</a>
+            <a href="#" class="app-shell__footer-nav-item">
+              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+                <circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.25"/>
+                <path d="M7.5 10.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M7.5 8.5c0-1 .75-1.5 1.25-2A2.25 2.25 0 105.25 5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+              </svg>
+              Help
+            </a>
           </div>
         </div>
       </aside>
 
       <!-- Main writing canvas -->
       <main class="app-shell__canvas">
-        <NoteEditor
-          v-if="activeNote"
-          :note="activeNote"
-        />
-        <div v-else class="app-shell__placeholder">
-          Select a note
+        <template v-if="section === 'notes'">
+          <NoteEditor v-if="activeNote" :note="activeNote" />
+          <div v-else class="app-shell__placeholder">Select a note</div>
+        </template>
+        <div v-else class="app-shell__wip">
+          <span class="app-shell__wip-label">{{ section === 'favorites' ? 'Favorites' : 'Drafts' }}</span>
+          <span class="app-shell__wip-sub">Coming soon</span>
         </div>
       </main>
 
@@ -125,11 +162,11 @@ watch(
     <!-- Footer status bar -->
     <footer class="app-shell__footer">
       <div class="app-shell__footer-left">
-        <span class="app-shell__stat">{{ wordCount }} words</span>
+        <span v-if="section === 'notes'" class="app-shell__stat">{{ wordCount }} words</span>
       </div>
       <div class="app-shell__footer-right">
-        <span v-if="saving" class="app-shell__stat">Saving…</span>
-        <span v-else class="app-shell__stat">Saved</span>
+        <span v-if="section === 'notes' && saving" class="app-shell__stat">Saving…</span>
+        <span v-else-if="section === 'notes'" class="app-shell__stat">Saved</span>
       </div>
     </footer>
 
@@ -227,23 +264,30 @@ watch(
   overflow: hidden;
 }
 
+/* Sidebar footer: Settings + Help as nav items */
 .app-shell__sidebar-footer {
   margin-top: auto;
-  padding: 0.75rem 1rem;
-  display: flex;
-  gap: 1.25rem;
+  padding: 0.5rem 0.75rem;
   flex-shrink: 0;
+  box-shadow: 0 -1px 0 0 var(--nyx-c-divider);
 }
 
-.app-shell__sidebar-link {
-  font-size: 0.75rem;
-  color: var(--nyx-c-text-3);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.app-shell__sidebar-link:hover {
+.app-shell__footer-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--nyx-radius-md);
+  font-size: 0.8125rem;
+  font-weight: 500;
   color: var(--nyx-c-text-2);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.app-shell__footer-nav-item:hover {
+  background: #25252b;
+  color: var(--nyx-c-text-1);
 }
 
 /* ── Main canvas ────────────────────────────────────────────── */
@@ -262,6 +306,27 @@ watch(
   justify-content: center;
   color: var(--nyx-c-text-3);
   font-size: 0.875rem;
+}
+
+.app-shell__wip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.app-shell__wip-label {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--nyx-c-text-2);
+}
+
+.app-shell__wip-sub {
+  font-size: 0.8125rem;
+  color: var(--nyx-c-text-3);
 }
 
 /* ── Right sidebar (comments) ───────────────────────────────── */
