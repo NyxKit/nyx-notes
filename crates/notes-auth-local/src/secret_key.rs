@@ -28,7 +28,6 @@ struct Claims {
 pub struct SecretKeyAuthStore {
     encoding_key: EncodingKey,
     decoding_key: DecodingKey,
-    notes_root: std::path::PathBuf,
     users: Arc<RwLock<Vec<LocalUser>>>,
 }
 
@@ -70,7 +69,6 @@ impl SecretKeyAuthStore {
         Ok(Self {
             encoding_key: EncodingKey::from_secret(key_bytes),
             decoding_key: DecodingKey::from_secret(key_bytes),
-            notes_root: notes_root.to_path_buf(),
             users: Arc::new(RwLock::new(users)),
         })
     }
