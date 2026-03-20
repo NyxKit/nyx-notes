@@ -36,6 +36,9 @@ const wordCount = computed(() => {
   return text.trim() ? text.trim().split(/\s+/).length : 0
 })
 
+// Sidebar is always visible on non-notes sections; toggleable on the editor
+const sidebarVisible = computed(() => section.value !== 'notes' || isSidebarOpen.value)
+
 watch(
   () => [route.params.vault_id, route.params.id] as [string, string],
   async ([vaultId, noteId]) => {
@@ -79,6 +82,7 @@ watch(
     <header class="app-shell__header">
       <div class="app-shell__header-left">
         <button
+          v-if="section === 'notes'"
           class="app-shell__icon-btn"
           :class="{ 'app-shell__icon-btn--active': isSidebarOpen }"
           title="Toggle sidebar"
@@ -109,7 +113,7 @@ watch(
     <div class="app-shell__body">
 
       <!-- Left sidebar -->
-      <aside class="app-shell__sidebar" :class="{ 'app-shell__sidebar--open': isSidebarOpen }">
+      <aside class="app-shell__sidebar" :class="{ 'app-shell__sidebar--open': sidebarVisible }">
         <div class="app-shell__sidebar-inner">
           <VaultSwitcher />
           <SidebarNav />
@@ -145,6 +149,15 @@ watch(
           <div v-else class="app-shell__placeholder">Select a note</div>
         </template>
         <div v-else class="app-shell__wip">
+          <div class="app-shell__wip-icon" aria-hidden="true">
+            <svg v-if="section === 'favorites'" width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M16 4l3 9h9.5L21 18.5 24 28l-8-5.5L8 28l3-9.5L4 13h9.5L16 4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+            <svg v-else width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <path d="M20 6l6 6-14 14H6v-6L20 6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M17 9l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
           <span class="app-shell__wip-label">{{ section === 'favorites' ? 'Favorites' : 'Drafts' }}</span>
           <span class="app-shell__wip-sub">Coming soon</span>
         </div>
@@ -246,6 +259,7 @@ watch(
 /* ── Left sidebar ───────────────────────────────────────────── */
 .app-shell__sidebar {
   width: 0;
+  height: 100%;
   overflow: hidden;
   flex-shrink: 0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -315,6 +329,13 @@ watch(
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+}
+
+.app-shell__wip-icon {
+  color: var(--nyx-c-primary);
+  opacity: 0.4;
+  line-height: 0;
+  margin-bottom: 0.5rem;
 }
 
 .app-shell__wip-label {

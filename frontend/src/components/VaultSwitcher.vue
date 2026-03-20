@@ -76,17 +76,6 @@ function select(vault: Vault) {
           :size="NyxSize.Small"
           class="vault-switcher__select"
         />
-        <RouterLink
-          v-if="activeVault"
-          :to="`/vaults/${activeVault.id}/settings`"
-          class="vault-switcher__settings"
-          title="Vault settings"
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <circle cx="7" cy="7" r="2.5" stroke="currentColor" stroke-width="1.25"/>
-            <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.93 2.93l1.06 1.06M10.01 10.01l1.06 1.06M2.93 11.07l1.06-1.06M10.01 3.99l1.06-1.06" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-          </svg>
-        </RouterLink>
       </div>
       <span class="vault-switcher__count">{{ noteCountLabel }}</span>
     </div>
@@ -135,19 +124,6 @@ function select(vault: Vault) {
   --nyx-border-size-select: 0;
 }
 
-.vault-switcher__settings {
-  color: var(--nyx-c-text-3);
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  transition: color 0.2s;
-  line-height: 0;
-}
-
-.vault-switcher__settings:hover {
-  color: var(--nyx-c-text-2);
-}
 
 .vault-switcher__count {
   font-size: 0.6875rem;
