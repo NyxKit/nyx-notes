@@ -11,6 +11,31 @@ The `docs/` folder is the **authoritative specification** for this project. It i
 
 ---
 
+## Design
+
+The visual design of this application is governed by `DESIGN.md` at the repo root. Read it before making any frontend or UI changes.
+
+`DESIGN.md` defines the design system: the "Silent Atelier" creative direction, color palette and surface hierarchy, typography (Manrope/Inter for UI, Newsreader for the writing canvas), elevation via tonal layering rather than shadows, and component-level guidelines for the editor, sidebars, tags, vault switcher, and comments.
+
+Reference mockups and screen designs live in `design/`, organised by screen:
+
+| Folder | Screen |
+|---|---|
+| `design/focused_writing_view/` | Default state — no sidebars, full-width writing canvas |
+| `design/left_sidebar_open/` | Left sidebar (vault switcher + note list) open |
+| `design/both_sidebars_open/` | Both sidebars open — notes left, comments right |
+| `design/vault_overview/` | Vault overview screen |
+| `design/empty_state/` | No notes yet — empty state |
+
+Each folder contains `screen.png` (the visual mockup) and `code.html` (a static HTML prototype).
+
+**When implementing frontend UI:**
+- Follow `DESIGN.md` strictly. It overrides any pre-existing styles or component defaults.
+- Refer to the `screen.png` files as the visual target for layout, spacing, and hierarchy.
+- The `code.html` files are useful references for structure and class patterns but are not authoritative over `DESIGN.md`.
+
+---
+
 ## What This Repo Is
 
 **Nyx Notes** is a self-hosted, Markdown-first notes application. The Rust backend (domain, storage, HTTP API, CLI) is implemented. The Vue frontend is in progress.

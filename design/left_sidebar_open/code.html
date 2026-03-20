@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Silent Atelier - Personal Vault</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-high": "#1f1f24",
+              "outline": "#75757b",
+              "on-tertiary-fixed-variant": "#555873",
+              "secondary-fixed-dim": "#d7d3d8",
+              "surface-dim": "#0e0e10",
+              "on-secondary-container": "#c2bec3",
+              "inverse-surface": "#fcf8fb",
+              "error-dim": "#b95463",
+              "inverse-primary": "#625b78",
+              "tertiary-fixed": "#dcddfe",
+              "secondary": "#a09da1",
+              "inverse-on-surface": "#555557",
+              "primary-dim": "#bdb4d5",
+              "surface-container": "#19191d",
+              "primary": "#cbc2e4",
+              "on-surface": "#e6e4ec",
+              "on-tertiary-fixed": "#393c55",
+              "tertiary-fixed-dim": "#cecfef",
+              "primary-fixed-dim": "#d9d0f2",
+              "primary-container": "#49435f",
+              "tertiary-dim": "#cecfef",
+              "on-tertiary-container": "#4c4e69",
+              "on-secondary": "#211f23",
+              "on-error-container": "#ff97a3",
+              "on-tertiary": "#545671",
+              "secondary-dim": "#a09da1",
+              "surface-variant": "#25252b",
+              "on-secondary-fixed": "#403f42",
+              "surface-tint": "#cbc2e4",
+              "on-primary-fixed": "#413b57",
+              "surface": "#0e0e10",
+              "surface-container-low": "#131316",
+              "surface-bright": "#2b2c32",
+              "on-secondary-fixed-variant": "#5d5b5f",
+              "outline-variant": "#47474d",
+              "secondary-fixed": "#e6e1e6",
+              "secondary-container": "#3c3b3f",
+              "error": "#ec7c8a",
+              "surface-container-highest": "#25252b",
+              "tertiary-container": "#dcddfe",
+              "on-primary-fixed-variant": "#5e5774",
+              "on-background": "#e6e4ec",
+              "on-primary-container": "#d5cbee",
+              "on-primary": "#423c58",
+              "background": "#0e0e10",
+              "error-container": "#7f2737",
+              "tertiary": "#edecff",
+              "primary-fixed": "#e7deff",
+              "on-error": "#490013",
+              "on-surface-variant": "#abaab1",
+              "surface-container-lowest": "#000000"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Newsreader"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .writing-canvas::-webkit-scrollbar {
+        width: 4px;
+      }
+      .writing-canvas::-webkit-scrollbar-thumb {
+        background: #25252b;
+        border-radius: 10px;
+      }
+      .sliding-silk-transition {
+        transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      .tonal-depth-shift {
+        background: linear-gradient(to right, #131316, #0e0e10);
+      }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-label selection:bg-primary-container selection:text-on-primary-container">
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar (Left) -->
+<aside class="bg-[#131316] text-[#cbc2e4] docked vertical left-0 h-full w-72 flex flex-col py-8 px-4 space-y-4 z-50 sliding-silk-transition">
+<!-- Vault Switcher (Header) -->
+<div class="flex items-center space-x-3 p-3 bg-surface-variant/60 backdrop-blur-xl rounded-xl hover:bg-[#2b2c32] transition-all cursor-pointer group">
+<div class="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-on-primary shadow-lg">
+<span class="material-symbols-outlined">folder_shared</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<h2 class="text-[#e6e4ec] font-manrope font-bold text-sm truncate">Personal Vault</h2>
+<p class="text-[#abaab1] text-[10px] font-inter uppercase tracking-widest">128 Notes</p>
+</div>
+<span class="material-symbols-outlined text-[#abaab1] group-hover:text-[#e6e4ec]">unfold_more</span>
+</div>
+<!-- CTA -->
+<button class="w-full flex items-center justify-center space-x-2 py-3 px-4 rounded-lg bg-gradient-to-tr from-primary to-primary-container text-on-primary font-manrope font-semibold text-sm shadow-md active:scale-95 transition-transform">
+<span class="material-symbols-outlined">edit_note</span>
+<span>New Note</span>
+</button>
+<!-- Navigation Tabs -->
+<nav class="flex-1 space-y-1 overflow-y-auto pt-4">
+<div class="text-[#abaab1] text-[10px] font-inter font-bold uppercase tracking-widest px-3 mb-2">Workspace</div>
+<a class="flex items-center space-x-3 px-3 py-2.5 text-[#e6e4ec] bg-[#49435f] rounded-lg font-inter font-medium tracking-tight sliding-silk-transition" href="#">
+<span class="material-symbols-outlined">description</span>
+<span>All Notes</span>
+</a>
+<a class="flex items-center space-x-3 px-3 py-2.5 text-[#abaab1] hover:text-[#e6e4ec] hover:bg-[#25252b] rounded-lg font-inter font-medium tracking-tight transition-all duration-300" href="#">
+<span class="material-symbols-outlined">star</span>
+<span>Favorites</span>
+</a>
+<a class="flex items-center space-x-3 px-3 py-2.5 text-[#abaab1] hover:text-[#e6e4ec] hover:bg-[#25252b] rounded-lg font-inter font-medium tracking-tight transition-all duration-300" href="#">
+<span class="material-symbols-outlined">edit_note</span>
+<span>Drafts</span>
+</a>
+<div class="pt-6">
+<div class="text-[#abaab1] text-[10px] font-inter font-bold uppercase tracking-widest px-3 mb-2">Recent Notes</div>
+<div class="space-y-1">
+<div class="px-3 py-3 rounded-lg border-l-2 border-primary bg-surface-container-high/40 group cursor-pointer">
+<h4 class="text-on-surface text-sm font-medium truncate mb-1">Project Obsidian Protocol</h4>
+<p class="text-on-surface-variant text-xs line-clamp-1">The architecture of the new design system...</p>
+</div>
+<div class="px-3 py-3 rounded-lg hover:bg-surface-variant/40 group cursor-pointer transition-colors">
+<h4 class="text-on-surface-variant group-hover:text-on-surface text-sm font-medium truncate mb-1">Meeting Notes: Atelier Sync</h4>
+<p class="text-on-surface-variant/60 text-xs line-clamp-1">Reviewed the tonal depth layers and...</p>
+</div>
+<div class="px-3 py-3 rounded-lg hover:bg-surface-variant/40 group cursor-pointer transition-colors">
+<h4 class="text-on-surface-variant group-hover:text-on-surface text-sm font-medium truncate mb-1">Morning Reflections</h4>
+<p class="text-on-surface-variant/60 text-xs line-clamp-1">Woke up at 5:00 AM. The light was...</p>
+</div>
+</div>
+</div>
+</nav>
+<!-- Footer Navigation -->
+<div class="pt-4 border-t border-outline-variant/10 space-y-1">
+<a class="flex items-center space-x-3 px-3 py-2 text-[#abaab1] hover:text-[#e6e4ec] hover:bg-[#25252b] rounded-lg font-inter font-medium transition-all" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+<a class="flex items-center space-x-3 px-3 py-2 text-[#abaab1] hover:text-[#e6e4ec] hover:bg-[#25252b] rounded-lg font-inter font-medium transition-all" href="#">
+<span class="material-symbols-outlined text-xl">help</span>
+<span class="text-sm">Help</span>
+</a>
+</div>
+</aside>
+<!-- Main Writing Canvas Container -->
+<main class="flex-1 flex flex-col bg-[#0e0e10] overflow-hidden relative">
+<!-- TopAppBar -->
+<header class="bg-[#0e0e10] flex justify-between items-center px-6 h-16 w-full docked full-width top-0 z-40">
+<div class="flex items-center space-x-4">
+<button class="p-2 text-[#abaab1] hover:bg-[#2b2c32] rounded-full transition-colors active:scale-95">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h1 class="text-[#e6e4ec] font-manrope font-semibold text-lg tracking-tight">Project Obsidian Protocol</h1>
+</div>
+<div class="flex items-center space-x-2">
+<button class="flex items-center space-x-2 px-3 py-1.5 text-[#abaab1] hover:bg-[#2b2c32] rounded-lg transition-colors group">
+<span class="material-symbols-outlined text-xl group-hover:text-[#cbc2e4]">chat_bubble</span>
+<span class="text-xs font-inter font-medium">Reviews</span>
+</button>
+<div class="h-4 w-px bg-outline-variant/30 mx-2"></div>
+<button class="p-2 text-[#abaab1] hover:bg-[#2b2c32] rounded-full transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Editor Section -->
+<div class="flex-1 overflow-y-auto writing-canvas flex justify-center pt-20 pb-32">
+<article class="w-full max-w-3xl px-8 md:px-0">
+<!-- Title -->
+<h1 class="font-body text-4xl italic text-on-surface mb-12 tracking-tight opacity-90 leading-tight">
+                        Project Obsidian Protocol
+                    </h1>
+<!-- Meta Tags -->
+<div class="flex flex-wrap gap-2 mb-10">
+<span class="px-3 py-1 rounded-full border border-outline-variant/20 text-on-surface-variant text-[10px] font-inter font-medium uppercase tracking-widest">Architecture</span>
+<span class="px-3 py-1 rounded-full border border-outline-variant/20 text-on-surface-variant text-[10px] font-inter font-medium uppercase tracking-widest">In Progress</span>
+<span class="px-3 py-1 rounded-full border border-outline-variant/20 text-on-surface-variant text-[10px] font-inter font-medium uppercase tracking-widest">Draft v.02</span>
+</div>
+<!-- Body Content -->
+<div class="font-body text-xl text-on-surface leading-relaxed space-y-8 opacity-90">
+<p>
+                            In the quiet depth of the workspace, we find the true meaning of clarity. The design system we are building is not merely a collection of buttons and sliders, but a sanctuary for focus. We call it <span class="text-primary italic font-medium">The Silent Atelier</span>.
+                        </p>
+<p>
+                            We avoid the noise of 1px borders and standard grid systems. Instead, we embrace the concept of <span class="font-medium">tonal layering</span>. Each component should feel as though it is emerging from the dark obsidian of the screen, rather than sitting on top of it.
+                        </p>
+<!-- Blockquote -->
+<blockquote class="border-l border-primary/40 pl-8 my-12 py-2 italic text-on-surface-variant font-light text-2xl">
+                            "The interface should be felt, but rarely seen. It is the vessel, not the wine."
+                        </blockquote>
+<p>
+                            The core philosophy remains simple: reduce ocular strain by using low-saturation purples and layered monochromatic surfaces. Ensure that the cursor—the bridge between mind and machine—always has a soft glow of <span class="text-primary-dim">#cbc2e4</span> to guide the user's focus back to their thoughts.
+                        </p>
+</div>
+</article>
+</div>
+<!-- Bottom Status Bar -->
+<footer class="h-10 bg-surface px-6 flex items-center justify-between text-[10px] font-inter uppercase tracking-widest text-on-surface-variant opacity-60 border-t border-outline-variant/5">
+<div class="flex space-x-4">
+<span>Characters: 1,429</span>
+<span>Words: 242</span>
+</div>
+<div class="flex items-center space-x-2">
+<span class="w-1.5 h-1.5 rounded-full bg-primary/60"></span>
+<span>Synced to Personal Vault</span>
+</div>
+</footer>
+</main>
+<!-- SideNavBar (Right - History/Reviews) - Collapsed/Hidden by default but present in layout logic -->
+<aside class="hidden lg:flex flex-col bg-[#131316] text-[#cbc2e4] docked vertical right-0 h-full w-80 py-8 px-4 border-l border-outline-variant/5">
+<div class="flex items-center justify-between mb-8 px-2">
+<div>
+<h3 class="text-[#e6e4ec] font-manrope font-semibold text-sm">Review</h3>
+<p class="text-[#abaab1] text-[10px] font-inter uppercase tracking-widest">3 active threads</p>
+</div>
+<button class="p-1.5 text-[#abaab1] hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+<nav class="flex space-x-1 mb-6 bg-surface-container-lowest/50 p-1 rounded-lg">
+<button class="flex-1 py-1.5 text-xs font-inter font-bold text-[#e6e4ec] bg-surface-variant rounded-md">History</button>
+<button class="flex-1 py-1.5 text-xs font-inter font-medium text-[#abaab1] hover:text-[#e6e4ec]">Comments</button>
+</nav>
+<!-- Threaded Comments -->
+<div class="space-y-4">
+<div class="bg-surface-container-high/40 p-4 rounded-xl space-y-3">
+<div class="flex items-start justify-between">
+<div class="flex items-center space-x-2">
+<div class="w-6 h-6 rounded-full overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User avatar for review comment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzUd-gUasmNua2vMg2zO1ioFlgCwtb-8AB4r9AYdLI8OCjFn7XUO6SnukoOklqUBG7296DWXk9Hn_ZlnvPdpZB-38hMLiOTrihAbkWSk_eOBy_hEvsD2hDkZ4AC1-0EWgfO7wURYeulONPaXZwXSfsgTfofhWCJ9M2jrhlDVNmRL4z-TEf2KTB7p0yS7FjrY-bjHHfv8972o7SgqqPwlT_EuCk00m-lb_hYdTJVMFuZ1T5jHCu1SeRX6xfC-TwxsFMlvy9Y7MqERxI"/>
+</div>
+<span class="text-xs font-inter font-semibold text-on-surface">Alex Rivera</span>
+</div>
+<span class="text-[9px] font-inter text-on-surface-variant">2h ago</span>
+</div>
+<p class="text-xs text-on-surface-variant leading-relaxed">
+                        Should we consider a more dramatic shift in the tonal depth for the header? It feels a bit flat.
+                    </p>
+<div class="ml-4 pl-4 border-l border-outline-variant/30 space-y-3">
+<div class="bg-surface-container-lowest/60 p-3 rounded-lg">
+<div class="flex items-center space-x-2 mb-1">
+<span class="text-[10px] font-inter font-semibold text-primary">Me</span>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-relaxed">
+                                Let's try the tonal-shift-bg class from the new shared system.
+                            </p>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-high/40 p-4 rounded-xl group cursor-pointer hover:bg-surface-variant/40 transition-colors">
+<div class="flex items-center space-x-2 mb-2">
+<span class="material-symbols-outlined text-primary text-sm">history</span>
+<span class="text-[10px] font-inter font-bold uppercase tracking-widest text-[#abaab1]">Version 0.2 Saved</span>
+</div>
+<p class="text-[11px] text-[#abaab1]">Yesterday, 11:45 PM</p>
+</div>
+</div>
+</aside>
+</div>
+<!-- Mobile FAB -->
+<div class="md:hidden fixed bottom-6 right-6">
+<button class="w-14 h-14 rounded-full bg-gradient-to-tr from-primary to-primary-container text-on-primary shadow-2xl flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-2xl">edit</span>
+</button>
+</div>
+</body></html>

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Vault Overview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container-high": "#1f1f24",
+              "outline": "#75757b",
+              "on-tertiary-fixed-variant": "#555873",
+              "secondary-fixed-dim": "#d7d3d8",
+              "surface-dim": "#0e0e10",
+              "on-secondary-container": "#c2bec3",
+              "inverse-surface": "#fcf8fb",
+              "error-dim": "#b95463",
+              "inverse-primary": "#625b78",
+              "tertiary-fixed": "#dcddfe",
+              "secondary": "#a09da1",
+              "inverse-on-surface": "#555557",
+              "primary-dim": "#bdb4d5",
+              "surface-container": "#19191d",
+              "primary": "#cbc2e4",
+              "on-surface": "#e6e4ec",
+              "on-tertiary-fixed": "#393c55",
+              "tertiary-fixed-dim": "#cecfef",
+              "primary-fixed-dim": "#d9d0f2",
+              "primary-container": "#49435f",
+              "tertiary-dim": "#cecfef",
+              "on-tertiary-container": "#4c4e69",
+              "on-secondary": "#211f23",
+              "on-error-container": "#ff97a3",
+              "on-tertiary": "#545671",
+              "secondary-dim": "#a09da1",
+              "surface-variant": "#25252b",
+              "on-secondary-fixed": "#403f42",
+              "surface-tint": "#cbc2e4",
+              "on-primary-fixed": "#413b57",
+              "surface": "#0e0e10",
+              "surface-container-low": "#131316",
+              "surface-bright": "#2b2c32",
+              "on-secondary-fixed-variant": "#5d5b5f",
+              "outline-variant": "#47474d",
+              "secondary-fixed": "#e6e1e6",
+              "secondary-container": "#3c3b3f",
+              "error": "#ec7c8a",
+              "surface-container-highest": "#25252b",
+              "tertiary-container": "#dcddfe",
+              "on-primary-fixed-variant": "#5e5774",
+              "on-background": "#e6e4ec",
+              "on-primary-container": "#d5cbee",
+              "on-primary": "#423c58",
+              "background": "#0e0e10",
+              "error-container": "#7f2737",
+              "tertiary": "#edecff",
+              "primary-fixed": "#e7deff",
+              "on-error": "#490013",
+              "on-surface-variant": "#abaab1",
+              "surface-container-lowest": "#000000"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Newsreader"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sliding-silk-transition {
+            transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .tonal-shift-bg {
+            background-color: #0e0e10;
+        }
+        .glass-card {
+            background: rgba(37, 37, 43, 0.6);
+            backdrop-filter: blur(20px);
+        }
+        .signature-gradient {
+            background: linear-gradient(135deg, #cbc2e4 0%, #49435f 100%);
+        }
+        .writing-canvas {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-label selection:bg-primary-container selection:text-on-primary-container">
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar Left (Anchored from JSON) -->
+<aside class="hidden md:flex flex-col py-8 px-4 space-y-4 bg-[#131316] text-[#cbc2e4] h-full w-72 sliding-silk-transition">
+<div class="px-4 mb-6">
+<div class="flex items-center space-x-3 p-3 glass-card rounded-xl hover:bg-[#2b2c32] transition-all cursor-pointer">
+<div class="w-10 h-10 rounded-lg signature-gradient flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined" data-icon="account_balance_wallet">account_balance_wallet</span>
+</div>
+<div>
+<h2 class="text-[#e6e4ec] font-headline font-bold text-sm tracking-tight">Personal Vault</h2>
+<p class="text-[#abaab1] text-xs font-label">128 Notes</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center space-x-3 px-4 py-2 text-[#e6e4ec] bg-[#49435f] rounded-lg sliding-silk-transition" href="#">
+<span class="material-symbols-outlined" data-icon="description">description</span>
+<span class="font-medium tracking-tight">All Notes</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-2 text-[#abaab1] hover:text-[#e6e4ec] hover:bg-[#25252b] rounded-lg sliding-silk-transition" href="#">
+<span class="material-symbols-outlined" data-icon="star">star</span>
+<span class="font-medium tracking-tight">Favorites</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-2 text-[#abaab1] hover:text-[#e6e4ec] hover:bg-[#25252b] rounded-lg sliding-silk-transition" href="#">
+<span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
+<span class="font-medium tracking-tight">Drafts</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-2 text-[#abaab1] hover:text-[#e6e4ec] hover:bg-[#25252b] rounded-lg sliding-silk-transition" href="#">
+<span class="material-symbols-outlined" data-icon="archive">archive</span>
+<span class="font-medium tracking-tight">Archive</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-2 text-[#abaab1] hover:text-[#e6e4ec] hover:bg-[#25252b] rounded-lg sliding-silk-transition" href="#">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+<span class="font-medium tracking-tight">Trash</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 space-y-1">
+<button class="w-full mb-4 py-3 px-4 signature-gradient text-on-primary font-headline font-bold rounded-lg flex items-center justify-center space-x-2 hover:opacity-90 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+<span>New Note</span>
+</button>
+<a class="flex items-center space-x-3 px-4 py-2 text-[#abaab1] hover:text-[#e6e4ec] hover:bg-[#25252b] rounded-lg sliding-silk-transition" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-medium tracking-tight">Settings</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-2 text-[#abaab1] hover:text-[#e6e4ec] hover:bg-[#25252b] rounded-lg sliding-silk-transition" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-medium tracking-tight">Help</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 bg-surface">
+<!-- TopAppBar (Anchored from JSON) -->
+<header class="flex justify-between items-center px-6 h-16 w-full bg-[#0e0e10] text-[#cbc2e4]">
+<div class="flex items-center space-x-4">
+<button class="md:hidden p-2 text-[#abaab1] hover:bg-[#2b2c32] rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-[#e6e4ec] font-headline font-semibold text-lg tracking-tight">Vault Overview</h1>
+</div>
+<div class="flex items-center space-x-2">
+<button class="p-2 text-[#abaab1] hover:bg-[#2b2c32] rounded-full transition-colors duration-300 active:opacity-80">
+<span class="material-symbols-outlined" data-icon="side_navigation">side_navigation</span>
+</button>
+<button class="p-2 text-[#abaab1] hover:bg-[#2b2c32] rounded-full transition-colors duration-300 active:opacity-80">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+</button>
+<button class="p-2 text-[#abaab1] hover:bg-[#2b2c32] rounded-full transition-colors duration-300 active:opacity-80">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Canvas -->
+<div class="flex-1 overflow-y-auto px-6 py-12 md:px-16 lg:px-20">
+<div class="writing-canvas">
+<!-- Editorial Header -->
+<div class="mb-12">
+<h2 class="font-body text-4xl text-on-surface mb-3 italic">Your Digital Ateliers</h2>
+<p class="font-label text-on-surface-variant text-sm max-w-md">Organized spaces for distinct thoughts. Select a vault to begin your focus session.</p>
+</div>
+<!-- Vault Grid (Asymmetric Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-6 gap-6">
+<!-- Personal Vault Card -->
+<div class="md:col-span-3 group cursor-pointer">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low h-64 p-8 flex flex-col justify-between hover:bg-surface-variant transition-all duration-500 border border-outline-variant/10">
+<div class="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-8xl" data-icon="person">person</span>
+</div>
+<div class="relative z-10">
+<div class="flex items-center space-x-2 mb-4">
+<div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(203,194,228,0.5)]"></div>
+<span class="text-xs font-label uppercase tracking-widest text-on-surface-variant">Active Workspace</span>
+</div>
+<h3 class="font-headline text-2xl font-bold text-on-surface">Personal</h3>
+</div>
+<div class="flex items-end justify-between relative z-10">
+<div class="space-y-1">
+<p class="text-on-surface text-sm font-medium">128 Notes</p>
+<p class="text-on-surface-variant text-xs">Last edit: 2 hours ago</p>
+</div>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Research Vault Card -->
+<div class="md:col-span-3 group cursor-pointer">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low h-64 p-8 flex flex-col justify-between hover:bg-surface-variant transition-all duration-500 border border-outline-variant/10">
+<div class="absolute -bottom-4 -right-4 opacity-5 group-hover:opacity-10 transition-opacity">
+<span class="material-symbols-outlined text-[10rem]" data-icon="science">science</span>
+</div>
+<div class="relative z-10">
+<h3 class="font-headline text-2xl font-bold text-on-surface">Research</h3>
+<div class="mt-2 flex gap-2">
+<span class="px-2 py-0.5 rounded-full border border-outline-variant/20 text-[10px] text-on-surface-variant font-medium">ACADEMIC</span>
+<span class="px-2 py-0.5 rounded-full border border-outline-variant/20 text-[10px] text-on-surface-variant font-medium">PDFS</span>
+</div>
+</div>
+<div class="flex items-end justify-between relative z-10">
+<div class="space-y-1">
+<p class="text-on-surface text-sm font-medium">45 Notes</p>
+<p class="text-on-surface-variant text-xs">Last edit: Yesterday</p>
+</div>
+<span class="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Project Alpha Card -->
+<div class="md:col-span-4 group cursor-pointer">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low h-56 p-8 flex flex-col justify-between hover:bg-surface-variant transition-all duration-500 border border-outline-variant/10">
+<div class="relative z-10">
+<div class="flex justify-between items-start">
+<h3 class="font-headline text-2xl font-bold text-on-surface">Project Alpha</h3>
+<span class="material-symbols-outlined text-primary-dim" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<p class="font-body italic text-on-surface-variant mt-2 text-lg">"The future of decentralized knowledge graphs..."</p>
+</div>
+<div class="flex items-center space-x-6 relative z-10">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-low bg-surface-variant flex items-center justify-center text-[10px] font-bold">JD</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-low bg-primary-container flex items-center justify-center text-[10px] font-bold text-on-primary-container">AM</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface-container-low bg-surface-bright flex items-center justify-center text-[10px] font-bold">+2</div>
+</div>
+<div class="h-4 w-px bg-outline-variant/30"></div>
+<p class="text-on-surface-variant text-xs font-medium">89 Shared Assets</p>
+</div>
+</div>
+</div>
+<!-- Create New Vault Action -->
+<div class="md:col-span-2 group cursor-pointer">
+<div class="h-56 rounded-xl border-2 border-dashed border-outline-variant/20 flex flex-col items-center justify-center space-y-3 hover:border-primary/40 hover:bg-surface-container-low transition-all duration-300">
+<div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</div>
+<span class="font-headline font-semibold text-sm text-on-surface-variant group-hover:text-on-surface">New Vault</span>
+</div>
+</div>
+</div>
+<!-- Recent Activity Section -->
+<div class="mt-20">
+<h4 class="font-headline font-bold text-xs uppercase tracking-widest text-on-surface-variant mb-6">Recent Scribbles</h4>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-primary-dim/40" data-icon="article">article</span>
+<div>
+<p class="text-on-surface font-medium text-sm">Philosophical foundations of architecture</p>
+<p class="text-on-surface-variant text-[11px]">in Research • 12m ago</p>
+</div>
+</div>
+<span class="material-symbols-outlined opacity-0 group-hover:opacity-100 text-on-surface-variant text-sm" data-icon="more_horiz">more_horiz</span>
+</div>
+<div class="flex items-center justify-between p-4 rounded-lg hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center space-x-4">
+<span class="material-symbols-outlined text-primary-dim/40" data-icon="edit_note">edit_note</span>
+<div>
+<p class="text-on-surface font-medium text-sm">Grocery list for the vernal equinox</p>
+<p class="text-on-surface-variant text-[11px]">in Personal • 4h ago</p>
+</div>
+</div>
+<span class="material-symbols-outlined opacity-0 group-hover:opacity-100 text-on-surface-variant text-sm" data-icon="more_horiz">more_horiz</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Right SideNavBar (Anchored from JSON) -->
+<aside class="hidden lg:flex flex-col py-8 px-4 bg-[#131316] text-[#cbc2e4] h-full w-80 sliding-silk-transition border-l border-white/5">
+<div class="flex items-center space-x-3 mb-8 px-4">
+<div class="w-8 h-8 rounded bg-[#49435f] flex items-center justify-center">
+<span class="material-symbols-outlined text-sm" data-icon="forum">forum</span>
+</div>
+<div>
+<h2 class="text-[#e6e4ec] font-headline text-sm font-bold">Review</h2>
+<p class="text-[#abaab1] text-[10px] font-label">3 active threads</p>
+</div>
+</div>
+<nav class="flex-1 space-y-6">
+<div class="space-y-2">
+<h3 class="px-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50">Navigation</h3>
+<a class="flex items-center justify-between px-4 py-2 text-[#e6e4ec] font-bold border-r-2 border-[#cbc2e4] bg-white/5" href="#">
+<div class="flex items-center space-x-3">
+<span class="material-symbols-outlined text-sm" data-icon="forum">forum</span>
+<span class="text-sm font-label">Comments</span>
+</div>
+<span class="bg-[#49435f] text-[10px] px-1.5 py-0.5 rounded">2</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-2 text-[#abaab1] hover:bg-[#25252b] transition-all" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="stylus">stylus</span>
+<span class="text-sm font-label">Annotations</span>
+</a>
+<a class="flex items-center space-x-3 px-4 py-2 text-[#abaab1] hover:bg-[#25252b] transition-all" href="#">
+<span class="material-symbols-outlined text-sm" data-icon="history">history</span>
+<span class="text-sm font-label">History</span>
+</a>
+</div>
+<div class="px-4 pt-6">
+<h3 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/50 mb-4">Live Activity</h3>
+<div class="space-y-4">
+<div class="p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/10">
+<div class="flex items-center space-x-2 mb-2">
+<div class="w-5 h-5 rounded-full bg-primary-dim text-[8px] flex items-center justify-center text-on-primary">AM</div>
+<span class="text-[10px] text-on-surface font-bold">Alex Morgan</span>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-relaxed">Added a comment to "Architecture foundations" in Research.</p>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-lowest border border-outline-variant/10">
+<div class="flex items-center space-x-2 mb-2">
+<div class="w-5 h-5 rounded-full bg-secondary-container text-[8px] flex items-center justify-center text-on-secondary">JD</div>
+<span class="text-[10px] text-on-surface font-bold">Jane Doe</span>
+</div>
+<p class="text-[11px] text-on-surface-variant leading-relaxed">Resolved a thread in Project Alpha.</p>
+</div>
+</div>
+</div>
+</nav>
+</aside>
+</div>
+</body></html>
