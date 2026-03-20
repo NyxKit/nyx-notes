@@ -9,11 +9,9 @@ import type { Note, NotePermission } from '@/types'
 
 const props = defineProps<{
   note: Note
-  isCommentsOpen: boolean
 }>()
 
 const emit = defineEmits<{
-  'toggle:comments': [],
   'comment': [selection: NyxEditorSelection]
 }>()
 
@@ -97,11 +95,9 @@ function onComment(selection: NyxEditorSelection) {
       :readonly="readonly"
       :is-author="isAuthor"
       :is-source-view="isSourceView"
-      :is-comments-open="props.isCommentsOpen"
       @update:title="onTitleChange"
       @update:permission="onPermissionChange"
       @toggle:source="isSourceView = !isSourceView"
-      @toggle:comments="emit('toggle:comments')"
     />
 
     <div v-if="note.meta.is_encrypted" class="note-editor__encrypted">
@@ -131,12 +127,16 @@ function onComment(selection: NyxEditorSelection) {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  padding: 0 1.5rem 2rem;
 }
 
 .note-editor__body {
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+  max-width: 768px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 .note-editor__encrypted {
@@ -144,7 +144,7 @@ function onComment(selection: NyxEditorSelection) {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--nyx-color-muted, #718096);
+  color: var(--nyx-c-text-3);
   font-size: 0.9rem;
 }
 </style>

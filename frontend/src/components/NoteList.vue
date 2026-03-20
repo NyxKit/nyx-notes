@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { NyxButton, NyxInput } from 'nyx-kit/components'
-import { NyxInputType } from 'nyx-kit/types'
 import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 import { useAuth } from '@/composables/useAuth'
@@ -46,14 +44,29 @@ function permissionIcon(permission: string): string {
 
 <template>
   <div class="note-list">
-    <div class="note-list__header">
-      <NyxInput
+
+    <!-- New note CTA -->
+    <div class="note-list__cta">
+      <button class="note-list__new-btn" @click="newNote">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        New Note
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="note-list__search-wrap">
+      <input
         v-model="search"
-        :type="NyxInputType.Search"
+        class="note-list__search"
+        type="search"
         placeholder="Search notes…"
       />
-      <NyxButton @click="newNote">New</NyxButton>
     </div>
+
+    <!-- Section label -->
+    <div class="note-list__section-label">Notes</div>
 
     <div v-if="loading" class="note-list__empty">Loading…</div>
 
@@ -79,11 +92,9 @@ function permissionIcon(permission: string): string {
           <span class="note-list__time">{{ getRelativeTime(note.updated_at) }}</span>
           <span v-if="note.category" class="note-list__category">{{ note.category }}</span>
         </div>
-        <div v-if="note.tags.length" class="note-list__tags">
-          <span v-for="tag in note.tags" :key="tag" class="note-list__tag">{{ tag }}</span>
-        </div>
       </li>
     </ul>
+
   </div>
 </template>
 
@@ -91,75 +102,135 @@ function permissionIcon(permission: string): string {
 .note-list {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-.note-list__header {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--nyx-color-border, #e2e8f0);
-}
-
-.note-list__header :deep(input) {
   flex: 1;
+  overflow: hidden;
+  min-height: 0;
 }
 
+/* New note CTA */
+.note-list__cta {
+  padding: 0.75rem 1rem 0.5rem;
+  flex-shrink: 0;
+}
+
+.note-list__new-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: var(--nyx-radius-md);
+  background: linear-gradient(135deg, #cbc2e4 0%, #49435f 100%);
+  color: #1a1821;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: 'Manrope', sans-serif;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.note-list__new-btn:hover {
+  opacity: 0.9;
+}
+
+/* Search */
+.note-list__search-wrap {
+  padding: 0.25rem 1rem 0.5rem;
+  flex-shrink: 0;
+}
+
+.note-list__search {
+  width: 100%;
+  background: rgba(37, 37, 43, 0.4);
+  border: 1px solid var(--nyx-c-divider);
+  border-radius: var(--nyx-radius-md);
+  padding: 0.4375rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--nyx-c-text-1);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.note-list__search::placeholder {
+  color: var(--nyx-c-text-3);
+}
+
+.note-list__search:focus {
+  border-color: rgba(71, 71, 77, 0.5);
+}
+
+/* Section label */
+.note-list__section-label {
+  padding: 0.5rem 1rem 0.25rem;
+  font-size: 0.625rem;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--nyx-c-text-3);
+  flex-shrink: 0;
+}
+
+/* States */
 .note-list__empty {
   padding: 2rem 1rem;
   text-align: center;
   font-size: 0.875rem;
-  color: var(--nyx-color-muted, #718096);
+  color: var(--nyx-c-text-3);
 }
 
+/* List */
 .note-list__items {
   list-style: none;
   margin: 0;
   padding: 0;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 }
 
 .note-list__item {
-  padding: 0.75rem 1rem;
+  padding: 0.625rem 1rem 0.625rem calc(1rem - 2px);
   cursor: pointer;
-  border-bottom: 1px solid var(--nyx-color-border, #e2e8f0);
-  transition: background 0.1s;
+  border-left: 2px solid transparent;
+  transition: background 0.2s, border-color 0.2s;
 }
 
-.note-list__item:hover,
+.note-list__item:hover {
+  background: var(--nyx-c-bg-mute);
+}
+
 .note-list__item--active {
-  background: var(--nyx-color-surface-hover, #f7fafc);
+  background: rgba(73, 67, 95, 0.4);
+  border-left-color: var(--nyx-c-primary);
 }
 
 .note-list__title {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
+  color: var(--nyx-c-text-1);
   display: flex;
   justify-content: space-between;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.note-list__item:not(.note-list__item--active) .note-list__title {
+  color: var(--nyx-c-text-2);
 }
 
 .note-list__meta {
   display: flex;
   gap: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--nyx-color-muted, #718096);
+  font-size: 0.6875rem;
+  color: var(--nyx-c-text-3);
   margin-top: 0.125rem;
 }
 
-.note-list__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-top: 0.25rem;
-}
-
-.note-list__tag {
-  font-size: 0.625rem;
-  padding: 0.125rem 0.375rem;
-  border-radius: 9999px;
-  background: var(--nyx-color-surface-muted, #edf2f7);
-  color: var(--nyx-color-muted, #718096);
+.note-list__permission {
+  flex-shrink: 0;
 }
 </style>

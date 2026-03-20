@@ -46,6 +46,7 @@ async function onDeleteReply(replyId: string) {
 
 <template>
   <div class="thread" :class="{ 'thread--resolved': comment.resolved }">
+
     <!-- Quoted text anchor -->
     <div v-if="comment.quoted_text" class="thread__quote">
       {{ comment.quoted_text }}
@@ -99,7 +100,7 @@ async function onDeleteReply(replyId: string) {
       </div>
     </div>
 
-    <!-- Reply composer -->
+    <!-- Reply area -->
     <div v-if="!comment.resolved" class="thread__reply-area">
       <CommentComposer
         v-if="showReplyComposer"
@@ -116,13 +117,14 @@ async function onDeleteReply(replyId: string) {
         Reply
       </button>
     </div>
+
   </div>
 </template>
 
 <style scoped>
 .thread {
-  border: 1px solid var(--nyx-color-border, #e2e8f0);
-  border-radius: 0.5rem;
+  background: rgba(31, 31, 36, 0.5);
+  border-radius: var(--nyx-radius-lg);
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
@@ -131,16 +133,16 @@ async function onDeleteReply(replyId: string) {
 }
 
 .thread--resolved {
-  opacity: 0.5;
+  opacity: 0.45;
 }
 
 .thread__quote {
-  border-left: 3px solid var(--nyx-color-accent, #6366f1);
-  padding: 0.2rem 0.5rem;
-  font-size: 0.8rem;
-  color: var(--nyx-color-muted, #718096);
-  background: var(--nyx-color-surface-raised, #f7fafc);
-  border-radius: 0 0.25rem 0.25rem 0;
+  border-left: 2px solid var(--nyx-c-primary-dark);
+  padding: 0.2rem 0.625rem;
+  font-size: 0.75rem;
+  color: var(--nyx-c-text-3);
+  background: rgba(73, 67, 95, 0.2);
+  border-radius: 0 var(--nyx-radius-sm) var(--nyx-radius-sm) 0;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -160,7 +162,7 @@ async function onDeleteReply(replyId: string) {
   flex-direction: column;
   gap: 0.5rem;
   padding-left: 0.75rem;
-  border-left: 2px solid var(--nyx-color-border, #e2e8f0);
+  border-left: 1px solid var(--nyx-c-divider);
 }
 
 .thread__header {
@@ -170,8 +172,9 @@ async function onDeleteReply(replyId: string) {
 }
 
 .thread__author {
-  font-weight: 500;
-  font-size: 0.8125rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: var(--nyx-c-text-1);
   flex: 1;
 }
 
@@ -186,33 +189,41 @@ async function onDeleteReply(replyId: string) {
   cursor: pointer;
   padding: 0.125rem 0.25rem;
   font-size: 0.75rem;
-  border-radius: 0.25rem;
-  color: var(--nyx-color-muted, #718096);
+  border-radius: var(--nyx-radius-sm);
+  color: var(--nyx-c-text-3);
   line-height: 1;
+  transition: background 0.2s, color 0.2s;
 }
 
 .thread__action:hover {
-  background: var(--nyx-color-surface-raised, #f7fafc);
+  background: var(--nyx-c-bg-mute);
+  color: var(--nyx-c-text-2);
 }
 
 .thread__action--danger:hover {
-  color: #e53e3e;
+  color: #ec7c8a;
 }
 
 .thread__body {
   margin: 0;
   line-height: 1.5;
   white-space: pre-wrap;
-  color: inherit;
+  color: var(--nyx-c-text-2);
+  font-size: 0.8125rem;
 }
 
 .thread__reply-btn {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.8rem;
-  color: var(--nyx-color-accent, #6366f1);
+  font-size: 0.75rem;
+  color: var(--nyx-c-text-3);
   padding: 0;
   font-family: inherit;
+  transition: color 0.2s;
+}
+
+.thread__reply-btn:hover {
+  color: var(--nyx-c-primary);
 }
 </style>

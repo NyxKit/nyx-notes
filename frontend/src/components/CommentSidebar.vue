@@ -15,6 +15,7 @@ const { comments, loading, load, clear, addComment } = useComments()
 
 const showComposer = ref(false)
 const submitting = ref(false)
+const activeTab = ref<'comments' | 'history'>('comments')
 
 const isNoteAuthor = computed(() =>
   authMode.value === 'local' || currentUser.value?.id === props.note.meta.author_id
@@ -49,21 +50,49 @@ async function onSubmitComment(body: string) {
 
 <template>
   <div class="comment-sidebar">
+
+    <!-- Header -->
     <div class="comment-sidebar__header">
-      <span class="comment-sidebar__title">Comments</span>
-      <span v-if="comments.length" class="comment-sidebar__count">{{ openComments.length }}</span>
-      <button
-        v-if="canComment"
-        class="comment-sidebar__new-btn"
-        @click="showComposer = !showComposer"
-      >
-        +
-      </button>
+      <div class="comment-sidebar__header-row">
+        <span class="comment-sidebar__title">Review</span>
+        <span v-if="openComments.length" class="comment-sidebar__thread-count">
+          {{ openComments.length }} active {{ openComments.length === 1 ? 'thread' : 'threads' }}
+        </span>
+        <button
+          v-if="canComment"
+          class="comment-sidebar__add-btn"
+          title="New comment"
+          @click="showComposer = !showComposer"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Tab bar -->
+      <div class="comment-sidebar__tabs">
+        <button
+          class="comment-sidebar__tab"
+          :class="{ 'comment-sidebar__tab--active': activeTab === 'comments' }"
+          @click="activeTab = 'comments'"
+        >
+          Comments
+        </button>
+        <button
+          class="comment-sidebar__tab"
+          :class="{ 'comment-sidebar__tab--active': activeTab === 'history' }"
+          @click="activeTab = 'history'"
+        >
+          History
+        </button>
+      </div>
     </div>
 
     <div v-if="loading" class="comment-sidebar__state">Loading…</div>
 
-    <template v-else>
+    <template v-else-if="activeTab === 'comments'">
+
       <!-- New comment composer -->
       <div v-if="showComposer" class="comment-sidebar__composer">
         <CommentComposer
@@ -92,7 +121,7 @@ async function onSubmitComment(body: string) {
         No open comments
       </div>
 
-      <!-- Resolved threads (collapsed by default) -->
+      <!-- Resolved threads -->
       <details v-if="resolvedComments.length" class="comment-sidebar__resolved">
         <summary class="comment-sidebar__resolved-label">
           Resolved ({{ resolvedComments.length }})
@@ -108,7 +137,13 @@ async function onSubmitComment(body: string) {
           />
         </div>
       </details>
+
     </template>
+
+    <div v-else-if="activeTab === 'history'" class="comment-sidebar__state">
+      History coming soon
+    </div>
+
   </div>
 </template>
 
@@ -120,57 +155,99 @@ async function onSubmitComment(body: string) {
   overflow: hidden;
 }
 
+/* Header */
 .comment-sidebar__header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem 1rem;
-  border-bottom: 1px solid var(--nyx-color-border, #e2e8f0);
+  padding: 1.25rem 1rem 0;
   flex-shrink: 0;
 }
 
+.comment-sidebar__header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+}
+
 .comment-sidebar__title {
-  font-weight: 600;
-  font-size: 0.875rem;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--nyx-c-text-1);
   flex: 1;
 }
 
-.comment-sidebar__count {
-  font-size: 0.75rem;
-  background: var(--nyx-color-accent, #6366f1);
-  color: #fff;
-  border-radius: 9999px;
-  padding: 0.0625rem 0.4375rem;
-  font-weight: 600;
+.comment-sidebar__thread-count {
+  font-size: 0.6875rem;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--nyx-c-text-3);
 }
 
-.comment-sidebar__new-btn {
+.comment-sidebar__add-btn {
   background: none;
-  border: 1px solid var(--nyx-color-border, #e2e8f0);
-  border-radius: 0.25rem;
-  width: 1.5rem;
-  height: 1.5rem;
+  border: none;
   cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  color: var(--nyx-color-muted, #718096);
+  color: var(--nyx-c-text-3);
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: var(--nyx-radius-md);
+  transition: background 0.2s, color 0.2s;
+  line-height: 0;
+  flex-shrink: 0;
 }
 
+.comment-sidebar__add-btn:hover {
+  background: var(--nyx-c-bg-mute);
+  color: var(--nyx-c-text-1);
+}
+
+/* Tabs */
+.comment-sidebar__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--nyx-c-divider);
+}
+
+.comment-sidebar__tab {
+  font-size: 0.8125rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  color: var(--nyx-c-text-3);
+  padding: 0.375rem 0.875rem 0.375rem 0;
+  font-family: inherit;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.comment-sidebar__tab:hover {
+  color: var(--nyx-c-text-2);
+}
+
+.comment-sidebar__tab--active {
+  color: var(--nyx-c-text-1);
+  border-bottom-color: var(--nyx-c-primary);
+}
+
+/* Composer */
 .comment-sidebar__composer {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--nyx-color-border, #e2e8f0);
+  border-bottom: 1px solid var(--nyx-c-divider);
 }
 
+/* Threads */
 .comment-sidebar__threads {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
 }
 
 .comment-sidebar__threads--resolved {
@@ -179,22 +256,24 @@ async function onSubmitComment(body: string) {
   padding-top: 0.5rem;
 }
 
+/* States */
 .comment-sidebar__state {
   padding: 2rem 1rem;
   text-align: center;
   font-size: 0.875rem;
-  color: var(--nyx-color-muted, #718096);
+  color: var(--nyx-c-text-3);
 }
 
+/* Resolved section */
 .comment-sidebar__resolved {
   flex-shrink: 0;
-  border-top: 1px solid var(--nyx-color-border, #e2e8f0);
+  border-top: 1px solid var(--nyx-c-divider);
 }
 
 .comment-sidebar__resolved-label {
   padding: 0.625rem 1rem;
   font-size: 0.8125rem;
-  color: var(--nyx-color-muted, #718096);
+  color: var(--nyx-c-text-3);
   cursor: pointer;
   list-style: none;
 }

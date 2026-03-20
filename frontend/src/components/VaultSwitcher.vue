@@ -6,11 +6,13 @@ import { NyxSize } from 'nyx-kit/types'
 import type { NyxSelectOptionGroup } from 'nyx-kit/types'
 import { useVaults } from '@/composables/useVaults'
 import { useTeams } from '@/composables/useTeams'
+import { useNotes } from '@/composables/useNotes'
 import type { Vault } from '@/types'
 
 const router = useRouter()
 const { vaults, activeVault, setActive } = useVaults()
 const { load: loadTeams, teamName } = useTeams()
+const { notes } = useNotes()
 
 onMounted(loadTeams)
 
@@ -53,6 +55,11 @@ const selectedVaultId = computed({
   }
 })
 
+const noteCountLabel = computed(() => {
+  const n = notes.value.length
+  return `${n} ${n === 1 ? 'note' : 'notes'}`
+})
+
 function select(vault: Vault) {
   setActive(vault)
   router.push(`/vaults/${vault.id}/notes`)
@@ -61,20 +68,27 @@ function select(vault: Vault) {
 
 <template>
   <div class="vault-switcher">
-    <div class="vault-switcher__row">
-      <NyxSelect
-        v-model="selectedVaultId"
-        :options="vaultSelectOptions"
-        :size="NyxSize.Small"
-        class="vault-switcher__select"
-      />
-
-      <RouterLink
-        v-if="activeVault"
-        :to="`/vaults/${activeVault.id}/settings`"
-        class="vault-switcher__settings"
-        title="Vault settings"
-      >⚙</RouterLink>
+    <div class="vault-switcher__card">
+      <div class="vault-switcher__card-row">
+        <NyxSelect
+          v-model="selectedVaultId"
+          :options="vaultSelectOptions"
+          :size="NyxSize.Small"
+          class="vault-switcher__select"
+        />
+        <RouterLink
+          v-if="activeVault"
+          :to="`/vaults/${activeVault.id}/settings`"
+          class="vault-switcher__settings"
+          title="Vault settings"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="2.5" stroke="currentColor" stroke-width="1.25"/>
+            <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.93 2.93l1.06 1.06M10.01 10.01l1.06 1.06M2.93 11.07l1.06-1.06M10.01 3.99l1.06-1.06" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+          </svg>
+        </RouterLink>
+      </div>
+      <span class="vault-switcher__count">{{ noteCountLabel }}</span>
     </div>
 
     <RouterLink
@@ -89,14 +103,27 @@ function select(vault: Vault) {
 
 <style scoped>
 .vault-switcher {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--nyx-color-border, #e2e8f0);
+  padding: 1rem;
+  flex-shrink: 0;
+}
+
+.vault-switcher__card {
+  background: rgba(37, 37, 43, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: var(--nyx-radius-lg);
+  padding: 0.875rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  transition: background 0.3s;
 }
 
-.vault-switcher__row {
+.vault-switcher__card:hover {
+  background: rgba(43, 44, 50, 0.8);
+}
+
+.vault-switcher__card-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -105,23 +132,36 @@ function select(vault: Vault) {
 .vault-switcher__select {
   flex: 1;
   min-width: 0;
+  --nyx-border-size-select: 0;
 }
 
 .vault-switcher__settings {
-  color: var(--nyx-color-muted, #718096);
+  color: var(--nyx-c-text-3);
   text-decoration: none;
-  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
-  line-height: 1;
+  transition: color 0.2s;
+  line-height: 0;
 }
 
 .vault-switcher__settings:hover {
-  color: inherit;
+  color: var(--nyx-c-text-2);
+}
+
+.vault-switcher__count {
+  font-size: 0.6875rem;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--nyx-c-text-3);
 }
 
 .vault-switcher__team-link {
+  display: block;
+  margin-top: 0.5rem;
   font-size: 0.75rem;
-  color: var(--nyx-color-accent, #6366f1);
+  color: var(--nyx-c-primary);
   text-decoration: none;
   padding-left: 0.125rem;
 }
