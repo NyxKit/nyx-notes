@@ -8,7 +8,7 @@ import { getRelativeTime } from '@/utils/time'
 
 const router = useRouter()
 const { activeVault } = useVaults()
-const { notes, loading, loadList, activeNote } = useNotes()
+const { notes, listLoading, loadList, activeNote } = useNotes()
 const { currentUser } = useAuth()
 
 const search = ref('')
@@ -49,7 +49,7 @@ function permissionIcon(permission: string): string {
     <!-- Section label -->
     <div class="note-list__section-label">Recent Notes</div>
 
-    <div v-if="loading" class="note-list__empty">Loading…</div>
+    <div v-if="listLoading" class="note-list__empty">Loading…</div>
 
     <div v-else-if="filtered.length === 0" class="note-list__empty">
       {{ search ? 'No results' : 'No notes yet' }}

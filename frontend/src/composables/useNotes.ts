@@ -11,20 +11,21 @@ import type { Note, NoteMeta, CreateNoteRequest, UpdateNoteRequest, NotePermissi
 
 const notes = ref<NoteMeta[]>([])
 const activeNote = ref<Note | null>(null)
+const listLoading = ref(false)
 const loading = ref(false)
 const saving = ref(false)
 const error = ref<string | null>(null)
 
 export function useNotes() {
   async function loadList(vaultId: string) {
-    loading.value = true
+    listLoading.value = true
     error.value = null
     try {
       notes.value = await fetchNotes(vaultId)
     } catch (e) {
       error.value = String(e)
     } finally {
-      loading.value = false
+      listLoading.value = false
     }
   }
 
@@ -80,6 +81,7 @@ export function useNotes() {
   return {
     notes,
     activeNote,
+    listLoading,
     loading,
     saving,
     error,
