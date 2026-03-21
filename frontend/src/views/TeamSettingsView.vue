@@ -134,7 +134,7 @@ const newMemberRoleModel = computed({
   <div class="settings-page">
     <div class="settings-page__inner">
       <header class="settings-page__header">
-        <NyxButton :variant="NyxVariant.Ghost" @click="router.back()">← Back</NyxButton>
+        <NyxButton @click="router.back()">← Back</NyxButton>
         <h1 class="settings-page__title">Team Settings</h1>
       </header>
 
@@ -182,7 +182,6 @@ const newMemberRoleModel = computed({
                 <td v-if="isOwner">
                   <NyxButton
                     v-if="member.role !== 'owner'"
-                    :variant="NyxVariant.Ghost"
                     :theme="NyxTheme.Danger"
                     :size="NyxSize.Small"
                     @click="onKickMember(member.user_id)"
@@ -222,7 +221,6 @@ const newMemberRoleModel = computed({
             <h2 class="settings-section__heading">Vaults</h2>
             <NyxButton
               v-if="isOwner"
-              :variant="NyxVariant.Ghost"
               @click="showAddVault = !showAddVault"
             >
               + Add vault
@@ -242,7 +240,7 @@ const newMemberRoleModel = computed({
               </template>
             </NyxFormField>
             <div class="settings-add-form__actions">
-              <NyxButton :variant="NyxVariant.Ghost" type="button" @click="showAddVault = false">Cancel</NyxButton>
+              <NyxButton type="button" @click="showAddVault = false">Cancel</NyxButton>
               <NyxButton
                 type="submit"
                 :disabled="!newVaultName.trim() || !newVaultSlug.trim() || addVaultLoading"
@@ -268,7 +266,6 @@ const newMemberRoleModel = computed({
               />
               <NyxButton
                 v-if="isOwner"
-                :variant="NyxVariant.Ghost"
                 :theme="NyxTheme.Danger"
                 :size="NyxSize.Small"
                 @click="onDeleteVault(vault.id)"
@@ -296,7 +293,7 @@ const newMemberRoleModel = computed({
               Are you sure you want to delete <strong>{{ team.name }}</strong>? This cannot be undone.
             </p>
             <div class="settings-confirm__actions">
-              <NyxButton :variant="NyxVariant.Ghost" @click="confirmDeleteTeam = false">Cancel</NyxButton>
+              <NyxButton @click="confirmDeleteTeam = false">Cancel</NyxButton>
               <NyxButton :theme="NyxTheme.Danger" @click="onDeleteTeam">
                 Yes, delete team
               </NyxButton>

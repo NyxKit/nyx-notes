@@ -103,7 +103,6 @@ function cancelCreate() {
             <NyxButton
               v-for="vault in vaults"
               :key="vault.id"
-              :variant="NyxVariant.Ghost"
               class="home__vault-card"
               @click="openVault(vault.id)"
             >
@@ -127,7 +126,7 @@ function cancelCreate() {
                 <NyxButton :gradient="true" type="submit" :disabled="creating">
                   {{ creating ? 'Creating…' : 'Create' }}
                 </NyxButton>
-                <NyxButton :variant="NyxVariant.Ghost" type="button" @click="cancelCreate">Cancel</NyxButton>
+                <NyxButton @click="cancelCreate">Cancel</NyxButton>
               </div>
             </NyxForm>
 

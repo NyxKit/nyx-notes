@@ -166,7 +166,6 @@ watch(
         <div class="app-shell__header-left">
           <NyxButton
             v-if="section === 'notes'"
-            :variant="NyxVariant.Ghost"
             :shape="NyxShape.Square"
             title="Toggle sidebar"
             @click="isSidebarOpen = !isSidebarOpen"
@@ -180,7 +179,6 @@ watch(
         <div v-if="section === 'notes' && activeNote" class="app-shell__header-right">
           <!-- Source view -->
           <NyxButton
-            :variant="NyxVariant.Ghost"
             :shape="NyxShape.Square"
             title="Toggle source view"
             @click="editorStore.toggleSourceView()"
@@ -191,7 +189,6 @@ watch(
           </NyxButton>
           <!-- Favorite -->
           <NyxButton
-            :variant="NyxVariant.Ghost"
             :shape="NyxShape.Square"
             title="Toggle favorite"
             @click="toggleFavorite()"
@@ -202,7 +199,6 @@ watch(
           </NyxButton>
           <!-- Delete -->
           <NyxButton
-            :variant="NyxVariant.Ghost"
             :shape="NyxShape.Square"
             :theme="NyxTheme.Danger"
             title="Delete note"
@@ -214,7 +210,6 @@ watch(
           </NyxButton>
           <!-- Comments -->
           <NyxButton
-            :variant="NyxVariant.Ghost"
             :shape="NyxShape.Square"
             title="Toggle comments"
             @click="isCommentsOpen = !isCommentsOpen"
@@ -280,7 +275,7 @@ watch(
     >
       <p>This note will be permanently deleted. This cannot be undone.</p>
       <template #footer>
-        <NyxButton :variant="NyxVariant.Ghost" @click="showDeleteConfirm = false">Cancel</NyxButton>
+        <NyxButton @click="showDeleteConfirm = false">Cancel</NyxButton>
         <NyxButton :theme="NyxTheme.Danger" @click="confirmDelete">Delete</NyxButton>
       </template>
     </NyxModal>

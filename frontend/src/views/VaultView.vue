@@ -111,7 +111,6 @@ async function createFirst() {
             <NyxButton
               v-for="note in sortedNotes"
               :key="note.id"
-              :variant="NyxVariant.Ghost"
               class="vault__note-card"
               @click="openNote(note.id)"
             >

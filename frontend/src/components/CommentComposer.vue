@@ -43,11 +43,7 @@ function onSubmit() {
         </template>
       </NyxFormField>
       <div class="composer__actions">
-        <NyxButton
-          :variant="NyxVariant.Ghost"
-          type="button"
-          @click="emit('cancel')"
-        >
+        <NyxButton @click="emit('cancel')">
           Cancel
         </NyxButton>
         <NyxButton

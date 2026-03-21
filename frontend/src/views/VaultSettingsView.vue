@@ -60,7 +60,7 @@ const permissionModel = computed({
   <div class="settings-page">
     <div class="settings-page__inner">
       <header class="settings-page__header">
-        <NyxButton :variant="NyxVariant.Ghost" @click="router.back()">← Back</NyxButton>
+        <NyxButton @click="router.back()">← Back</NyxButton>
         <h1 class="settings-page__title">Vault Settings</h1>
       </header>
 
@@ -116,7 +116,7 @@ const permissionModel = computed({
               Are you sure you want to delete <strong>{{ vault.name }}</strong>? This cannot be undone.
             </p>
             <div class="settings-confirm__actions">
-              <NyxButton :variant="NyxVariant.Ghost" @click="confirmDelete = false">Cancel</NyxButton>
+              <NyxButton @click="confirmDelete = false">Cancel</NyxButton>
               <NyxButton :theme="NyxTheme.Danger" @click="onDelete">
                 Yes, delete vault
               </NyxButton>

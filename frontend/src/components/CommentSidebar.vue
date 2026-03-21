@@ -62,7 +62,6 @@ async function onSubmitComment(body: string) {
         </span>
         <NyxButton
           v-if="canComment"
-          :variant="NyxVariant.Ghost"
           :shape="NyxShape.Square"
           title="New comment"
           @click="showComposer = !showComposer"
