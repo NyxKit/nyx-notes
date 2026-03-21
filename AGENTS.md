@@ -58,7 +58,7 @@ The stack:
 | Storage | Rust (`notes-storage-fs`) | `crates/notes-storage-fs/` | ✅ built |
 | HTTP API | Rust/Axum (`notes-server-axum`) | `crates/notes-server-axum/` | ✅ built |
 | CLI | Rust (`notes-cli`) | `crates/notes-cli/` | ✅ built |
-| Frontend | Vue 3 + nyx-kit + NyxEditor | `frontend/src/` | 🚧 in progress |
+| Frontend | Vue 3 + nyx-kit | `frontend/src/` | 🚧 in progress |
 | Native app | Tauri (embeds Axum server) | `frontend/native/` | 🔜 planned |
 | Auth | Pluggable (`local`, `secret_key`, `oidc`) | — | 🔜 planned |
 | Content storage | Plain `.md` files on disk | `$NOTES_ROOT/` | ✅ built |
