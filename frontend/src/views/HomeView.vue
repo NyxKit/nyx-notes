@@ -1,40 +1,41 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 
 const router = useRouter()
-const { vaults, load: loadVaults, setActive, create: createVault } = useVaults()
-const { loadList, notes, create: createNote } = useNotes()
-
-const LAST_NOTE_KEY = 'nyx_last_note'
+const { vaults, activeVault, load: loadVaults, setActive, create: createVault } = useVaults()
+const { loadList, notes, listLoading, create: createNote } = useNotes()
 
 onMounted(async () => {
   await loadVaults()
 
-  const last = localStorage.getItem(LAST_NOTE_KEY)
-  if (last) {
-    try {
-      const { vaultId, noteId } = JSON.parse(last)
-      if (vaults.value.some(v => v.id === vaultId)) {
-        router.replace(`/vaults/${vaultId}/notes/${noteId}`)
-        return
-      }
-    } catch { /* malformed entry */ }
-    localStorage.removeItem(LAST_NOTE_KEY)
-  }
+  const vault = activeVault.value ?? vaults.value[0] ?? null
+  if (!vault) return
 
-  for (const vault of vaults.value) {
-    await loadList(vault.id)
-    if (notes.value.length > 0) {
-      setActive(vault)
-      const latest = notes.value[0]
-      router.replace(`/vaults/${vault.id}/notes/${latest.id}`)
-      return
-    }
-  }
+  setActive(vault)
+  await loadList(vault.id)
 })
+
+const recentNotes = computed(() => notes.value.slice(0, 12))
+
+function formatDate(iso: string) {
+  const d = new Date(iso)
+  const now = Date.now()
+  const diff = now - d.getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 60) return mins <= 1 ? 'just now' : `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
+function openNote(vaultId: string, noteId: string) {
+  router.push(`/vaults/${vaultId}/notes/${noteId}`)
+}
 
 async function createFirst() {
   await loadVaults()
@@ -61,7 +62,7 @@ async function createFirst() {
             <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
           </svg>
         </button>
-        <span class="home__header-title">Untitled Note</span>
+        <span class="home__header-title">{{ activeVault?.name ?? 'Home' }}</span>
       </div>
       <div class="home__header-right">
         <button class="home__icon-btn" disabled>
@@ -72,8 +73,30 @@ async function createFirst() {
       </div>
     </header>
 
-    <!-- Main content -->
-    <main class="home__body">
+    <!-- Main content: masonry when notes exist -->
+    <main v-if="!listLoading && recentNotes.length > 0" class="home__body home__body--masonry">
+      <div class="home__masonry-header">
+        <h2 class="home__masonry-title">Recent Notes</h2>
+        <button class="home__cta home__cta--sm" @click="createFirst">New Note</button>
+      </div>
+      <div class="home__masonry">
+        <button
+          v-for="note in recentNotes"
+          :key="note.id"
+          class="home__note-card"
+          @click="openNote(note.vault_id, note.id)"
+        >
+          <span class="home__note-title">{{ note.title || 'Untitled' }}</span>
+          <div v-if="note.tags.length" class="home__note-tags">
+            <span v-for="tag in note.tags.slice(0, 3)" :key="tag" class="home__note-tag">{{ tag }}</span>
+          </div>
+          <span class="home__note-date">{{ formatDate(note.updated_at) }}</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- Main content: empty state -->
+    <main v-else-if="!listLoading" class="home__body">
       <div class="home__grid">
 
         <!-- Left: onboarding card -->
@@ -188,6 +211,96 @@ async function createFirst() {
   overflow: auto;
 }
 
+.home__body--masonry {
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Masonry header row */
+.home__masonry-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.home__masonry-title {
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--nyx-c-text-3);
+  margin: 0;
+}
+
+/* Masonry grid */
+.home__masonry {
+  columns: 3 220px;
+  column-gap: 1rem;
+  width: 100%;
+}
+
+/* Note card */
+.home__note-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--nyx-c-bg-soft);
+  border-radius: var(--nyx-radius-xl);
+  padding: 1.25rem 1.25rem 1rem;
+  margin-bottom: 1rem;
+  break-inside: avoid;
+  cursor: pointer;
+  text-align: left;
+  border: 1px solid transparent;
+  width: 100%;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.home__note-card:hover {
+  border-color: var(--nyx-c-divider);
+  background: var(--nyx-c-bg-mute);
+}
+
+.home__note-title {
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--nyx-c-text-1);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home__note-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.home__note-tag {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--nyx-c-primary);
+  background: color-mix(in srgb, var(--nyx-c-primary) 12%, transparent);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--nyx-radius-xs);
+  text-transform: lowercase;
+}
+
+.home__note-date {
+  font-size: 0.6875rem;
+  color: var(--nyx-c-text-3);
+  margin-top: auto;
+}
+
+/* Empty state grid */
 .home__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -241,6 +354,12 @@ async function createFirst() {
   border-radius: var(--nyx-radius-md);
   transition: opacity 0.2s;
   margin-top: 0.25rem;
+}
+
+.home__cta--sm {
+  padding: 0.5rem 1.25rem;
+  margin-top: 0;
+  font-size: 0.8125rem;
 }
 
 .home__cta:hover {
