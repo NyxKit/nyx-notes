@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { NyxSelect } from 'nyx-kit/components'
+import { NyxSelect, NyxButton } from 'nyx-kit/components'
+import { NyxVariant, NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
 import { useVaults } from '@/composables/useVaults'
 import type { NotePermission } from '@/types'
@@ -59,7 +60,7 @@ const permissionModel = computed({
   <div class="settings-page">
     <div class="settings-page__inner">
       <header class="settings-page__header">
-        <button class="settings-page__back" @click="router.back()">← Back</button>
+        <NyxButton :variant="NyxVariant.Ghost" @click="router.back()">← Back</NyxButton>
         <h1 class="settings-page__title">Vault Settings</h1>
       </header>
 
@@ -106,19 +107,19 @@ const permissionModel = computed({
             Deleting a vault is permanent. The vault must be empty (no notes) before it can be deleted.
           </p>
           <div v-if="!confirmDelete">
-            <button class="settings-btn settings-btn--danger" @click="confirmDelete = true">
+            <NyxButton :theme="NyxTheme.Danger" @click="confirmDelete = true">
               Delete vault
-            </button>
+            </NyxButton>
           </div>
           <div v-else class="settings-confirm">
             <p class="settings-confirm__warning">
               Are you sure you want to delete <strong>{{ vault.name }}</strong>? This cannot be undone.
             </p>
             <div class="settings-confirm__actions">
-              <button class="settings-btn" @click="confirmDelete = false">Cancel</button>
-              <button class="settings-btn settings-btn--danger" @click="onDelete">
+              <NyxButton :variant="NyxVariant.Ghost" @click="confirmDelete = false">Cancel</NyxButton>
+              <NyxButton :theme="NyxTheme.Danger" @click="onDelete">
                 Yes, delete vault
-              </button>
+              </NyxButton>
             </div>
             <p v-if="deleteError" class="settings-error">{{ deleteError }}</p>
           </div>
@@ -145,16 +146,6 @@ const permissionModel = computed({
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
-}
-
-.settings-page__back {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--nyx-color-accent, #6366f1);
-  font-size: 0.875rem;
-  font-family: inherit;
-  padding: 0;
 }
 
 .settings-page__title {
@@ -220,23 +211,6 @@ const permissionModel = computed({
   font-family: monospace;
 }
 
-
-.settings-btn {
-  font-size: 0.875rem;
-  padding: 0.4375rem 1rem;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  border: 1px solid var(--nyx-color-border, #e2e8f0);
-  background: transparent;
-  color: inherit;
-  font-family: inherit;
-}
-
-.settings-btn--danger {
-  background: #c53030;
-  color: #fff;
-  border-color: #c53030;
-}
 
 .settings-confirm {
   display: flex;

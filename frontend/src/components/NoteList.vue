@@ -5,6 +5,7 @@ import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 import { useAuth } from '@/composables/useAuth'
 import { getRelativeTime } from '@/utils/time'
+import { NyxInput } from 'nyx-kit/components'
 
 const router = useRouter()
 const { activeVault } = useVaults()
@@ -38,9 +39,8 @@ function permissionIcon(permission: string): string {
 
     <!-- Search -->
     <div class="note-list__search-wrap">
-      <input
+      <NyxInput
         v-model="search"
-        class="note-list__search"
         type="search"
         placeholder="Search notes…"
       />
@@ -92,27 +92,6 @@ function permissionIcon(permission: string): string {
 .note-list__search-wrap {
   padding: 0.25rem 1rem 0.5rem;
   flex-shrink: 0;
-}
-
-.note-list__search {
-  width: 100%;
-  background: rgba(37, 37, 43, 0.4);
-  border: 1px solid var(--nyx-c-divider);
-  border-radius: var(--nyx-radius-md);
-  padding: 0.4375rem 0.75rem;
-  font-size: 0.8125rem;
-  color: var(--nyx-c-text-1);
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.note-list__search::placeholder {
-  color: var(--nyx-c-text-3);
-}
-
-.note-list__search:focus {
-  border-color: rgba(71, 71, 77, 0.5);
 }
 
 /* Section label */

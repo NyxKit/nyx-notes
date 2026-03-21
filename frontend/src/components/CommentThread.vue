@@ -4,6 +4,8 @@ import { useAuth } from '@/composables/useAuth'
 import { useComments } from '@/composables/useComments'
 import CommentComposer from '@/components/CommentComposer.vue'
 import type { Comment } from '@/types'
+import { NyxButton } from 'nyx-kit/components'
+import { NyxVariant, NyxTheme, NyxSize } from 'nyx-kit/types'
 
 const props = defineProps<{
   comment: Comment
@@ -57,22 +59,25 @@ async function onDeleteReply(replyId: string) {
       <div class="thread__header">
         <span class="thread__author">{{ comment.author_name }}</span>
         <div class="thread__actions">
-          <button
+          <NyxButton
             v-if="isNoteAuthor"
-            class="thread__action"
+            :variant="NyxVariant.Ghost"
+            :size="NyxSize.Small"
             :title="comment.resolved ? 'Unresolve' : 'Resolve'"
             @click="onResolve"
           >
             {{ comment.resolved ? '↩' : '✓' }}
-          </button>
-          <button
+          </NyxButton>
+          <NyxButton
             v-if="isAuthor(comment.author_id) || isNoteAuthor"
-            class="thread__action thread__action--danger"
+            :variant="NyxVariant.Ghost"
+            :theme="NyxTheme.Danger"
+            :size="NyxSize.Small"
             title="Delete"
             @click="onDelete"
           >
             ✕
-          </button>
+          </NyxButton>
         </div>
       </div>
       <p class="thread__body">{{ comment.body }}</p>
@@ -87,14 +92,16 @@ async function onDeleteReply(replyId: string) {
       >
         <div class="thread__header">
           <span class="thread__author">{{ reply.author_name }}</span>
-          <button
+          <NyxButton
             v-if="isAuthor(reply.author_id) || isNoteAuthor"
-            class="thread__action thread__action--danger"
+            :variant="NyxVariant.Ghost"
+            :theme="NyxTheme.Danger"
+            :size="NyxSize.Small"
             title="Delete reply"
             @click="onDeleteReply(reply.id)"
           >
             ✕
-          </button>
+          </NyxButton>
         </div>
         <p class="thread__body">{{ reply.body }}</p>
       </div>
@@ -109,13 +116,13 @@ async function onDeleteReply(replyId: string) {
         @submit="onSubmitReply"
         @cancel="showReplyComposer = false"
       />
-      <button
+      <NyxButton
         v-else
-        class="thread__reply-btn"
+        :variant="NyxVariant.Ghost"
         @click="showReplyComposer = true"
       >
         Reply
-      </button>
+      </NyxButton>
     </div>
 
   </div>
@@ -183,27 +190,6 @@ async function onDeleteReply(replyId: string) {
   gap: 0.25rem;
 }
 
-.thread__action {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.125rem 0.25rem;
-  font-size: 0.75rem;
-  border-radius: var(--nyx-radius-sm);
-  color: var(--nyx-c-text-3);
-  line-height: 1;
-  transition: background 0.2s, color 0.2s;
-}
-
-.thread__action:hover {
-  background: var(--nyx-c-bg-mute);
-  color: var(--nyx-c-text-2);
-}
-
-.thread__action--danger:hover {
-  color: #ec7c8a;
-}
-
 .thread__body {
   margin: 0;
   line-height: 1.5;
@@ -212,18 +198,4 @@ async function onDeleteReply(replyId: string) {
   font-size: 0.8125rem;
 }
 
-.thread__reply-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.75rem;
-  color: var(--nyx-c-text-3);
-  padding: 0;
-  font-family: inherit;
-  transition: color 0.2s;
-}
-
-.thread__reply-btn:hover {
-  color: var(--nyx-c-primary);
-}
 </style>

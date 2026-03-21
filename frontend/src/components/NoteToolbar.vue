@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { NyxInput } from 'nyx-kit/components'
-import { NyxSize, NyxVariant } from 'nyx-kit/types'
+import { NyxInput, NyxBadge } from 'nyx-kit/components'
+import { NyxSize, NyxVariant, NyxTheme } from 'nyx-kit/types'
 import type { NotePermission } from '@/types'
 
 const props = defineProps<{
@@ -30,7 +30,7 @@ const emit = defineEmits<{
 
     <div class="note-toolbar__meta">
       <div v-if="props.tags.length" class="note-toolbar__tags">
-        <span v-for="tag in props.tags" :key="tag" class="note-toolbar__tag">{{ tag }}</span>
+        <NyxBadge v-for="tag in props.tags" :key="tag" :theme="NyxTheme.Primary" variant="soft">{{ tag }}</NyxBadge>
       </div>
 
       <span class="note-toolbar__status">
@@ -65,18 +65,6 @@ const emit = defineEmits<{
   display: flex;
   gap: 0.375rem;
   flex-wrap: wrap;
-}
-
-.note-toolbar__tag {
-  border: 1px solid rgba(71, 71, 77, 0.35);
-  border-radius: 9999px;
-  padding: 0.125rem 0.625rem;
-  font-size: 0.625rem;
-  font-family: 'Inter', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--nyx-c-text-2);
-  background: transparent;
 }
 
 .note-toolbar__status {
