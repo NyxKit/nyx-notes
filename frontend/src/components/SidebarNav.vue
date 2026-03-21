@@ -9,13 +9,15 @@ const router = useRouter()
 const { activeVault } = useVaults()
 const { create } = useNotes()
 
+const vaultId = computed(() => activeVault.value?.id ?? '')
+
 const section = computed(() => {
+  if (route.path === '/') return 'home'
   if (route.path.includes('/favorites')) return 'favorites'
   if (route.path.includes('/drafts')) return 'drafts'
+  if (vaultId.value && route.path === `/vaults/${vaultId.value}`) return 'vault'
   return 'notes'
 })
-
-const vaultId = computed(() => activeVault.value?.id ?? '')
 
 async function newNote() {
   if (!vaultId.value) return
@@ -37,14 +39,32 @@ async function newNote() {
       </button>
     </div>
 
+    <!-- App section -->
+    <div class="sidebar-nav__section-label">App</div>
+
+    <RouterLink
+      to="/"
+      class="sidebar-nav__item"
+      :class="{ 'sidebar-nav__item--active': section === 'home' }"
+    >
+      <!-- Vault / grid icon -->
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.25"/>
+        <rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.25"/>
+        <rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.25"/>
+        <rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.25"/>
+      </svg>
+      Vaults
+    </RouterLink>
+
     <!-- Workspace section -->
-    <div class="sidebar-nav__section-label">Workspace</div>
+    <div v-if="vaultId" class="sidebar-nav__section-label">Workspace</div>
 
     <RouterLink
       v-if="vaultId"
-      :to="`/vaults/${vaultId}/notes`"
+      :to="`/vaults/${vaultId}`"
       class="sidebar-nav__item"
-      :class="{ 'sidebar-nav__item--active': section === 'notes' }"
+      :class="{ 'sidebar-nav__item--active': section === 'vault' }"
     >
       <!-- Document icon -->
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

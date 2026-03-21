@@ -30,7 +30,8 @@ frontend/
       CommentThread.vue      # single thread: anchor quote + replies
       CommentComposer.vue    # new comment / reply input
     views/
-      HomeView.vue           # redirect to last note or empty state
+      HomeView.vue           # multi-vault dashboard; redirects to vault if only one exists
+      VaultView.vue          # notes masonry for a single vault; getting-started if empty
       NoteView.vue           # editor for a specific note (:vault_id/:id)
       LoginView.vue          # login UI (adapts to auth mode)
       VaultSettingsView.vue  # rename vault, change permission (team vaults), delete vault
@@ -58,7 +59,16 @@ frontend/
 
 ### `HomeView`
 
-- Redirects to the most recently edited note, or shows an empty-state prompt to create the first note
+- If the user has exactly **one vault**: redirects immediately to `/vaults/:vault_id` (replaces history entry)
+- If the user has **more than one vault**: renders a masonry grid of vault cards; each card navigates to `/vaults/:vault_id`
+- Provides a "New Vault" inline form (slug + name) that calls `useVaults().create()` and redirects to the new vault
+
+### `VaultView` (`/vaults/:vault_id`)
+
+- Fetches notes for the vault from `GET /api/vaults/:vault_id/notes`
+- **Notes present**: renders a masonry grid of note cards (sorted by `updated_at` desc); clicking a card navigates to `/vaults/:vault_id/notes/:id`
+- **No notes**: renders a getting-started prompt with a "New Note" CTA that creates a blank note and navigates to the editor
+- Header shows vault name and a persistent "New Note" action button
 
 ### `NoteView` (`/vaults/:vault_id/notes/:id`)
 
@@ -148,6 +158,7 @@ await fetch(`/api/vaults/${vaultId}/notes/${id}`, {
 | Path | View | Guard |
 |---|---|---|
 | `/` | `HomeView` | Auth required |
+| `/vaults/:vault_id` | `VaultView` | Auth required |
 | `/vaults/:vault_id/notes/:id` | `NoteView` | Auth required |
 | `/vaults/:vault_id/settings` | `VaultSettingsView` | Auth required |
 | `/teams/:team_id/settings` | `TeamSettingsView` | Auth required |

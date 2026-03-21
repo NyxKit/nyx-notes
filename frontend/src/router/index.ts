@@ -10,6 +10,11 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/vaults/:vault_id',
+      component: () => import('@/views/VaultView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/vaults/:vault_id/notes/:id?',
       component: () => import('@/views/NoteView.vue'),
       meta: { requiresAuth: true },

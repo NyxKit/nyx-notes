@@ -17,3 +17,10 @@ Do not rewrite a file to clean it up unless that is the explicit request. Reform
 
 **Ask before introducing dependencies.**
 Do not add a new Rust crate, npm package, or external service without flagging it first. State what it is, why it is needed, and whether there is a lighter alternative already in scope.
+
+## Active Technologies
+- TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5 (001-route-domains)
+- Filesystem (Rust backend) — no frontend storage changes (001-route-domains)
+
+## Recent Changes
+- 001-route-domains: Added TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5
