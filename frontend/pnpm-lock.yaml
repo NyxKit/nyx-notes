@@ -15,8 +15,8 @@ importers:
         specifier: ^2
         version: 2.5.3
       nyx-kit:
-        specifier: ^1.4.4
-        version: 1.4.4(@floating-ui/dom@1.7.6)(@tiptap/core@3.20.4(@tiptap/pm@3.20.4))(@tiptap/extension-list@3.20.4(@tiptap/core@3.20.4(@tiptap/pm@3.20.4))(@tiptap/pm@3.20.4))(@tiptap/pm@3.20.4)(typescript@5.6.3)(vue@3.5.30(typescript@5.6.3))
+        specifier: ^1.5.0
+        version: 1.5.0(@floating-ui/dom@1.7.6)(@tiptap/core@3.20.4(@tiptap/pm@3.20.4))(@tiptap/extension-list@3.20.4(@tiptap/core@3.20.4(@tiptap/pm@3.20.4))(@tiptap/pm@3.20.4))(@tiptap/pm@3.20.4)(typescript@5.6.3)(vue@3.5.30(typescript@5.6.3))
       ofetch:
         specifier: ^1.5.1
         version: 1.5.1
@@ -899,8 +899,8 @@ packages:
   node-fetch-native@1.6.7:
     resolution: {integrity: sha512-g9yhqoedzIUm0nTnTqAQvueMPVOuIY16bqgAJJC8XOOubYFNwz6IER9qs0Gq2Xd0+CecCKFjtdDTMA4u4xG06Q==}
 
-  nyx-kit@1.4.4:
-    resolution: {integrity: sha512-fuo4UWX0bC9/mF/W1Wqa1+CTFE/FYYgQI+8FiRvfWRN2CugwDSX3skSvBfhyw2mRHP9Rnigzeo3+Cjm2eB1e/g==}
+  nyx-kit@1.5.0:
+    resolution: {integrity: sha512-zyXSDCwJ7Rt5WZrwCODxjeJ9bY3F7KsrgYuT0CAzvaYweGwDcqiAZIAyjp2lkaSE0SmFMKIvSyQg5oMS2k/k7A==}
     peerDependencies:
       typescript: ^5.0.0
       vue: ^3.0.0
@@ -1900,7 +1900,7 @@ snapshots:
 
   node-fetch-native@1.6.7: {}
 
-  nyx-kit@1.4.4(@floating-ui/dom@1.7.6)(@tiptap/core@3.20.4(@tiptap/pm@3.20.4))(@tiptap/extension-list@3.20.4(@tiptap/core@3.20.4(@tiptap/pm@3.20.4))(@tiptap/pm@3.20.4))(@tiptap/pm@3.20.4)(typescript@5.6.3)(vue@3.5.30(typescript@5.6.3)):
+  nyx-kit@1.5.0(@floating-ui/dom@1.7.6)(@tiptap/core@3.20.4(@tiptap/pm@3.20.4))(@tiptap/extension-list@3.20.4(@tiptap/core@3.20.4(@tiptap/pm@3.20.4))(@tiptap/pm@3.20.4))(@tiptap/pm@3.20.4)(typescript@5.6.3)(vue@3.5.30(typescript@5.6.3)):
     dependencies:
       '@tiptap/extension-task-item': 3.20.4(@tiptap/extension-list@3.20.4(@tiptap/core@3.20.4(@tiptap/pm@3.20.4))(@tiptap/pm@3.20.4))
       '@tiptap/extension-task-list': 3.20.4(@tiptap/extension-list@3.20.4(@tiptap/core@3.20.4(@tiptap/pm@3.20.4))(@tiptap/pm@3.20.4))
