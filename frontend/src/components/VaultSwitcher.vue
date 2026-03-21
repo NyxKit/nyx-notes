@@ -9,6 +9,8 @@ import { useTeams } from '@/composables/useTeams'
 import { useNotes } from '@/composables/useNotes'
 import type { Vault } from '@/types'
 
+const props = withDefaults(defineProps<{ dest?: 'notes' | 'vault' }>(), { dest: 'notes' })
+
 const router = useRouter()
 const { vaults, activeVault, setActive } = useVaults()
 const { load: loadTeams, teamName } = useTeams()
@@ -62,7 +64,8 @@ const noteCountLabel = computed(() => {
 
 function select(vault: Vault) {
   setActive(vault)
-  router.push(`/vaults/${vault.id}/notes`)
+  const path = props.dest === 'vault' ? `/vaults/${vault.id}` : `/vaults/${vault.id}/notes`
+  router.push(path)
 }
 </script>
 

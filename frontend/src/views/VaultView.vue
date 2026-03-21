@@ -1,46 +1,49 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useVaults } from '@/composables/useVaults'
+import { useNotes } from '@/composables/useNotes'
 import VaultSwitcher from '@/components/VaultSwitcher.vue'
 import SidebarNav from '@/components/SidebarNav.vue'
 
+const route = useRoute()
 const router = useRouter()
-const { vaults, activeVault, loading, load: loadVaults, create: createVault } = useVaults()
+const vaultId = computed(() => route.params.vault_id as string)
 
-const showCreateForm = ref(false)
-const newSlug = ref('')
-const newName = ref('')
-const creating = ref(false)
+const { vaults, activeVault, load: loadVaults, setActive } = useVaults()
+const { notes, listLoading, loadList, create: createNote } = useNotes()
 
 onMounted(async () => {
   await loadVaults()
-  // Only auto-redirect on initial page load (no back history entry means this is the entry point)
-  const isInitialLoad = !window.history.state?.back
-  if (isInitialLoad && vaults.value.length === 1) {
-    router.replace(`/vaults/${vaults.value[0].id}`)
-  }
+  const vault = vaults.value.find(v => v.id === vaultId.value) ?? null
+  if (vault) setActive(vault)
+  await loadList(vaultId.value)
 })
 
-function openVault(vaultId: string) {
-  router.push(`/vaults/${vaultId}`)
+const sortedNotes = computed(() =>
+  notes.value.slice().sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+)
+
+function formatDate(iso: string) {
+  const d = new Date(iso)
+  const now = Date.now()
+  const diff = now - d.getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 60) return mins <= 1 ? 'just now' : `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
-async function submitCreate() {
-  if (!newSlug.value.trim() || !newName.value.trim()) return
-  creating.value = true
-  try {
-    const vault = await createVault({ slug: newSlug.value.trim(), name: newName.value.trim() })
-    router.push(`/vaults/${vault.id}`)
-  } finally {
-    creating.value = false
-  }
+function openNote(noteId: string) {
+  router.push(`/vaults/${vaultId.value}/notes/${noteId}`)
 }
 
-function cancelCreate() {
-  showCreateForm.value = false
-  newSlug.value = ''
-  newName.value = ''
+async function createFirst() {
+  const meta = await createNote(vaultId.value, { title: '', content: '' })
+  router.push(`/vaults/${vaultId.value}/notes/${meta.id}`)
 }
 </script>
 
@@ -74,10 +77,16 @@ function cancelCreate() {
       <!-- Header -->
       <header class="app-shell__header">
         <div class="app-shell__header-left">
-          <span class="app-shell__title">Vaults</span>
+          <span class="app-shell__title">{{ activeVault?.name ?? 'Vault' }}</span>
         </div>
         <div class="app-shell__header-right">
-          <button class="app-shell__cta" @click="showCreateForm = true">New Vault</button>
+          <button
+            v-if="sortedNotes.length > 0 && !listLoading"
+            class="app-shell__cta"
+            @click="createFirst"
+          >
+            New Note
+          </button>
         </div>
       </header>
 
@@ -85,52 +94,45 @@ function cancelCreate() {
       <main class="app-shell__body">
 
         <!-- Loading -->
-        <div v-if="loading" class="app-shell__canvas app-shell__canvas--center">
-          <div class="home__skeleton-grid">
-            <div v-for="n in 4" :key="n" class="home__skeleton-card" />
+        <div v-if="listLoading" class="app-shell__canvas app-shell__canvas--center">
+          <div class="vault__skeleton-grid">
+            <div v-for="n in 6" :key="n" class="vault__skeleton-card" />
           </div>
         </div>
 
-        <!-- Vault masonry -->
-        <div v-else class="app-shell__canvas app-shell__canvas--masonry">
-          <div class="home__masonry-header">
-            <h2 class="home__masonry-title">Your Vaults</h2>
+        <!-- Masonry -->
+        <div v-else-if="sortedNotes.length > 0" class="app-shell__canvas app-shell__canvas--masonry">
+          <div class="vault__masonry-header">
+            <h2 class="vault__masonry-title">Notes</h2>
           </div>
-          <div class="home__masonry">
-
+          <div class="vault__masonry">
             <button
-              v-for="vault in vaults"
-              :key="vault.id"
-              class="home__vault-card"
-              @click="openVault(vault.id)"
+              v-for="note in sortedNotes"
+              :key="note.id"
+              class="vault__note-card"
+              @click="openNote(note.id)"
             >
-              <span class="home__vault-name">{{ vault.name }}</span>
-              <span class="home__vault-slug">{{ vault.slug }}</span>
-            </button>
-
-            <!-- Inline create form card -->
-            <div v-if="showCreateForm" class="home__vault-card home__vault-card--form">
-              <input
-                v-model="newName"
-                class="home__form-input"
-                placeholder="Vault name"
-                type="text"
-                autofocus
-              />
-              <input
-                v-model="newSlug"
-                class="home__form-input"
-                placeholder="slug (e.g. work)"
-                type="text"
-              />
-              <div class="home__form-actions">
-                <button class="app-shell__cta" :disabled="creating" @click="submitCreate">
-                  {{ creating ? 'Creating…' : 'Create' }}
-                </button>
-                <button class="home__cancel-btn" @click="cancelCreate">Cancel</button>
+              <span class="vault__note-title">{{ note.title || 'Untitled' }}</span>
+              <div v-if="note.tags.length" class="vault__note-tags">
+                <span v-for="tag in note.tags.slice(0, 3)" :key="tag" class="vault__note-tag">{{ tag }}</span>
               </div>
-            </div>
+              <span class="vault__note-date">{{ formatDate(note.updated_at) }}</span>
+            </button>
+          </div>
+        </div>
 
+        <!-- Empty state -->
+        <div v-else class="app-shell__canvas app-shell__canvas--center">
+          <div class="vault__welcome-card">
+            <div class="vault__welcome-icon">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <rect x="6" y="4" width="16" height="20" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M10 10h8M10 14h8M10 18h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <h1 class="vault__heading">This vault is empty.</h1>
+            <p class="vault__desc">Start writing your first note. It will appear here once saved.</p>
+            <button class="app-shell__cta app-shell__cta--lg" @click="createFirst">New Note</button>
           </div>
         </div>
 
@@ -138,7 +140,7 @@ function cancelCreate() {
 
       <!-- Footer -->
       <footer class="app-shell__footer">
-        <span class="app-shell__footer-text">Nyx Notes — Silent Atelier</span>
+        <span class="app-shell__footer-text">{{ activeVault?.name ?? 'Vault' }}</span>
       </footer>
 
     </div>
@@ -146,7 +148,7 @@ function cancelCreate() {
 </template>
 
 <style scoped>
-/* ── Shell layout ────────────────────────────────────────────── */
+/* ── Shell layout (mirrors NoteView) ─────────────────────────── */
 .app-shell {
   display: flex;
   flex-direction: row;
@@ -275,13 +277,14 @@ function cancelCreate() {
   transition: opacity 0.2s;
 }
 
-.app-shell__cta:hover {
-  opacity: 0.9;
+.app-shell__cta--lg {
+  padding: 0.75rem 1.75rem;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
 }
 
-.app-shell__cta:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.app-shell__cta:hover {
+  opacity: 0.9;
 }
 
 /* ── Footer ─────────────────────────────────────────────────── */
@@ -290,6 +293,7 @@ function cancelCreate() {
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 0 1.5rem;
   box-shadow: 0 -1px 0 0 var(--nyx-c-divider);
 }
@@ -301,14 +305,14 @@ function cancelCreate() {
   color: var(--nyx-c-text-3);
 }
 
-/* ── Masonry ─────────────────────────────────────────────────── */
-.home__masonry-header {
+/* ── Masonry content ─────────────────────────────────────────── */
+.vault__masonry-header {
   display: flex;
   align-items: center;
   width: 100%;
 }
 
-.home__masonry-title {
+.vault__masonry-title {
   font-family: 'Manrope', sans-serif;
   font-size: 0.75rem;
   font-weight: 700;
@@ -318,17 +322,16 @@ function cancelCreate() {
   margin: 0;
 }
 
-.home__masonry {
+.vault__masonry {
   columns: 3 220px;
   column-gap: 1rem;
   width: 100%;
 }
 
-/* ── Vault card ─────────────────────────────────────────────── */
-.home__vault-card {
+.vault__note-card {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  gap: 0.5rem;
   background: var(--nyx-c-bg-soft);
   border-radius: var(--nyx-radius-xl);
   padding: 1.25rem 1.25rem 1rem;
@@ -341,76 +344,48 @@ function cancelCreate() {
   transition: border-color 0.15s, background 0.15s;
 }
 
-.home__vault-card:hover {
+.vault__note-card:hover {
   border-color: var(--nyx-c-divider);
   background: var(--nyx-c-bg-mute);
 }
 
-.home__vault-card--form {
-  cursor: default;
-  gap: 0.75rem;
-}
-
-.home__vault-card--form:hover {
-  background: var(--nyx-c-bg-soft);
-}
-
-.home__vault-name {
+.vault__note-title {
   font-family: 'Manrope', sans-serif;
   font-size: 0.9375rem;
   font-weight: 600;
   color: var(--nyx-c-text-1);
   line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.home__vault-slug {
+.vault__note-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.vault__note-tag {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--nyx-c-primary);
+  background: color-mix(in srgb, var(--nyx-c-primary) 12%, transparent);
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--nyx-radius-xs);
+  text-transform: lowercase;
+}
+
+.vault__note-date {
   font-size: 0.6875rem;
   color: var(--nyx-c-text-3);
-  font-family: 'Inter', monospace;
-}
-
-/* ── Inline create form ─────────────────────────────────────── */
-.home__form-input {
-  width: 100%;
-  background: var(--nyx-c-bg-mute);
-  border: 1px solid var(--nyx-c-divider);
-  border-radius: var(--nyx-radius-md);
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  color: var(--nyx-c-text-1);
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.15s;
-}
-
-.home__form-input:focus {
-  border-color: var(--nyx-c-primary);
-}
-
-.home__form-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
-}
-
-.home__cancel-btn {
-  background: none;
-  border: none;
-  font-size: 0.8125rem;
-  color: var(--nyx-c-text-3);
-  cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--nyx-radius-md);
-  transition: color 0.15s;
-}
-
-.home__cancel-btn:hover {
-  color: var(--nyx-c-text-2);
+  margin-top: auto;
 }
 
 /* ── Skeleton ────────────────────────────────────────────────── */
-.home__skeleton-grid {
+.vault__skeleton-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
@@ -418,15 +393,50 @@ function cancelCreate() {
   max-width: 900px;
 }
 
-.home__skeleton-card {
-  height: 100px;
+.vault__skeleton-card {
+  height: 120px;
   background: var(--nyx-c-bg-soft);
   border-radius: var(--nyx-radius-xl);
-  animation: home-pulse 1.4s ease-in-out infinite;
+  animation: vault-pulse 1.4s ease-in-out infinite;
 }
 
-@keyframes home-pulse {
+@keyframes vault-pulse {
   0%, 100% { opacity: 1 }
   50% { opacity: 0.4 }
+}
+
+/* ── Empty state ─────────────────────────────────────────────── */
+.vault__welcome-card {
+  background: var(--nyx-c-bg-soft);
+  border-radius: var(--nyx-radius-xl);
+  padding: 2.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+  max-width: 400px;
+  width: 100%;
+}
+
+.vault__welcome-icon {
+  color: var(--nyx-c-primary);
+  opacity: 0.7;
+  line-height: 0;
+}
+
+.vault__heading {
+  font-family: 'Manrope', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--nyx-c-text-1);
+  margin: 0;
+}
+
+.vault__desc {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--nyx-c-text-2);
+  margin: 0;
 }
 </style>
