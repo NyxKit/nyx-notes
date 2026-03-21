@@ -117,7 +117,7 @@ async function createFirst() {
             >
               <span class="vault__note-title">{{ note.title || 'Untitled' }}</span>
               <div v-if="note.tags.length" class="vault__note-tags">
-                <NyxBadge v-for="tag in note.tags.slice(0, 3)" :key="tag" :theme="NyxTheme.Primary" variant="soft">{{ tag }}</NyxBadge>
+                <NyxBadge v-for="tag in note.tags.slice(0, 3)" :key="tag" :theme="NyxTheme.Primary" :variant="NyxVariant.Soft">{{ tag }}</NyxBadge>
               </div>
               <span class="vault__note-date">{{ formatDate(note.updated_at) }}</span>
             </NyxButton>

@@ -30,7 +30,7 @@ const emit = defineEmits<{
 
     <div class="note-toolbar__meta">
       <div v-if="props.tags.length" class="note-toolbar__tags">
-        <NyxBadge v-for="tag in props.tags" :key="tag" :theme="NyxTheme.Primary" variant="soft">{{ tag }}</NyxBadge>
+        <NyxBadge v-for="tag in props.tags" :key="tag" :theme="NyxTheme.Primary" :variant="NyxVariant.Soft">{{ tag }}</NyxBadge>
       </div>
 
       <span class="note-toolbar__status">

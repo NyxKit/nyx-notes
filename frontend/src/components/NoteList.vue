@@ -6,6 +6,7 @@ import { useNotes } from '@/composables/useNotes'
 import { useAuth } from '@/composables/useAuth'
 import { getRelativeTime } from '@/utils/time'
 import { NyxInput } from 'nyx-kit/components'
+import { NyxInputType } from 'nyx-kit/types'
 
 const router = useRouter()
 const { activeVault } = useVaults()
@@ -41,7 +42,7 @@ function permissionIcon(permission: string): string {
     <div class="note-list__search-wrap">
       <NyxInput
         v-model="search"
-        type="search"
+        :type="NyxInputType.Search"
         placeholder="Search notes…"
       />
     </div>
