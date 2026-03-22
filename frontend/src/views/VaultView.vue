@@ -5,6 +5,8 @@ import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 import VaultSwitcher from '@/components/VaultSwitcher.vue'
 import SidebarNav from '@/components/SidebarNav.vue'
+import { NyxButton, NyxBadge } from 'nyx-kit/components'
+import { NyxVariant, NyxTheme } from 'nyx-kit/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -80,13 +82,13 @@ async function createFirst() {
           <span class="app-shell__title">{{ activeVault?.name ?? 'Vault' }}</span>
         </div>
         <div class="app-shell__header-right">
-          <button
+          <NyxButton
             v-if="sortedNotes.length > 0 && !listLoading"
-            class="app-shell__cta"
+            :gradient="true"
             @click="createFirst"
           >
             New Note
-          </button>
+          </NyxButton>
         </div>
       </header>
 
@@ -106,7 +108,7 @@ async function createFirst() {
             <h2 class="vault__masonry-title">Notes</h2>
           </div>
           <div class="vault__masonry">
-            <button
+            <NyxButton
               v-for="note in sortedNotes"
               :key="note.id"
               class="vault__note-card"
@@ -114,10 +116,10 @@ async function createFirst() {
             >
               <span class="vault__note-title">{{ note.title || 'Untitled' }}</span>
               <div v-if="note.tags.length" class="vault__note-tags">
-                <span v-for="tag in note.tags.slice(0, 3)" :key="tag" class="vault__note-tag">{{ tag }}</span>
+                <NyxBadge v-for="tag in note.tags.slice(0, 3)" :key="tag" :theme="NyxTheme.Primary" :variant="NyxVariant.Soft">{{ tag }}</NyxBadge>
               </div>
               <span class="vault__note-date">{{ formatDate(note.updated_at) }}</span>
-            </button>
+            </NyxButton>
           </div>
         </div>
 
@@ -132,7 +134,7 @@ async function createFirst() {
             </div>
             <h1 class="vault__heading">This vault is empty.</h1>
             <p class="vault__desc">Start writing your first note. It will appear here once saved.</p>
-            <button class="app-shell__cta app-shell__cta--lg" @click="createFirst">New Note</button>
+            <NyxButton :gradient="true" @click="createFirst">New Note</NyxButton>
           </div>
         </div>
 
@@ -263,30 +265,6 @@ async function createFirst() {
   align-items: flex-start;
 }
 
-/* ── CTA button ─────────────────────────────────────────────── */
-.app-shell__cta {
-  background: linear-gradient(135deg, #cbc2e4 0%, #49435f 100%);
-  color: #1a1821;
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem 1.25rem;
-  border-radius: var(--nyx-radius-md);
-  transition: opacity 0.2s;
-}
-
-.app-shell__cta--lg {
-  padding: 0.75rem 1.75rem;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-
-.app-shell__cta:hover {
-  opacity: 0.9;
-}
-
 /* ── Footer ─────────────────────────────────────────────────── */
 .app-shell__footer {
   height: 40px;
@@ -366,16 +344,6 @@ async function createFirst() {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-}
-
-.vault__note-tag {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--nyx-c-primary);
-  background: color-mix(in srgb, var(--nyx-c-primary) 12%, transparent);
-  padding: 0.125rem 0.5rem;
-  border-radius: var(--nyx-radius-xs);
-  text-transform: lowercase;
 }
 
 .vault__note-date {

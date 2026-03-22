@@ -168,9 +168,22 @@ A navigation guard redirects unauthenticated users to `/login`.
 
 ## Component Library (`nyx-kit`)
 
-Use `nyx-kit` components for all UI primitives:
+Use `nyx-kit` components for all UI primitives. **No native `<button>`, `<input>`, `<textarea>`, or badge `<span>` elements are permitted in `.vue` files inside `frontend/src/`.** Use the corresponding nyx-kit equivalent in every case.
 
-- Buttons, inputs, tags/chips → nyx-kit components
+| Primitive | nyx-kit replacement |
+|-----------|---------------------|
+| `<button>` | `<NyxButton>` |
+| `<input>` | `<NyxInput>` |
+| `<textarea>` | `<NyxTextarea>` |
+| tag/badge `<span>` | `<NyxBadge>` |
+| form container | `<NyxForm>` + `<NyxFormField>` |
+| tab switcher | `<NyxTabs>` |
+
+```ts
+import { NyxButton, NyxInput, NyxTextarea, NyxBadge, NyxForm, NyxFormField, NyxTabs } from 'nyx-kit/components'
+import { NyxVariant, NyxTheme, NyxSize, NyxShape } from 'nyx-kit/types'
+```
+
 - Layout (sidebar + main panel) → nyx-kit layout components if available, otherwise custom
 - Do **not** introduce a second component library (no Vuetify, no PrimeVue)
 

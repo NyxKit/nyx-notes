@@ -4,6 +4,8 @@ import { useRouter } from 'vue-router'
 import { useVaults } from '@/composables/useVaults'
 import VaultSwitcher from '@/components/VaultSwitcher.vue'
 import SidebarNav from '@/components/SidebarNav.vue'
+import { NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
+import { NyxVariant } from 'nyx-kit/types'
 
 const router = useRouter()
 const { vaults, activeVault, loading, load: loadVaults, create: createVault } = useVaults()
@@ -77,7 +79,7 @@ function cancelCreate() {
           <span class="app-shell__title">Vaults</span>
         </div>
         <div class="app-shell__header-right">
-          <button class="app-shell__cta" @click="showCreateForm = true">New Vault</button>
+          <NyxButton :gradient="true" @click="showCreateForm = true">New Vault</NyxButton>
         </div>
       </header>
 
@@ -98,7 +100,7 @@ function cancelCreate() {
           </div>
           <div class="home__masonry">
 
-            <button
+            <NyxButton
               v-for="vault in vaults"
               :key="vault.id"
               class="home__vault-card"
@@ -106,30 +108,27 @@ function cancelCreate() {
             >
               <span class="home__vault-name">{{ vault.name }}</span>
               <span class="home__vault-slug">{{ vault.slug }}</span>
-            </button>
+            </NyxButton>
 
             <!-- Inline create form card -->
-            <div v-if="showCreateForm" class="home__vault-card home__vault-card--form">
-              <input
-                v-model="newName"
-                class="home__form-input"
-                placeholder="Vault name"
-                type="text"
-                autofocus
-              />
-              <input
-                v-model="newSlug"
-                class="home__form-input"
-                placeholder="slug (e.g. work)"
-                type="text"
-              />
+            <NyxForm v-if="showCreateForm" class="home__vault-card home__vault-card--form" @submit="submitCreate">
+              <NyxFormField label="Vault name">
+                <template #default="{ id }">
+                  <NyxInput :id="id" v-model="newName" placeholder="Vault name" autofocus />
+                </template>
+              </NyxFormField>
+              <NyxFormField label="Slug">
+                <template #default="{ id }">
+                  <NyxInput :id="id" v-model="newSlug" placeholder="slug (e.g. work)" />
+                </template>
+              </NyxFormField>
               <div class="home__form-actions">
-                <button class="app-shell__cta" :disabled="creating" @click="submitCreate">
+                <NyxButton :gradient="true" type="submit" :disabled="creating">
                   {{ creating ? 'Creating…' : 'Create' }}
-                </button>
-                <button class="home__cancel-btn" @click="cancelCreate">Cancel</button>
+                </NyxButton>
+                <NyxButton @click="cancelCreate">Cancel</NyxButton>
               </div>
-            </div>
+            </NyxForm>
 
           </div>
         </div>
@@ -261,29 +260,6 @@ function cancelCreate() {
   align-items: flex-start;
 }
 
-/* ── CTA button ─────────────────────────────────────────────── */
-.app-shell__cta {
-  background: linear-gradient(135deg, #cbc2e4 0%, #49435f 100%);
-  color: #1a1821;
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem 1.25rem;
-  border-radius: var(--nyx-radius-md);
-  transition: opacity 0.2s;
-}
-
-.app-shell__cta:hover {
-  opacity: 0.9;
-}
-
-.app-shell__cta:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* ── Footer ─────────────────────────────────────────────────── */
 .app-shell__footer {
   height: 40px;
@@ -370,43 +346,11 @@ function cancelCreate() {
 }
 
 /* ── Inline create form ─────────────────────────────────────── */
-.home__form-input {
-  width: 100%;
-  background: var(--nyx-c-bg-mute);
-  border: 1px solid var(--nyx-c-divider);
-  border-radius: var(--nyx-radius-md);
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
-  color: var(--nyx-c-text-1);
-  outline: none;
-  box-sizing: border-box;
-  transition: border-color 0.15s;
-}
-
-.home__form-input:focus {
-  border-color: var(--nyx-c-primary);
-}
-
 .home__form-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.25rem;
-}
-
-.home__cancel-btn {
-  background: none;
-  border: none;
-  font-size: 0.8125rem;
-  color: var(--nyx-c-text-3);
-  cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--nyx-radius-md);
-  transition: color 0.15s;
-}
-
-.home__cancel-btn:hover {
-  color: var(--nyx-c-text-2);
 }
 
 /* ── Skeleton ────────────────────────────────────────────────── */

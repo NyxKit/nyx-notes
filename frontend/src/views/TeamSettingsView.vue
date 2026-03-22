@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { NyxSelect } from 'nyx-kit/components'
-import { NyxSize } from 'nyx-kit/types'
+import { NyxSelect, NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
+import { NyxSize, NyxVariant, NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
 import { useAuth } from '@/composables/useAuth'
 import { useTeams } from '@/composables/useTeams'
@@ -134,7 +134,7 @@ const newMemberRoleModel = computed({
   <div class="settings-page">
     <div class="settings-page__inner">
       <header class="settings-page__header">
-        <button class="settings-page__back" @click="router.back()">← Back</button>
+        <NyxButton @click="router.back()">← Back</NyxButton>
         <h1 class="settings-page__title">Team Settings</h1>
       </header>
 
@@ -180,77 +180,76 @@ const newMemberRoleModel = computed({
                   <span v-else class="settings-badge">{{ member.role }}</span>
                 </td>
                 <td v-if="isOwner">
-                  <button
+                  <NyxButton
                     v-if="member.role !== 'owner'"
-                    class="settings-link settings-link--danger"
+                    :theme="NyxTheme.Danger"
+                    :size="NyxSize.Small"
                     @click="onKickMember(member.user_id)"
                   >
                     Remove
-                  </button>
+                  </NyxButton>
                 </td>
               </tr>
             </tbody>
           </table>
 
           <!-- Add member form -->
-          <div v-if="isOwner" class="settings-add-form">
-            <input
-              v-model="newMemberId"
-              class="settings-input"
-              placeholder="User ID"
-              @keydown.enter="onAddMember"
-            />
+          <NyxForm v-if="isOwner" class="settings-add-form" @submit="onAddMember">
+            <NyxFormField label="User ID">
+              <template #default="{ id }">
+                <NyxInput :id="id" v-model="newMemberId" placeholder="User ID" />
+              </template>
+            </NyxFormField>
             <NyxSelect
               v-model="newMemberRoleModel"
               :options="roleOptions"
               :size="NyxSize.Small"
             />
-            <button
-              class="settings-btn settings-btn--primary"
+            <NyxButton
+              type="submit"
               :disabled="!newMemberId.trim() || addMemberLoading"
-              @click="onAddMember"
             >
               {{ addMemberLoading ? 'Adding…' : 'Add member' }}
-            </button>
+            </NyxButton>
             <p v-if="addMemberError" class="settings-error">{{ addMemberError }}</p>
-          </div>
+          </NyxForm>
         </section>
 
         <!-- Vaults -->
         <section class="settings-section">
           <div class="settings-section__row-header">
             <h2 class="settings-section__heading">Vaults</h2>
-            <button
+            <NyxButton
               v-if="isOwner"
-              class="settings-link"
               @click="showAddVault = !showAddVault"
             >
               + Add vault
-            </button>
+            </NyxButton>
           </div>
 
           <!-- Add vault form -->
-          <div v-if="showAddVault" class="settings-add-form settings-add-form--block">
-            <div class="settings-field">
-              <label class="settings-field__label">Name</label>
-              <input v-model="newVaultName" class="settings-input" placeholder="e.g. Design" />
-            </div>
-            <div class="settings-field">
-              <label class="settings-field__label">Slug</label>
-              <input v-model="newVaultSlug" class="settings-input" placeholder="e.g. design" />
-            </div>
+          <NyxForm v-if="showAddVault" class="settings-add-form settings-add-form--block" @submit="onAddVault">
+            <NyxFormField label="Name">
+              <template #default="{ id }">
+                <NyxInput :id="id" v-model="newVaultName" placeholder="e.g. Design" />
+              </template>
+            </NyxFormField>
+            <NyxFormField label="Slug">
+              <template #default="{ id }">
+                <NyxInput :id="id" v-model="newVaultSlug" placeholder="e.g. design" />
+              </template>
+            </NyxFormField>
             <div class="settings-add-form__actions">
-              <button class="settings-btn" @click="showAddVault = false">Cancel</button>
-              <button
-                class="settings-btn settings-btn--primary"
+              <NyxButton type="button" @click="showAddVault = false">Cancel</NyxButton>
+              <NyxButton
+                type="submit"
                 :disabled="!newVaultName.trim() || !newVaultSlug.trim() || addVaultLoading"
-                @click="onAddVault"
               >
                 {{ addVaultLoading ? 'Creating…' : 'Create vault' }}
-              </button>
+              </NyxButton>
             </div>
             <p v-if="addVaultError" class="settings-error">{{ addVaultError }}</p>
-          </div>
+          </NyxForm>
 
           <div v-if="teamVaults.length" class="settings-vault-list">
             <div
@@ -265,13 +264,14 @@ const newMemberRoleModel = computed({
                 :size="NyxSize.Small"
                 @update:model-value="onVaultPermissionChange(vault.id, $event as NotePermission)"
               />
-              <button
+              <NyxButton
                 v-if="isOwner"
-                class="settings-link settings-link--danger"
+                :theme="NyxTheme.Danger"
+                :size="NyxSize.Small"
                 @click="onDeleteVault(vault.id)"
               >
                 Delete
-              </button>
+              </NyxButton>
             </div>
           </div>
           <p v-else-if="!showAddVault" class="settings-empty">No vaults yet.</p>
@@ -284,19 +284,19 @@ const newMemberRoleModel = computed({
             Deleting the team removes all its vaults and notes permanently.
           </p>
           <div v-if="!confirmDeleteTeam">
-            <button class="settings-btn settings-btn--danger" @click="confirmDeleteTeam = true">
+            <NyxButton :theme="NyxTheme.Danger" @click="confirmDeleteTeam = true">
               Delete team
-            </button>
+            </NyxButton>
           </div>
           <div v-else class="settings-confirm">
             <p class="settings-confirm__warning">
               Are you sure you want to delete <strong>{{ team.name }}</strong>? This cannot be undone.
             </p>
             <div class="settings-confirm__actions">
-              <button class="settings-btn" @click="confirmDeleteTeam = false">Cancel</button>
-              <button class="settings-btn settings-btn--danger" @click="onDeleteTeam">
+              <NyxButton @click="confirmDeleteTeam = false">Cancel</NyxButton>
+              <NyxButton :theme="NyxTheme.Danger" @click="onDeleteTeam">
                 Yes, delete team
-              </button>
+              </NyxButton>
             </div>
             <p v-if="deleteTeamError" class="settings-error">{{ deleteTeamError }}</p>
           </div>
@@ -323,16 +323,6 @@ const newMemberRoleModel = computed({
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
-}
-
-.settings-page__back {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--nyx-color-accent, #6366f1);
-  font-size: 0.875rem;
-  font-family: inherit;
-  padding: 0;
 }
 
 .settings-page__title {
@@ -480,23 +470,6 @@ const newMemberRoleModel = computed({
   color: var(--nyx-color-muted, #718096);
 }
 
-.settings-input {
-  padding: 0.4375rem 0.625rem;
-  border: 1px solid var(--nyx-color-border, #e2e8f0);
-  border-radius: 0.375rem;
-  font-family: inherit;
-  font-size: 0.875rem;
-  background: transparent;
-  color: inherit;
-  flex: 1;
-  min-width: 150px;
-}
-
-.settings-input:focus {
-  outline: none;
-  border-color: var(--nyx-color-accent, #6366f1);
-}
-
 .settings-vault-list {
   display: flex;
   flex-direction: column;
@@ -519,50 +492,6 @@ const newMemberRoleModel = computed({
 .settings-vault-row__name {
   flex: 1;
   font-weight: 500;
-}
-
-.settings-btn {
-  font-size: 0.875rem;
-  padding: 0.4375rem 1rem;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  border: 1px solid var(--nyx-color-border, #e2e8f0);
-  background: transparent;
-  color: inherit;
-  font-family: inherit;
-  white-space: nowrap;
-}
-
-.settings-btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.settings-btn--primary {
-  background: var(--nyx-color-accent, #6366f1);
-  color: #fff;
-  border-color: var(--nyx-color-accent, #6366f1);
-}
-
-.settings-btn--danger {
-  background: #c53030;
-  color: #fff;
-  border-color: #c53030;
-}
-
-.settings-link {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.8125rem;
-  color: var(--nyx-color-accent, #6366f1);
-  font-family: inherit;
-  padding: 0;
-  white-space: nowrap;
-}
-
-.settings-link--danger {
-  color: #c53030;
 }
 
 .settings-empty {

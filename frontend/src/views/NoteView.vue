@@ -5,7 +5,7 @@ import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 import { useEditorStore } from '@/stores/editor'
 import { NyxModal, NyxButton } from 'nyx-kit/components'
-import { NyxVariant, NyxTheme } from 'nyx-kit/types'
+import { NyxVariant, NyxTheme, NyxShape } from 'nyx-kit/types'
 import VaultSwitcher from '@/components/VaultSwitcher.vue'
 import SidebarNav from '@/components/SidebarNav.vue'
 import NoteList from '@/components/NoteList.vue'
@@ -164,63 +164,60 @@ watch(
       <!-- Top header bar -->
       <header class="app-shell__header">
         <div class="app-shell__header-left">
-          <button
+          <NyxButton
             v-if="section === 'notes'"
-            class="app-shell__icon-btn"
-            :class="{ 'app-shell__icon-btn--active': isSidebarOpen }"
+            :shape="NyxShape.Square"
             title="Toggle sidebar"
             @click="isSidebarOpen = !isSidebarOpen"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
               <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
-          </button>
+          </NyxButton>
           <span class="app-shell__note-title">{{ noteTitle }}</span>
         </div>
         <div v-if="section === 'notes' && activeNote" class="app-shell__header-right">
           <!-- Source view -->
-          <button
-            class="app-shell__icon-btn"
-            :class="{ 'app-shell__icon-btn--active': editorStore.isSourceView }"
+          <NyxButton
+            :shape="NyxShape.Square"
             title="Toggle source view"
             @click="editorStore.toggleSourceView()"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
               <path d="M5 4L1 9l4 5M13 4l4 5-4 5M10 2l-2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-          </button>
+          </NyxButton>
           <!-- Favorite -->
-          <button
-            class="app-shell__icon-btn"
-            :class="{ 'app-shell__icon-btn--active': favorited }"
+          <NyxButton
+            :shape="NyxShape.Square"
             title="Toggle favorite"
             @click="toggleFavorite()"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
               <path d="M9 2l1.5 4.5H15l-3.5 2.75 1.5 4.75L9 11.25 5 14l1.5-4.75L3 6.5h4.5L9 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" :fill="favorited ? 'currentColor' : 'none'"/>
             </svg>
-          </button>
+          </NyxButton>
           <!-- Delete -->
-          <button
-            class="app-shell__icon-btn app-shell__icon-btn--danger"
+          <NyxButton
+            :shape="NyxShape.Square"
+            :theme="NyxTheme.Danger"
             title="Delete note"
             @click="showDeleteConfirm = true"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
               <path d="M3 5h12M7 5V3h4v2M6 5l.75 10h4.5L12 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-          </button>
+          </NyxButton>
           <!-- Comments -->
-          <button
-            class="app-shell__icon-btn"
-            :class="{ 'app-shell__icon-btn--active': isCommentsOpen }"
+          <NyxButton
+            :shape="NyxShape.Square"
             title="Toggle comments"
             @click="isCommentsOpen = !isCommentsOpen"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
               <path d="M15 9C15 12.31 12.31 15 9 15c-.72 0-1.41-.12-2.05-.33L4 15.5l.61-2.84C4.22 11.79 3 10.52 3 9c0-3.31 2.69-6 6-6s6 2.69 6 6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
             </svg>
-          </button>
+          </NyxButton>
         </div>
       </header>
 
@@ -278,7 +275,7 @@ watch(
     >
       <p>This note will be permanently deleted. This cannot be undone.</p>
       <template #footer>
-        <NyxButton :variant="NyxVariant.Ghost" @click="showDeleteConfirm = false">Cancel</NyxButton>
+        <NyxButton @click="showDeleteConfirm = false">Cancel</NyxButton>
         <NyxButton :theme="NyxTheme.Danger" @click="confirmDelete">Delete</NyxButton>
       </template>
     </NyxModal>
@@ -332,30 +329,6 @@ watch(
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 320px;
-}
-
-.app-shell__icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--nyx-c-text-2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: var(--nyx-radius-md);
-  transition: background 0.2s, color 0.2s;
-  line-height: 0;
-}
-
-.app-shell__icon-btn:hover {
-  background: #2b2c32;
-  color: var(--nyx-c-text-1);
-}
-
-.app-shell__icon-btn--active {
-  color: var(--nyx-c-primary);
 }
 
 /* ── Body row ────────────────────────────────────────────────── */
@@ -505,9 +478,5 @@ watch(
   color: var(--nyx-c-text-3);
 }
 
-.app-shell__icon-btn--danger:hover {
-  color: #ec7c8a;
-  background: rgba(236, 124, 138, 0.08);
-}
 
 </style>

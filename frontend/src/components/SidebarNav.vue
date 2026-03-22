@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
+import { NyxButton } from 'nyx-kit/components'
 
 const route = useRoute()
 const router = useRouter()
@@ -31,12 +32,12 @@ async function newNote() {
 
     <!-- New Note CTA -->
     <div class="sidebar-nav__cta">
-      <button class="sidebar-nav__new-btn" @click="newNote">
+      <NyxButton :gradient="true" style="width: 100%" @click="newNote">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
           <path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
         </svg>
         New Note
-      </button>
+      </NyxButton>
     </div>
 
     <!-- App section -->
@@ -113,28 +114,6 @@ async function newNote() {
 /* New Note CTA */
 .sidebar-nav__cta {
   padding: 0.5rem 0.25rem 0.75rem;
-}
-
-.sidebar-nav__new-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  border-radius: var(--nyx-radius-md);
-  background: linear-gradient(135deg, #cbc2e4 0%, #49435f 100%);
-  color: #1a1821;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  font-family: 'Manrope', sans-serif;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.sidebar-nav__new-btn:hover {
-  opacity: 0.9;
 }
 
 /* Section label */
