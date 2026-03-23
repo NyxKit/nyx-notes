@@ -2,13 +2,11 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useVaults } from '@/composables/useVaults'
-import VaultSwitcher from '@/components/VaultSwitcher.vue'
-import SidebarNav from '@/components/SidebarNav.vue'
 import { NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
 import { NyxVariant } from 'nyx-kit/types'
 
 const router = useRouter()
-const { vaults, activeVault, loading, load: loadVaults, create: createVault } = useVaults()
+const { vaults, loading, load: loadVaults, create: createVault, setActive } = useVaults()
 
 const showCreateForm = ref(false)
 const newSlug = ref('')
@@ -16,6 +14,7 @@ const newName = ref('')
 const creating = ref(false)
 
 onMounted(async () => {
+  setActive(null)
   await loadVaults()
   // Only auto-redirect on initial page load (no back history entry means this is the entry point)
   const isInitialLoad = !window.history.state?.back
@@ -47,31 +46,7 @@ function cancelCreate() {
 </script>
 
 <template>
-  <div class="app-shell">
-
-    <!-- Left sidebar — always open -->
-    <aside class="app-shell__sidebar app-shell__sidebar--open">
-      <div class="app-shell__sidebar-inner">
-        <VaultSwitcher dest="vault" />
-        <SidebarNav />
-        <div class="app-shell__sidebar-footer">
-          <RouterLink
-            v-if="activeVault"
-            :to="`/vaults/${activeVault.id}/settings`"
-            class="app-shell__footer-nav-item"
-          >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" stroke-width="1.25"/>
-              <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.75 2.75l1.06 1.06M11.19 11.19l1.06 1.06M2.75 12.25l1.06-1.06M11.19 3.81l1.06-1.06" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            </svg>
-            Settings
-          </RouterLink>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main column -->
-    <div class="app-shell__main">
+  <div class="app-shell__main">
 
       <!-- Header -->
       <header class="app-shell__header">
@@ -140,73 +115,16 @@ function cancelCreate() {
         <span class="app-shell__footer-text">Nyx Notes — Silent Atelier</span>
       </footer>
 
-    </div>
   </div>
 </template>
 
 <style scoped>
-/* ── Shell layout ────────────────────────────────────────────── */
-.app-shell {
-  display: flex;
-  flex-direction: row;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--nyx-c-bg);
-  color: var(--nyx-c-text-1);
-}
-
 .app-shell__main {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
-}
-
-/* ── Sidebar ─────────────────────────────────────────────────── */
-.app-shell__sidebar {
-  width: 0;
-  overflow: hidden;
-  flex-shrink: 0;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.app-shell__sidebar--open {
-  width: 288px;
-}
-
-.app-shell__sidebar-inner {
-  width: 288px;
-  height: 100%;
-  background: var(--nyx-c-bg-soft);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.app-shell__sidebar-footer {
-  margin-top: auto;
-  padding: 0.5rem 0.75rem;
-  flex-shrink: 0;
-  box-shadow: 0 -1px 0 0 var(--nyx-c-divider);
-}
-
-.app-shell__footer-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--nyx-radius-md);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--nyx-c-text-2);
-  text-decoration: none;
-  transition: background 0.2s, color 0.2s;
-}
-
-.app-shell__footer-nav-item:hover {
-  background: #25252b;
-  color: var(--nyx-c-text-1);
 }
 
 /* ── Header ─────────────────────────────────────────────────── */

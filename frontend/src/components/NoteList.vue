@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useVaults } from '@/composables/useVaults'
 import { useNotes } from '@/composables/useNotes'
 import { useAuth } from '@/composables/useAuth'
@@ -8,25 +8,29 @@ import { getRelativeTime } from '@/utils/time'
 import { NyxInput } from 'nyx-kit/components'
 import { NyxInputType } from 'nyx-kit/types'
 
+const RECENT_LIMIT = 20
+
 const router = useRouter()
+const route = useRoute()
 const { activeVault } = useVaults()
-const { notes, listLoading, loadList, activeNote } = useNotes()
+const { notesFor } = useNotes()
 const { currentUser } = useAuth()
 
 const search = ref('')
 
 const filtered = computed(() => {
+  if (!activeVault.value) return []
   const q = search.value.toLowerCase()
-  if (!q) return notes.value
-  return notes.value.filter(n =>
+  let all = notesFor(activeVault.value.id)
+  if (q) all = all.filter(n =>
     n.title.toLowerCase().includes(q) ||
     n.tags.some(t => t.toLowerCase().includes(q))
   )
+  return all
+    .slice()
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+    .slice(0, RECENT_LIMIT)
 })
-
-watch(activeVault, vault => {
-  if (vault) loadList(vault.id)
-}, { immediate: true })
 
 function permissionIcon(permission: string): string {
   if (permission === 'comment') return '💬'
@@ -50,9 +54,7 @@ function permissionIcon(permission: string): string {
     <!-- Section label -->
     <div class="note-list__section-label">Recent Notes</div>
 
-    <div v-if="listLoading" class="note-list__empty">Loading…</div>
-
-    <div v-else-if="filtered.length === 0" class="note-list__empty">
+    <div v-if="filtered.length === 0" class="note-list__empty">
       {{ search ? 'No results' : 'No notes yet' }}
     </div>
 
@@ -61,7 +63,7 @@ function permissionIcon(permission: string): string {
         v-for="note in filtered"
         :key="note.id"
         class="note-list__item"
-        :class="{ 'note-list__item--active': activeNote?.meta.id === note.id }"
+        :class="{ 'note-list__item--active': route.params.id === note.id }"
         @click="router.push(`/vaults/${note.vault_id}/notes/${note.id}`)"
       >
         <div class="note-list__title">

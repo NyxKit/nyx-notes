@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<{ dest?: 'notes' | 'vault' }>(), { dest: 
 const router = useRouter()
 const { vaults, activeVault, setActive } = useVaults()
 const { load: loadTeams, teamName } = useTeams()
-const { notes } = useNotes()
+const { notesFor } = useNotes()
 
 onMounted(loadTeams)
 
@@ -58,7 +58,7 @@ const selectedVaultId = computed({
 })
 
 const noteCountLabel = computed(() => {
-  const n = notes.value.length
+  const n = activeVault.value ? notesFor(activeVault.value.id).length : 0
   return `${n} ${n === 1 ? 'note' : 'notes'}`
 })
 

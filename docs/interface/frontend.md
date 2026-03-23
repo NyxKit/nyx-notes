@@ -22,7 +22,9 @@ A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to
 frontend/
   src/
     components/
+      AppLayout.vue          # persistent authenticated shell: sidebar + <RouterView />
       VaultSwitcher.vue      # dropdown: switch between personal and team vaults
+      SidebarNav.vue         # primary navigation links in the sidebar
       NoteList.vue           # sidebar: list of notes in the active vault
       NoteEditor.vue         # thin wrapper around <NyxEditor> from nyx-kit
       NoteToolbar.vue        # save, delete, tags, permission selector
@@ -37,8 +39,8 @@ frontend/
       VaultSettingsView.vue  # rename vault, change permission (team vaults), delete vault
       TeamSettingsView.vue   # manage members, roles, and team vaults
     composables/
-      useVaults.ts           # vault list and active vault state
-      useNotes.ts            # CRUD operations against the API (vault-scoped)
+      useVaults.ts           # vault list and active vault state; setActive(Vault | null)
+      useNotes.ts            # CRUD + vault-keyed notes cache (notesByVault, notesFor, loadAll)
       useAuth.ts             # auth state and token management
       useComments.ts         # comment CRUD and anchor resolution
       useTeams.ts            # team management (members, roles, team vaults)
@@ -72,10 +74,10 @@ frontend/
 
 ### `NoteView` (`/vaults/:vault_id/notes/:id`)
 
-- Left panel: `VaultSwitcher` at the top + `NoteList` — notes in the active vault, sorted by `updated_at`
 - Center panel: `NoteEditor` — TipTap editor for the selected note (read-only if the user has `comment` access)
 - Right panel: `CommentSidebar` — comment threads, aligned to their annotated text
 - Toolbar: save button, delete button, tags input, category selector, permission selector (note author only)
+- Left sidebar (VaultSwitcher, SidebarNav, NoteList) is owned by `AppLayout`, not this view
 
 ### `VaultSettingsView` (`/vaults/:vault_id/settings`)
 
@@ -155,16 +157,28 @@ await fetch(`/api/vaults/${vaultId}/notes/${id}`, {
 
 ## Routing
 
+All authenticated routes are nested under the `AppLayout` parent route. `AppLayout` mounts once per session and persists across child route changes — it is never unmounted when navigating between authenticated views.
+
+```
+/                          → AppLayout      (meta: { requiresAuth: true })
+  /                        → HomeView
+  /vaults/:vault_id        → VaultView
+  /vaults/:vault_id/notes/:id? → NoteView
+  /vaults/:vault_id/settings  → VaultSettingsView
+  /teams/:team_id/settings    → TeamSettingsView
+/login                     → LoginView
+```
+
 | Path | View | Guard |
 |---|---|---|
-| `/` | `HomeView` | Auth required |
-| `/vaults/:vault_id` | `VaultView` | Auth required |
-| `/vaults/:vault_id/notes/:id` | `NoteView` | Auth required |
-| `/vaults/:vault_id/settings` | `VaultSettingsView` | Auth required |
-| `/teams/:team_id/settings` | `TeamSettingsView` | Auth required |
+| `/` | `HomeView` (child of `AppLayout`) | Auth required (inherited) |
+| `/vaults/:vault_id` | `VaultView` (child of `AppLayout`) | Auth required (inherited) |
+| `/vaults/:vault_id/notes/:id` | `NoteView` (child of `AppLayout`) | Auth required (inherited) |
+| `/vaults/:vault_id/settings` | `VaultSettingsView` (child of `AppLayout`) | Auth required (inherited) |
+| `/teams/:team_id/settings` | `TeamSettingsView` (child of `AppLayout`) | Auth required (inherited) |
 | `/login` | `LoginView` | Redirect to `/` if already authed |
 
-A navigation guard redirects unauthenticated users to `/login`.
+A navigation guard redirects unauthenticated users to `/login`. `meta: { requiresAuth: true }` is set on the `AppLayout` parent; child routes inherit it.
 
 ## Component Library (`nyx-kit`)
 

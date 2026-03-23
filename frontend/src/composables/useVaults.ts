@@ -33,7 +33,7 @@ export function useVaults() {
     if (activeVault.value?.id === vaultId) activeVault.value = null
   }
 
-  function setActive(vault: Vault) {
+  function setActive(vault: Vault | null) {
     activeVault.value = vault
   }
 
