@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NyxButton } from 'nyx-kit/components'
 import VaultIcon from './VaultIcon.vue'
 
 const ICONS = [
@@ -23,10 +24,9 @@ function select(slug: string) {
 
 <template>
   <div class="icon-picker" role="group" aria-label="Choose an icon">
-    <button
+    <NyxButton
       v-for="slug in ICONS"
       :key="slug"
-      type="button"
       class="icon-picker__btn"
       :class="{ 'icon-picker__btn--active': modelValue === slug }"
       :title="slug"
@@ -34,7 +34,7 @@ function select(slug: string) {
       @click="select(slug)"
     >
       <VaultIcon :slug="slug" :size="20" />
-    </button>
+    </NyxButton>
   </div>
 </template>
 
@@ -51,17 +51,7 @@ function select(slug: string) {
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: var(--nyx-radius-md, 0.5rem);
-  border: none;
-  background: transparent;
   color: var(--nyx-c-text-2);
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s;
-}
-
-.icon-picker__btn:hover {
-  background: var(--nyx-c-bg-mute);
-  color: var(--nyx-c-text-1);
 }
 
 .icon-picker__btn--active {
