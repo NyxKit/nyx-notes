@@ -49,6 +49,8 @@ pub struct Vault {
     /// Only meaningful for team vaults.
     /// Personal vaults are always implicitly `Restricted` to the owner.
     pub permission: NotePermission,
+    /// Optional decorative icon slug (e.g. "briefcase"). One of 20 curated slugs or None.
+    pub icon: Option<String>,
 }
 
 pub struct Team {
@@ -139,6 +141,17 @@ Personal vault example (no `permission` field — personal vaults are always res
 }
 ```
 
+Personal vault with icon:
+
+```json
+{
+  "id": "vault-def456",
+  "name": "Work",
+  "slug": "work",
+  "icon": "briefcase"
+}
+```
+
 Team vault example:
 
 ```json
@@ -146,7 +159,8 @@ Team vault example:
   "id": "vault-xyz456",
   "name": "Home",
   "slug": "home",
-  "permission": "comment"
+  "permission": "comment",
+  "icon": "book"
 }
 ```
 
@@ -161,6 +175,7 @@ Team vault example:
 | `GET` | `/api/vaults` | List all vaults accessible to the user (personal + team) |
 | `POST` | `/api/vaults` | Create a new personal vault |
 | `DELETE` | `/api/vaults/:vault_id` | Delete a personal vault (must be empty) |
+| `PATCH` | `/api/vaults/:vault_id` | Update vault name and/or icon (owner for personal; team owner/admin for team) |
 | `PATCH` | `/api/teams/:team_id/vaults/:vault_id/permission` | Change a team vault's permission (owner or admin) |
 
 ### Team Routes

@@ -79,6 +79,22 @@ pub struct Vault {
     /// Only meaningful for team vaults.
     /// Personal vaults are always implicitly `Restricted` to the owner.
     pub permission: NotePermission,
+    /// Optional decorative icon slug (e.g. "briefcase"). One of 20 curated slugs or None.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
+}
+
+/// Payload for `StorageBackend::update_vault`. All fields are optional; absent means no change.
+#[derive(Debug, Clone)]
+pub struct VaultUpdate {
+    pub name: Option<String>,
+    pub icon: Option<VaultIconUpdate>,
+}
+
+#[derive(Debug, Clone)]
+pub enum VaultIconUpdate {
+    Set(String),
+    Clear,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

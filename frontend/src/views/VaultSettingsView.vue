@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { NyxSelect, NyxButton } from 'nyx-kit/components'
 import { NyxVariant, NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
+import VaultIconPicker from '@/components/VaultIconPicker.vue'
 import { useVaultStore } from '@/stores/vaults'
 import type { NotePermission } from '@/types'
 
@@ -12,7 +13,7 @@ const route = useRoute()
 const router = useRouter()
 const vaultStore = useVaultStore()
 const { vaults } = storeToRefs(vaultStore)
-const { load, remove, patchPermission } = vaultStore
+const { load, remove, update, patchPermission } = vaultStore
 
 const vaultId = computed(() => route.params.vault_id as string)
 const vault = computed(() => vaults.value.find(v => v.id === vaultId.value) ?? null)
@@ -20,11 +21,22 @@ const vault = computed(() => vaults.value.find(v => v.id === vaultId.value) ?? n
 const permissionError = ref<string | null>(null)
 const deleteError = ref<string | null>(null)
 const confirmDelete = ref(false)
+const iconError = ref<string | null>(null)
 
 // Load vaults if not yet populated
 watch(vaultId, async () => {
   if (!vaults.value.length) await load()
 }, { immediate: true })
+
+async function onIconChange(slug: string | undefined) {
+  if (!vault.value) return
+  iconError.value = null
+  try {
+    await update(vaultId.value, { icon: slug ?? null })
+  } catch (e) {
+    iconError.value = String(e)
+  }
+}
 
 async function onPermissionChange(permission: NotePermission) {
   if (!vault.value || vault.value.owner.type !== 'team') return
@@ -87,6 +99,19 @@ const permissionModel = computed({
               {{ vault.owner.type === 'user' ? 'Personal' : `Team: ${vault.owner.id}` }}
             </span>
           </div>
+        </section>
+
+        <!-- Icon -->
+        <section class="settings-section">
+          <h2 class="settings-section__heading">Icon</h2>
+          <p class="settings-section__description">
+            Choose a decorative icon for this vault. Click the active icon to remove it.
+          </p>
+          <VaultIconPicker
+            :model-value="vault.icon"
+            @update:model-value="onIconChange"
+          />
+          <p v-if="iconError" class="settings-error">{{ iconError }}</p>
         </section>
 
         <!-- Permission (team vaults only) -->

@@ -33,6 +33,7 @@ export interface Vault {
   name: string
   owner: VaultOwner
   permission: NotePermission
+  icon?: string
 }
 
 export type VaultOwner =
@@ -118,6 +119,12 @@ export interface PatchPermissionRequest {
 export interface CreateVaultRequest {
   slug: string
   name: string
+  icon?: string
+}
+
+export interface UpdateVaultRequest {
+  name?: string
+  icon?: string | null
 }
 
 export interface CreateTeamRequest {

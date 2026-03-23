@@ -145,6 +145,7 @@ pub async fn create_team_vault(
         name: body.name,
         owner: VaultOwner::Team(team_id),
         permission: NotePermission::Restricted,
+        icon: None,
     };
     state.storage.create_vault(vault.clone()).await?;
     Ok((StatusCode::CREATED, Json(vault)))

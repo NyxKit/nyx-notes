@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::domain::{Comment, Note, NoteMeta, NotePermission, Team, Vault, VaultOwner};
+use crate::domain::{Comment, Note, NoteMeta, NotePermission, Team, Vault, VaultOwner, VaultUpdate};
 
 #[derive(Debug, Error)]
 pub enum StorageError {
@@ -27,6 +27,7 @@ pub trait StorageBackend: Send + Sync {
         vault_id: &str,
         permission: NotePermission,
     ) -> Result<(), StorageError>;
+    fn update_vault(&self, vault_id: &str, update: &VaultUpdate) -> Result<(), StorageError>;
 
     // Team management
     fn load_team(&self, team_id: &str) -> Result<Team, StorageError>;

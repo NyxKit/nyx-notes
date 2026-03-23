@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use notes_core::{
     Comment, Note, NoteMeta, NotePermission, StorageBackend, StorageError, Team, Vault, VaultOwner,
+    VaultUpdate,
 };
 
 /// Async wrapper around `Arc<dyn StorageBackend>`.
@@ -59,6 +60,13 @@ impl AsyncStorageAdapter {
     ) -> Result<(), StorageError> {
         let s = Arc::clone(&self.0);
         tokio::task::spawn_blocking(move || s.update_vault_permission(&vault_id, permission))
+            .await
+            .map_err(Self::wrap_join_err)?
+    }
+
+    pub async fn update_vault(&self, vault_id: String, update: VaultUpdate) -> Result<(), StorageError> {
+        let s = Arc::clone(&self.0);
+        tokio::task::spawn_blocking(move || s.update_vault(&vault_id, &update))
             .await
             .map_err(Self::wrap_join_err)?
     }

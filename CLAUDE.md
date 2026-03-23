@@ -27,6 +27,8 @@ Do not add a new Rust crate, npm package, or external service without flagging i
 - N/A — frontend-only; uses existing REST API endpoints (003-sidebar-recent-notes)
 - TypeScript 5.x / Vue 3.5 / Vite + Pinia 3.0 (already installed), nyx-kit 2.x, Vue Router 5.0 (004-pinia-stores)
 - N/A — frontend-only; existing REST API endpoints unchanged (004-pinia-stores)
+- TypeScript 5.x / Vue 3.5 (frontend); Rust (backend — stable toolchain) + Pinia 3.0, Vue Router 5.0, nyx-kit 2.x, ofetch 1.5 (frontend); Axum, serde/serde_json, notes-core, notes-storage-fs (backend) (005-vault-icons-overview)
+- Filesystem — `.vault.json` in each vault directory gains an optional `icon` field (005-vault-icons-overview)
 
 ## Recent Changes
 - 001-route-domains: Added TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5

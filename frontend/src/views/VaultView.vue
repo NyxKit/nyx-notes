@@ -6,6 +6,7 @@ import { useVaultStore } from '@/stores/vaults'
 import { useNotesStore } from '@/stores/notes'
 import { NyxButton, NyxBadge } from 'nyx-kit/components'
 import { NyxVariant, NyxTheme } from 'nyx-kit/types'
+import VaultIcon from '@/components/VaultIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -58,6 +59,7 @@ async function createFirst() {
       <!-- Header -->
       <header class="app-shell__header">
         <div class="app-shell__header-left">
+          <VaultIcon :slug="activeVault?.icon" :size="18" />
           <span class="app-shell__title">{{ activeVault?.name ?? 'Vault' }}</span>
         </div>
         <div class="app-shell__header-right">
