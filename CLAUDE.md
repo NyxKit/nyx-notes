@@ -19,16 +19,17 @@ Do not rewrite a file to clean it up unless that is the explicit request. Reform
 Do not add a new Rust crate, npm package, or external service without flagging it first. State what it is, why it is needed, and whether there is a lighter alternative already in scope.
 
 ## Active Technologies
-- TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5 (001-route-domains)
+- TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 2.0.2, ofetch 1.5 (001-route-domains)
 - Filesystem (Rust backend) — no frontend storage changes (001-route-domains)
-- TypeScript 5.x / Vue 3.5 / Vite + nyx-kit 1.4.4 (`NyxButton`, `NyxInput`, `NyxTextarea`, `NyxBadge`, `NyxForm`, `NyxFormField`, `NyxTabs` — all already installed) (002-nyx-kit-primitives)
+- TypeScript 5.x / Vue 3.5 / Vite + nyx-kit 2.0.2 (`NyxButton`, `NyxInput`, `NyxTextarea`, `NyxBadge`, `NyxForm`, `NyxFormField`, `NyxTabs` — all already installed) (002-nyx-kit-primitives)
 - N/A — UI-only refactor (002-nyx-kit-primitives)
-- TypeScript 5.x / Vue 3.5 / Vite + nyx-kit 2.x (NyxButton, NyxBadge), ofetch 1.5, Vue Router 5.0, Pinia 3.0 (003-sidebar-recent-notes)
+- TypeScript 5.x / Vue 3.5 / Vite + nyx-kit 2.0.2 (NyxButton, NyxBadge), ofetch 1.5, Vue Router 5.0, Pinia 3.0 (003-sidebar-recent-notes)
 - N/A — frontend-only; uses existing REST API endpoints (003-sidebar-recent-notes)
-- TypeScript 5.x / Vue 3.5 / Vite + Pinia 3.0 (already installed), nyx-kit 2.x, Vue Router 5.0 (004-pinia-stores)
+- TypeScript 5.x / Vue 3.5 / Vite + Pinia 3.0 (already installed), nyx-kit 2.0.2, Vue Router 5.0 (004-pinia-stores)
 - N/A — frontend-only; existing REST API endpoints unchanged (004-pinia-stores)
-- TypeScript 5.x / Vue 3.5 (frontend); Rust (backend — stable toolchain) + Pinia 3.0, Vue Router 5.0, nyx-kit 2.x, ofetch 1.5 (frontend); Axum, serde/serde_json, notes-core, notes-storage-fs (backend) (005-vault-icons-overview)
+- TypeScript 5.x / Vue 3.5 (frontend); Rust (backend — stable toolchain) + Pinia 3.0, Vue Router 5.0, nyx-kit 2.0.2, ofetch 1.5 (frontend); Axum, serde/serde_json, notes-core, notes-storage-fs (backend) (005-vault-icons-overview)
 - Filesystem — `.vault.json` in each vault directory gains an optional `icon` field (005-vault-icons-overview)
+- TypeScript 5.6 / Vue 3.5 (frontend only) + `nyx-kit/eslint` (shared config); `eslint ^9.18`, `eslint-plugin-vue ^9.32`, `@vue/eslint-config-typescript ^14.3`, `eslint-plugin-oxlint ^0.15` (peer deps) (006-frontend-eslint)
 
 ## Recent Changes
 - 001-route-domains: Added TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5

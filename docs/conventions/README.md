@@ -33,6 +33,7 @@ Coding conventions, naming rules, and file organization standards for Nyx Notes.
 - Composables return plain `ref`/`computed` values — avoid returning reactive objects with nested refs
 - All API calls go through composables, not directly from components
 - Use `nyx-kit` for all UI primitives; do not introduce additional component libraries
+- No semicolons; single quotes for strings — enforced by `pnpm lint` (in `frontend/`)
 
 ## Git
 

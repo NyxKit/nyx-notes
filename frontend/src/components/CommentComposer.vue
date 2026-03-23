@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { NyxButton, NyxTextarea, NyxForm, NyxFormField } from 'nyx-kit/components'
-import { NyxVariant } from 'nyx-kit/types'
 
 const props = defineProps<{
   quotedText?: string

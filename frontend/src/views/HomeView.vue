@@ -4,7 +4,6 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVaultStore } from '@/stores/vaults'
 import { NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
-import { NyxVariant } from 'nyx-kit/types'
 import VaultIcon from '@/components/VaultIcon.vue'
 import VaultIconPicker from '@/components/VaultIconPicker.vue'
 
