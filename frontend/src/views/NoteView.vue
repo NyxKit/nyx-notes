@@ -6,15 +6,11 @@ import { useNotes } from '@/composables/useNotes'
 import { useEditorStore } from '@/stores/editor'
 import { NyxModal, NyxButton } from 'nyx-kit/components'
 import { NyxVariant, NyxTheme, NyxShape } from 'nyx-kit/types'
-import VaultSwitcher from '@/components/VaultSwitcher.vue'
-import SidebarNav from '@/components/SidebarNav.vue'
-import NoteList from '@/components/NoteList.vue'
 import NoteEditor from '@/components/NoteEditor.vue'
 import CommentSidebar from '@/components/CommentSidebar.vue'
 
 const route = useRoute()
 const router = useRouter()
-const isSidebarOpen = ref(false)
 const isCommentsOpen = ref(false)
 const showDeleteConfirm = ref(false)
 const editorStore = useEditorStore()
@@ -71,9 +67,6 @@ const wordCount = computed(() => {
   return text.trim() ? text.trim().split(/\s+/).length : 0
 })
 
-// Sidebar is always visible on non-notes sections; toggleable on the editor
-const sidebarVisible = computed(() => section.value !== 'notes' || isSidebarOpen.value)
-
 async function pruneIfEmpty() {
   const note = activeNote.value
   if (!note) return
@@ -126,54 +119,11 @@ watch(
 </script>
 
 <template>
-  <div class="app-shell">
-
-    <!-- Left sidebar — full height, outside main column -->
-    <aside class="app-shell__sidebar" :class="{ 'app-shell__sidebar--open': sidebarVisible }">
-      <div class="app-shell__sidebar-inner">
-        <VaultSwitcher />
-        <SidebarNav />
-        <NoteList />
-        <div class="app-shell__sidebar-footer">
-          <RouterLink
-            v-if="activeVault"
-            :to="`/vaults/${activeVault.id}/settings`"
-            class="app-shell__footer-nav-item"
-          >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" stroke-width="1.25"/>
-              <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.75 2.75l1.06 1.06M11.19 11.19l1.06 1.06M2.75 12.25l1.06-1.06M11.19 3.81l1.06-1.06" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            </svg>
-            Settings
-          </RouterLink>
-          <a href="#" class="app-shell__footer-nav-item">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.25"/>
-              <path d="M7.5 10.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              <path d="M7.5 8.5c0-1 .75-1.5 1.25-2A2.25 2.25 0 105.25 5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            </svg>
-            Help
-          </a>
-        </div>
-      </div>
-    </aside>
-
-    <!-- Main column: header + body + footer -->
-    <div class="app-shell__main">
+  <div class="app-shell__main">
 
       <!-- Top header bar -->
       <header class="app-shell__header">
         <div class="app-shell__header-left">
-          <NyxButton
-            v-if="section === 'notes'"
-            :shape="NyxShape.Square"
-            title="Toggle sidebar"
-            @click="isSidebarOpen = !isSidebarOpen"
-          >
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-              <path d="M2 4.5h14M2 9h14M2 13.5h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-          </NyxButton>
           <span class="app-shell__note-title">{{ noteTitle }}</span>
         </div>
         <div v-if="section === 'notes' && activeNote" class="app-shell__header-right">
@@ -265,8 +215,6 @@ watch(
         </div>
       </footer>
 
-    </div>
-
     <!-- Delete confirmation modal -->
     <NyxModal
       v-model="showDeleteConfirm"
@@ -284,16 +232,6 @@ watch(
 </template>
 
 <style scoped>
-.app-shell {
-  display: flex;
-  flex-direction: row;
-  height: 100vh;
-  overflow: hidden;
-  background: var(--nyx-c-bg);
-  color: var(--nyx-c-text-1);
-}
-
-/* ── Main column (header + body + footer) ────────────────────── */
 .app-shell__main {
   flex: 1;
   display: flex;
@@ -336,53 +274,6 @@ watch(
   flex: 1;
   display: flex;
   overflow: hidden;
-}
-
-/* ── Left sidebar ───────────────────────────────────────────── */
-.app-shell__sidebar {
-  width: 0;
-  overflow: hidden;
-  flex-shrink: 0;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.app-shell__sidebar--open {
-  width: 288px;
-}
-
-.app-shell__sidebar-inner {
-  width: 288px;
-  height: 100%;
-  background: var(--nyx-c-bg-soft);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* Sidebar footer: Settings + Help as nav items */
-.app-shell__sidebar-footer {
-  margin-top: auto;
-  padding: 0.5rem 0.75rem;
-  flex-shrink: 0;
-  box-shadow: 0 -1px 0 0 var(--nyx-c-divider);
-}
-
-.app-shell__footer-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--nyx-radius-md);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--nyx-c-text-2);
-  text-decoration: none;
-  transition: background 0.2s, color 0.2s;
-}
-
-.app-shell__footer-nav-item:hover {
-  background: #25252b;
-  color: var(--nyx-c-text-1);
 }
 
 /* ── Main canvas ────────────────────────────────────────────── */

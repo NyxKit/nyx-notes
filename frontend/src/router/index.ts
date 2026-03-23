@@ -6,38 +6,38 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      component: () => import('@/views/HomeView.vue'),
+      component: () => import('@/components/AppLayout.vue'),
       meta: { requiresAuth: true },
-    },
-    {
-      path: '/vaults/:vault_id',
-      component: () => import('@/views/VaultView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/vaults/:vault_id/notes/:id?',
-      component: () => import('@/views/NoteView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/vaults/:vault_id/favorites',
-      component: () => import('@/views/NoteView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/vaults/:vault_id/drafts',
-      component: () => import('@/views/NoteView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/vaults/:vault_id/settings',
-      component: () => import('@/views/VaultSettingsView.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/teams/:team_id/settings',
-      component: () => import('@/views/TeamSettingsView.vue'),
-      meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          component: () => import('@/views/HomeView.vue'),
+        },
+        {
+          path: 'vaults/:vault_id',
+          component: () => import('@/views/VaultView.vue'),
+        },
+        {
+          path: 'vaults/:vault_id/notes/:id?',
+          component: () => import('@/views/NoteView.vue'),
+        },
+        {
+          path: 'vaults/:vault_id/favorites',
+          component: () => import('@/views/NoteView.vue'),
+        },
+        {
+          path: 'vaults/:vault_id/drafts',
+          component: () => import('@/views/NoteView.vue'),
+        },
+        {
+          path: 'vaults/:vault_id/settings',
+          component: () => import('@/views/VaultSettingsView.vue'),
+        },
+        {
+          path: 'teams/:team_id/settings',
+          component: () => import('@/views/TeamSettingsView.vue'),
+        },
+      ],
     },
     {
       path: '/login',

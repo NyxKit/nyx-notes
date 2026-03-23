@@ -9,7 +9,7 @@ import {
 } from '@/api/notes'
 import type { Note, NoteMeta, CreateNoteRequest, UpdateNoteRequest, NotePermission } from '@/types'
 
-const notes = ref<NoteMeta[]>([])
+const notesByVault = ref<Record<string, NoteMeta[]>>({})
 const activeNote = ref<Note | null>(null)
 const listLoading = ref(false)
 const loading = ref(false)
@@ -17,15 +17,28 @@ const saving = ref(false)
 const error = ref<string | null>(null)
 
 export function useNotes() {
+  function notesFor(vaultId: string): NoteMeta[] {
+    return notesByVault.value[vaultId] ?? []
+  }
+
   async function loadList(vaultId: string) {
     listLoading.value = true
     error.value = null
     try {
-      notes.value = await fetchNotes(vaultId)
+      notesByVault.value[vaultId] = await fetchNotes(vaultId)
     } catch (e) {
       error.value = String(e)
     } finally {
       listLoading.value = false
+    }
+  }
+
+  async function loadAll(vaultIds: string[]) {
+    const results = await Promise.allSettled(
+      vaultIds.map(id => fetchNotes(id).then(notes => ({ id, notes })))
+    )
+    for (const r of results) {
+      if (r.status === 'fulfilled') notesByVault.value[r.value.id] = r.value.notes
     }
   }
 
@@ -43,7 +56,8 @@ export function useNotes() {
 
   async function create(vaultId: string, body: CreateNoteRequest) {
     const meta = await createNote(vaultId, body)
-    notes.value.unshift(meta)
+    if (!notesByVault.value[vaultId]) notesByVault.value[vaultId] = []
+    notesByVault.value[vaultId] = [meta, ...notesByVault.value[vaultId]]
     return meta
   }
 
@@ -51,8 +65,11 @@ export function useNotes() {
     saving.value = true
     try {
       const meta = await updateNote(vaultId, id, body)
-      const idx = notes.value.findIndex(n => n.id === id)
-      if (idx !== -1) notes.value[idx] = meta
+      const list = notesByVault.value[vaultId]
+      if (list) {
+        const idx = list.findIndex(n => n.id === id)
+        if (idx !== -1) list[idx] = meta
+      }
       if (activeNote.value?.meta.id === id) {
         activeNote.value = { meta, content: body.content }
       }
@@ -64,14 +81,18 @@ export function useNotes() {
 
   async function remove(vaultId: string, id: string) {
     await deleteNote(vaultId, id)
-    notes.value = notes.value.filter(n => n.id !== id)
+    const list = notesByVault.value[vaultId]
+    if (list) notesByVault.value[vaultId] = list.filter(n => n.id !== id)
     if (activeNote.value?.meta.id === id) activeNote.value = null
   }
 
   async function updatePermission(vaultId: string, id: string, permission: NotePermission) {
     const meta = await patchNotePermission(vaultId, id, { permission })
-    const idx = notes.value.findIndex(n => n.id === id)
-    if (idx !== -1) notes.value[idx] = meta
+    const list = notesByVault.value[vaultId]
+    if (list) {
+      const idx = list.findIndex(n => n.id === id)
+      if (idx !== -1) list[idx] = meta
+    }
     if (activeNote.value?.meta.id === id) {
       activeNote.value = { ...activeNote.value, meta }
     }
@@ -79,12 +100,14 @@ export function useNotes() {
   }
 
   return {
-    notes,
+    notesByVault,
     activeNote,
     listLoading,
     loading,
     saving,
     error,
+    notesFor,
+    loadAll,
     loadList,
     loadNote,
     create,

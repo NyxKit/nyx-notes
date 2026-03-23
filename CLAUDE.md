@@ -23,6 +23,8 @@ Do not add a new Rust crate, npm package, or external service without flagging i
 - Filesystem (Rust backend) — no frontend storage changes (001-route-domains)
 - TypeScript 5.x / Vue 3.5 / Vite + nyx-kit 1.4.4 (`NyxButton`, `NyxInput`, `NyxTextarea`, `NyxBadge`, `NyxForm`, `NyxFormField`, `NyxTabs` — all already installed) (002-nyx-kit-primitives)
 - N/A — UI-only refactor (002-nyx-kit-primitives)
+- TypeScript 5.x / Vue 3.5 / Vite + nyx-kit 2.x (NyxButton, NyxBadge), ofetch 1.5, Vue Router 5.0, Pinia 3.0 (003-sidebar-recent-notes)
+- N/A — frontend-only; uses existing REST API endpoints (003-sidebar-recent-notes)
 
 ## Recent Changes
 - 001-route-domains: Added TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5
