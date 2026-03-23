@@ -20,7 +20,7 @@ $NOTES_ROOT/
   users/
     <uid>/                    # one directory per user
       home/                   # default personal vault (always exists)
-        .vault.json           # vault metadata: id, name, slug (no permission field)
+        .vault.json           # vault metadata: id, name, slug[, icon] (no permission field)
         <slug>.md
       <vault-slug>/           # additional personal vaults
         .vault.json
@@ -29,7 +29,7 @@ $NOTES_ROOT/
     <team-id>/
       .team.json              # team metadata: name, members, roles
       home/                   # default team vault (always exists)
-        .vault.json           # vault metadata: id, name, slug, permission
+        .vault.json           # vault metadata: id, name, slug, permission[, icon]
         <slug>.md
       <vault-slug>/
         .vault.json
@@ -97,7 +97,7 @@ Methods that accept a bare `vault_id: &str` (such as `list_notes`, `load_note`, 
 
 This is intentionally simple: the expected number of vaults per installation is small (tens, not thousands), so a linear scan on each operation is acceptable. If this becomes a bottleneck, a startup index built into `FsStorage::new` can be added without changing the `StorageBackend` trait.
 
-All vault directories — personal and team alike — carry a `.vault.json` file. This uniformity is what makes the scan possible. See the `.vault.json` format below.
+All vault directories — personal and team alike — carry a `.vault.json` file. This uniformity is what makes the scan possible. See the `.vault.json` format in [vaults-and-teams.md](./vaults-and-teams.md). Both personal and team `.vault.json` files may carry an optional `icon` field (a curated slug string). Missing `icon` is treated as `None`.
 
 ### `list_notes(vault_id)`
 

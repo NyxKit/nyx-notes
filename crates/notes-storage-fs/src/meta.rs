@@ -12,6 +12,9 @@ pub struct VaultJson {
     /// Present only in team vaults. Absent for personal vaults (always restricted).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permission: Option<NotePermission>,
+    /// Optional decorative icon slug. Absent means no icon.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

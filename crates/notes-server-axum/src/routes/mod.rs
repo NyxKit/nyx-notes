@@ -53,7 +53,10 @@ pub fn router() -> Router<AppState> {
             "/api/vaults",
             get(vaults::list_vaults).post(vaults::create_vault),
         )
-        .route("/api/vaults/:vault_id", delete(vaults::delete_vault))
+        .route(
+            "/api/vaults/:vault_id",
+            patch(vaults::patch_vault).delete(vaults::delete_vault),
+        )
         // Team vault permission
         .route(
             "/api/teams/:team_id/vaults/:vault_id/permission",

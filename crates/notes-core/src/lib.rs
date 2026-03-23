@@ -5,6 +5,6 @@ pub mod storage;
 pub use auth::{AuthError, AuthStore, LoginToken, User};
 pub use domain::{
     Comment, CommentReply, Note, NoteMeta, NotePermission, Team, TeamMember, TeamRole, Vault,
-    VaultOwner,
+    VaultIconUpdate, VaultOwner, VaultUpdate,
 };
 pub use storage::{StorageBackend, StorageError};

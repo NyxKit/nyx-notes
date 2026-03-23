@@ -53,6 +53,7 @@ The frontend calls this on startup to decide which login UI to render (or to ski
 | `GET` | `/api/vaults` | List all vaults accessible to the user |
 | `POST` | `/api/vaults` | Create a personal vault |
 | `DELETE` | `/api/vaults/:vault_id` | Delete a personal vault (must be empty) |
+| `PATCH` | `/api/vaults/:vault_id` | Update vault name and/or icon — personal: owner only; team: owner or admin |
 | `PATCH` | `/api/teams/:team_id/vaults/:vault_id/permission` | Change a team vault's permission (team owner or admin) |
 
 ### Team Routes

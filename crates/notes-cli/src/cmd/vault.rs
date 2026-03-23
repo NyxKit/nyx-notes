@@ -48,6 +48,7 @@ pub fn new(
         name,
         owner: VaultOwner::User(user_id.to_string()),
         permission: NotePermission::Restricted,
+        icon: None,
     };
     storage.create_vault(&vault)?;
     println!("Created vault: {}", vault.slug);

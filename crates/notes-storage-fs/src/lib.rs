@@ -4,7 +4,8 @@ mod meta;
 use std::path::{Path, PathBuf};
 
 use notes_core::{
-    Comment, Note, NoteMeta, NotePermission, StorageBackend, StorageError, Team, Vault, VaultOwner,
+    Comment, Note, NoteMeta, NotePermission, StorageBackend, StorageError, Team, Vault,
+    VaultIconUpdate, VaultOwner, VaultUpdate,
 };
 
 use meta::{TeamJson, VaultJson};
@@ -161,6 +162,7 @@ impl StorageBackend for FsStorage {
                 name: meta.name,
                 owner: owner.clone(),
                 permission: meta.permission.unwrap_or(NotePermission::Restricted),
+                icon: meta.icon,
             });
         }
 
@@ -179,6 +181,7 @@ impl StorageBackend for FsStorage {
             name: meta.name,
             owner,
             permission: meta.permission.unwrap_or(NotePermission::Restricted),
+            icon: meta.icon,
         })
     }
 
@@ -194,6 +197,7 @@ impl StorageBackend for FsStorage {
                 VaultOwner::Team(_) => Some(vault.permission.clone()),
                 VaultOwner::User(_) => None,
             },
+            icon: vault.icon.clone(),
         };
         Self::write_vault_json(&vault_dir, &meta)?;
 
@@ -223,6 +227,22 @@ impl StorageBackend for FsStorage {
         let vault_dir = self.find_vault_path(vault_id)?;
         let mut meta = Self::read_vault_json(&vault_dir)?;
         meta.permission = Some(permission);
+        Self::write_vault_json(&vault_dir, &meta)?;
+        Ok(())
+    }
+
+    fn update_vault(&self, vault_id: &str, update: &VaultUpdate) -> Result<(), StorageError> {
+        let vault_dir = self.find_vault_path(vault_id)?;
+        let mut meta = Self::read_vault_json(&vault_dir)?;
+        if let Some(name) = &update.name {
+            meta.name = name.clone();
+        }
+        if let Some(icon_update) = &update.icon {
+            match icon_update {
+                VaultIconUpdate::Set(slug) => meta.icon = Some(slug.clone()),
+                VaultIconUpdate::Clear => meta.icon = None,
+            }
+        }
         Self::write_vault_json(&vault_dir, &meta)?;
         Ok(())
     }
@@ -266,6 +286,7 @@ impl StorageBackend for FsStorage {
                 name: "Home".to_string(),
                 owner: VaultOwner::Team(team.id.clone()),
                 permission: NotePermission::Restricted,
+                icon: None,
             };
             self.create_vault(&home_vault)?;
         }

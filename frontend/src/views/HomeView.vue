@@ -5,6 +5,8 @@ import { storeToRefs } from 'pinia'
 import { useVaultStore } from '@/stores/vaults'
 import { NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
 import { NyxVariant } from 'nyx-kit/types'
+import VaultIcon from '@/components/VaultIcon.vue'
+import VaultIconPicker from '@/components/VaultIconPicker.vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
@@ -14,6 +16,7 @@ const { load: loadVaults, create: createVault, setActive } = vaultStore
 const showCreateForm = ref(false)
 const newSlug = ref('')
 const newName = ref('')
+const newIcon = ref<string | undefined>(undefined)
 const creating = ref(false)
 
 onMounted(async () => {
@@ -34,7 +37,7 @@ async function submitCreate() {
   if (!newSlug.value.trim() || !newName.value.trim()) return
   creating.value = true
   try {
-    const vault = await createVault({ slug: newSlug.value.trim(), name: newName.value.trim() })
+    const vault = await createVault({ slug: newSlug.value.trim(), name: newName.value.trim(), icon: newIcon.value })
     router.push(`/vaults/${vault.id}`)
   } finally {
     creating.value = false
@@ -45,6 +48,7 @@ function cancelCreate() {
   showCreateForm.value = false
   newSlug.value = ''
   newName.value = ''
+  newIcon.value = undefined
 }
 </script>
 
@@ -84,8 +88,15 @@ function cancelCreate() {
               class="home__vault-card"
               @click="openVault(vault.id)"
             >
-              <span class="home__vault-name">{{ vault.name }}</span>
-              <span class="home__vault-slug">{{ vault.slug }}</span>
+              <div class="home__vault-text">
+                <span class="home__vault-name">{{ vault.name }}</span>
+                <span class="home__vault-slug">{{ vault.slug }}</span>
+              </div>
+              <VaultIcon
+                :slug="vault.icon || 'folder'"
+                class="home__vault-bg-icon"
+                aria-hidden="true"
+              />
             </NyxButton>
 
             <!-- Inline create form card -->
@@ -98,6 +109,11 @@ function cancelCreate() {
               <NyxFormField label="Slug">
                 <template #default="{ id }">
                   <NyxInput :id="id" v-model="newSlug" placeholder="slug (e.g. work)" />
+                </template>
+              </NyxFormField>
+              <NyxFormField label="Icon">
+                <template #default>
+                  <VaultIconPicker v-model="newIcon" />
                 </template>
               </NyxFormField>
               <div class="home__form-actions">
@@ -216,19 +232,23 @@ function cancelCreate() {
 }
 
 .home__masonry {
-  columns: 3 220px;
+  columns: 5 160px;
   column-gap: 1rem;
   width: 100%;
 }
 
 /* ── Vault card ─────────────────────────────────────────────── */
 .home__vault-card {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
+  justify-content: flex-end;
+  align-items: flex-start;
   background: var(--nyx-c-bg-soft);
   border-radius: var(--nyx-radius-xl);
-  padding: 1.25rem 1.25rem 1rem;
+  padding: 1.25rem;
   margin-bottom: 1rem;
   break-inside: avoid;
   cursor: pointer;
@@ -244,12 +264,22 @@ function cancelCreate() {
 }
 
 .home__vault-card--form {
+  aspect-ratio: unset;
+  justify-content: flex-start;
   cursor: default;
   gap: 0.75rem;
 }
 
 .home__vault-card--form:hover {
   background: var(--nyx-c-bg-soft);
+}
+
+.home__vault-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  position: relative;
+  z-index: 1;
 }
 
 .home__vault-name {
@@ -264,6 +294,18 @@ function cancelCreate() {
   font-size: 0.6875rem;
   color: var(--nyx-c-text-3);
   font-family: 'Inter', monospace;
+}
+
+.home__vault-bg-icon {
+  position: absolute;
+  right: -8%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 70%;
+  height: auto;
+  opacity: 0.12;
+  pointer-events: none;
+  color: var(--nyx-c-text-1);
 }
 
 /* ── Inline create form ─────────────────────────────────────── */
@@ -284,7 +326,7 @@ function cancelCreate() {
 }
 
 .home__skeleton-card {
-  height: 100px;
+  aspect-ratio: 1 / 1;
   background: var(--nyx-c-bg-soft);
   border-radius: var(--nyx-radius-xl);
   animation: home-pulse 1.4s ease-in-out infinite;

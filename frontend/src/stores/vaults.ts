@@ -1,8 +1,8 @@
 import { ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
-import { fetchVaults, createVault, deleteVault, patchVaultPermission } from '@/api/vaults'
+import { fetchVaults, createVault, deleteVault, patchVaultPermission, updateVault } from '@/api/vaults'
 import { createTeamVault, deleteTeamVault } from '@/api/teams'
-import type { Vault, CreateVaultRequest, NotePermission } from '@/types'
+import type { Vault, CreateVaultRequest, UpdateVaultRequest, NotePermission } from '@/types'
 
 export const useVaultStore = defineStore('vaults', () => {
   const vaults = ref<Vault[]>([])
@@ -38,6 +38,14 @@ export const useVaultStore = defineStore('vaults', () => {
     activeVault.value = vault
   }
 
+  async function update(vaultId: string, body: UpdateVaultRequest) {
+    const updated = await updateVault(vaultId, body)
+    const idx = vaults.value.findIndex(v => v.id === vaultId)
+    if (idx !== -1) vaults.value[idx] = updated
+    if (activeVault.value?.id === vaultId) activeVault.value = updated
+    return updated
+  }
+
   async function patchPermission(teamId: string, vaultId: string, permission: NotePermission) {
     await patchVaultPermission(teamId, vaultId, permission)
     const v = vaults.value.find(v => v.id === vaultId)
@@ -70,6 +78,7 @@ export const useVaultStore = defineStore('vaults', () => {
     error,
     load,
     create,
+    update,
     remove,
     setActive,
     patchPermission,

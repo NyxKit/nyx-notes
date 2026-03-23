@@ -21,9 +21,13 @@ A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to
 ```
 frontend/
   src/
+    assets/
+      icons/                 # 20 individual SVG icon files (home.svg, briefcase.svg, …)
     components/
       AppLayout.vue          # persistent authenticated shell: sidebar + <RouterView />
       VaultSwitcher.vue      # dropdown: switch between personal and team vaults
+      VaultIcon.vue          # renders a vault icon SVG by slug prop; falls back to folder
+      VaultIconPicker.vue    # 5×4 grid of 20 icon options; emits select with chosen slug
       SidebarNav.vue         # primary navigation links in the sidebar
       NoteList.vue           # sidebar: list of notes in the active vault
       NoteEditor.vue         # thin wrapper around <NyxEditor> from nyx-kit
@@ -32,11 +36,11 @@ frontend/
       CommentThread.vue      # single thread: anchor quote + replies
       CommentComposer.vue    # new comment / reply input
     views/
-      HomeView.vue           # multi-vault dashboard; redirects to vault if only one exists
+      HomeView.vue           # multi-vault dashboard; 1:1 square vault cards with icon background; redirects to vault if only one exists
       VaultView.vue          # notes masonry for a single vault; getting-started if empty
       NoteView.vue           # editor for a specific note (:vault_id/:id)
       LoginView.vue          # login UI (adapts to auth mode)
-      VaultSettingsView.vue  # rename vault, change permission (team vaults), delete vault
+      VaultSettingsView.vue  # rename vault, change icon, change permission (team vaults), delete vault
       TeamSettingsView.vue   # manage members, roles, and team vaults
     stores/
       editor.ts              # useEditorStore — editor mode and source view toggle

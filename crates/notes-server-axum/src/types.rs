@@ -75,6 +75,15 @@ pub struct PatchPermissionRequest {
 pub struct CreateVaultRequest {
     pub slug: String,
     pub name: String,
+    pub icon: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct PatchVaultRequest {
+    pub name: Option<String>,
+    /// None = field absent (no change); Some(None) = clear icon; Some(Some(slug)) = set icon.
+    #[serde(default)]
+    pub icon: Option<Option<String>>,
 }
 
 // --- Comment request types ---

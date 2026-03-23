@@ -38,6 +38,26 @@ pub struct NoteMeta {
     pub permission: NotePermission,
 }
 
+pub struct Vault {
+    pub id: String,
+    pub slug: String,
+    pub name: String,
+    pub owner: VaultOwner,
+    pub permission: NotePermission,
+    pub icon: Option<String>,   // optional curated icon slug (e.g. "briefcase"); None = no icon
+}
+
+/// Used by `StorageBackend::update_vault` for partial vault updates.
+pub struct VaultUpdate {
+    pub name: Option<String>,
+    pub icon: Option<VaultIconUpdate>,
+}
+
+pub enum VaultIconUpdate {
+    Set(String),   // set to the given slug
+    Clear,         // remove the icon field
+}
+
 pub struct Note {
     pub meta: NoteMeta,
     /// Raw body. In non-E2EE mode: plaintext Markdown.
@@ -70,6 +90,7 @@ pub trait StorageBackend: Send + Sync {
     fn create_vault(&self, vault: &Vault) -> Result<(), StorageError>;
     fn delete_vault(&self, vault_id: &str) -> Result<(), StorageError>;
     fn update_vault_permission(&self, vault_id: &str, permission: NotePermission) -> Result<(), StorageError>;
+    fn update_vault(&self, vault_id: &str, update: &VaultUpdate) -> Result<(), StorageError>;
 
     // Team management
     fn load_team(&self, team_id: &str) -> Result<Team, StorageError>;
