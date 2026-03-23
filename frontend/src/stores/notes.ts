@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 import {
   fetchNotes,
   fetchNote,
@@ -9,16 +10,25 @@ import {
 } from '@/api/notes'
 import type { Note, NoteMeta, CreateNoteRequest, UpdateNoteRequest, NotePermission } from '@/types'
 
-const notesByVault = ref<Record<string, NoteMeta[]>>({})
-const activeNote = ref<Note | null>(null)
-const listLoading = ref(false)
-const loading = ref(false)
-const saving = ref(false)
-const error = ref<string | null>(null)
+export const useNotesStore = defineStore('notes', () => {
+  const notesByVault = ref<Record<string, NoteMeta[]>>({})
+  const activeNote = ref<Note | null>(null)
+  const listLoading = ref(false)
+  const loading = ref(false)
+  const saving = ref(false)
+  const error = ref<string | null>(null)
 
-export function useNotes() {
   function notesFor(vaultId: string): NoteMeta[] {
     return notesByVault.value[vaultId] ?? []
+  }
+
+  async function loadAll(vaultIds: string[]) {
+    const results = await Promise.allSettled(
+      vaultIds.map(id => fetchNotes(id).then(notes => ({ id, notes })))
+    )
+    for (const r of results) {
+      if (r.status === 'fulfilled') notesByVault.value[r.value.id] = r.value.notes
+    }
   }
 
   async function loadList(vaultId: string) {
@@ -30,15 +40,6 @@ export function useNotes() {
       error.value = String(e)
     } finally {
       listLoading.value = false
-    }
-  }
-
-  async function loadAll(vaultIds: string[]) {
-    const results = await Promise.allSettled(
-      vaultIds.map(id => fetchNotes(id).then(notes => ({ id, notes })))
-    )
-    for (const r of results) {
-      if (r.status === 'fulfilled') notesByVault.value[r.value.id] = r.value.notes
     }
   }
 
@@ -99,6 +100,15 @@ export function useNotes() {
     return meta
   }
 
+  function $reset() {
+    notesByVault.value = {}
+    activeNote.value = null
+    listLoading.value = false
+    loading.value = false
+    saving.value = false
+    error.value = null
+  }
+
   return {
     notesByVault,
     activeNote,
@@ -114,5 +124,8 @@ export function useNotes() {
     save,
     remove,
     updatePermission,
+    $reset,
   }
-}
+})
+
+if (import.meta.hot) acceptHMRUpdate(useNotesStore, import.meta.hot)

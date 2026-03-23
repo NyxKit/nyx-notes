@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useVaults } from '@/composables/useVaults'
-import { useNotes } from '@/composables/useNotes'
+import { storeToRefs } from 'pinia'
+import { useVaultStore } from '@/stores/vaults'
+import { useNotesStore } from '@/stores/notes'
 import { NyxButton } from 'nyx-kit/components'
 
 const route = useRoute()
 const router = useRouter()
-const { activeVault } = useVaults()
-const { create } = useNotes()
+const { activeVault } = storeToRefs(useVaultStore())
+const { create } = useNotesStore()
 
 const vaultId = computed(() => activeVault.value?.id ?? '')
 

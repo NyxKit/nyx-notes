@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useVaults } from '@/composables/useVaults'
-import { useNotes } from '@/composables/useNotes'
+import { storeToRefs } from 'pinia'
+import { useVaultStore } from '@/stores/vaults'
+import { useNotesStore } from '@/stores/notes'
 import VaultSwitcher from '@/components/VaultSwitcher.vue'
 import SidebarNav from '@/components/SidebarNav.vue'
 import NoteList from '@/components/NoteList.vue'
 
-const { load: loadVaults, activeVault, vaults } = useVaults()
-const { loadAll } = useNotes()
+const vaultStore = useVaultStore()
+const { vaults, activeVault } = storeToRefs(vaultStore)
+const { load } = vaultStore
+const { loadAll } = useNotesStore()
 
 onMounted(async () => {
-  await loadVaults()
+  await load()
   await loadAll(vaults.value.map(v => v.id))
 })
 </script>

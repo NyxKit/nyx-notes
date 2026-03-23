@@ -70,7 +70,7 @@ if (import.meta.hot) acceptHMRUpdate(useNotesStore, import.meta.hot)
 
 ### Step 3: Update all 10 callers
 
-For each file listed in data-model.md §Call Site Migration:
+Use `storeToRefs` for reactive state; destructure actions directly from the store instance.
 
 ```typescript
 // Before
@@ -78,8 +78,11 @@ import { useVaults } from '@/composables/useVaults'
 const { vaults, activeVault } = useVaults()
 
 // After
+import { storeToRefs } from 'pinia'
 import { useVaultStore } from '@/stores/vaults'
-const { vaults, activeVault } = useVaultStore()
+const vaultStore = useVaultStore()
+const { vaults, activeVault } = storeToRefs(vaultStore)  // reactive state
+const { load, setActive } = vaultStore                    // actions
 ```
 
 ```typescript
@@ -88,36 +91,46 @@ import { useNotes } from '@/composables/useNotes'
 const { notes, loadList } = useNotes()
 
 // After
+import { storeToRefs } from 'pinia'
 import { useNotesStore } from '@/stores/notes'
-const { notesFor, loadList } = useNotesStore()
+const notesStore = useNotesStore()
+const { listLoading, activeNote, saving } = storeToRefs(notesStore)  // reactive state
+const { notesFor, loadList } = notesStore                             // actions/functions
 ```
 
 ### Step 4: Update `AppLayout.vue`
 
-Add `loadAll` call after vault load:
 ```typescript
+import { storeToRefs } from 'pinia'
 const vaultStore = useVaultStore()
-const notesStore = useNotesStore()
+const { vaults, activeVault } = storeToRefs(vaultStore)
+const { load } = vaultStore
+const { loadAll } = useNotesStore()
+
 onMounted(async () => {
-  await vaultStore.load()
-  await notesStore.loadAll(vaultStore.vaults.map(v => v.id))
+  await load()
+  await loadAll(vaults.value.map(v => v.id))
 })
 ```
 
 ### Step 5: Update `NoteList.vue`
 
 - Remove `watch(activeVault, loadList)` — AppLayout pre-loads all vaults
-- Use `notesStore.notesFor(activeVault?.id ?? '')` filtered by null guard
+- Use `notesFor(activeVault.value?.id ?? '')` filtered by null guard
 - Sort by `updated_at` desc, limit to 20
 - Active state: `route.params.id === note.id`
 
 ### Step 6: Update `HomeView.vue`
 
 ```typescript
+import { storeToRefs } from 'pinia'
 const vaultStore = useVaultStore()
+const { vaults, loading } = storeToRefs(vaultStore)
+const { load: loadVaults, create: createVault, setActive } = vaultStore
+
 onMounted(async () => {
-  vaultStore.setActive(null)
-  await vaultStore.load()
+  setActive(null)
+  await loadVaults()
   ...
 })
 ```
@@ -135,6 +148,7 @@ rm frontend/src/composables/useNotes.ts
 
 - No semicolons; single quotes in all frontend TS/Vue files
 - No new npm packages (Pinia is already installed)
+- **Always use `storeToRefs`** when destructuring reactive state from a store; destructure actions directly from the store instance — omitting `storeToRefs` silently breaks reactivity
 - `notesByVault` cache is the source of truth for all note lists
 - `loadList` still used by `VaultView` for per-visit freshness (writes into cache)
 - `loadAll` does NOT set `listLoading` — it is a background prefetch; `VaultView`'s skeleton is tied to `loadList` only

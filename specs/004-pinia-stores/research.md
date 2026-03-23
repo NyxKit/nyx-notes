@@ -92,6 +92,28 @@ export const useVaultStore = defineStore('vaults', () => {
 
 ---
 
+## 8. `storeToRefs` for Reactive State Destructuring
+
+**Decision**: Always use `storeToRefs` when destructuring reactive state from a Pinia store. Actions (functions) are destructured directly from the store instance.
+
+**Rationale**: Destructuring state directly from a setup store (e.g. `const { vaults } = useVaultStore()`) strips the ref wrapper and produces a plain, non-reactive value. Vue's reactivity system no longer tracks it — the component will not re-render when the store updates. `storeToRefs` re-wraps each piece of state as a ref, preserving full reactivity.
+
+```typescript
+import { storeToRefs } from 'pinia'
+
+// Correct
+const vaultStore = useVaultStore()
+const { vaults, activeVault } = storeToRefs(vaultStore)  // reactive state
+const { load, setActive } = vaultStore                    // actions (functions, no wrapper needed)
+
+// Wrong — vaults and activeVault lose reactivity
+const { vaults, activeVault, load } = useVaultStore()
+```
+
+**Alternatives considered**: Accessing state directly on the store object (`vaultStore.activeVault`) in templates — technically reactive because the store proxy is reactive, but inconsistent with script usage and harder to scan. Prefer uniform destructuring via `storeToRefs`.
+
+---
+
 ## Summary Table
 
 | Question | Decision | Rationale |
@@ -102,3 +124,4 @@ export const useVaultStore = defineStore('vaults', () => {
 | Notes cache | `notesByVault` Record | Flat ref clobbered on vault switch; cache fixes vault repopulation bug |
 | HomeView vault | `setActive(null)` on mount | Clears stale vault context on vaults overview |
 | HMR | `acceptHMRUpdate` | Preserves state during dev hot-reloads |
+| Destructuring state | `storeToRefs` | Preserves reactivity; direct destructure strips ref wrapper |

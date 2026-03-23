@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useVaults } from '@/composables/useVaults'
-import { useNotes } from '@/composables/useNotes'
+import { storeToRefs } from 'pinia'
+import { useVaultStore } from '@/stores/vaults'
+import { useNotesStore } from '@/stores/notes'
 import { useAuth } from '@/composables/useAuth'
 import { getRelativeTime } from '@/utils/time'
 import { NyxInput } from 'nyx-kit/components'
@@ -12,8 +13,8 @@ const RECENT_LIMIT = 20
 
 const router = useRouter()
 const route = useRoute()
-const { activeVault } = useVaults()
-const { notesFor } = useNotes()
+const { activeVault } = storeToRefs(useVaultStore())
+const { notesFor } = useNotesStore()
 const { currentUser } = useAuth()
 
 const search = ref('')

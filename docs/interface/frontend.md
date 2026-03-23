@@ -38,9 +38,11 @@ frontend/
       LoginView.vue          # login UI (adapts to auth mode)
       VaultSettingsView.vue  # rename vault, change permission (team vaults), delete vault
       TeamSettingsView.vue   # manage members, roles, and team vaults
+    stores/
+      editor.ts              # useEditorStore — editor mode and source view toggle
+      vaults.ts              # useVaultStore — vault list, activeVault, CRUD actions, $reset()
+      notes.ts               # useNotesStore — vault-keyed notes cache (notesByVault, notesFor, loadAll), $reset()
     composables/
-      useVaults.ts           # vault list and active vault state; setActive(Vault | null)
-      useNotes.ts            # CRUD + vault-keyed notes cache (notesByVault, notesFor, loadAll)
       useAuth.ts             # auth state and token management
       useComments.ts         # comment CRUD and anchor resolution
       useTeams.ts            # team management (members, roles, team vaults)
@@ -63,7 +65,7 @@ frontend/
 
 - If the user has exactly **one vault**: redirects immediately to `/vaults/:vault_id` (replaces history entry)
 - If the user has **more than one vault**: renders a masonry grid of vault cards; each card navigates to `/vaults/:vault_id`
-- Provides a "New Vault" inline form (slug + name) that calls `useVaults().create()` and redirects to the new vault
+- Provides a "New Vault" inline form (slug + name) that calls `useVaultStore().create()` and redirects to the new vault
 
 ### `VaultView` (`/vaults/:vault_id`)
 
@@ -343,7 +345,7 @@ The frontend is built incrementally. Each layer produces reviewable, running cod
 | 1 | Scaffold | Buildable Vite + Vue 3 + TS project, bare `App.vue` | `package.json`, `vite.config.ts`, `main.ts`, `App.vue` |
 | 2 | Types + API client | TS interfaces mirroring Rust domain types; `ofetch` client with auth header injection | `src/types/`, `src/api/` |
 | 3 | Auth composable + router | Mode discovery, token management, login view, route guards | `useAuth.ts`, `router/index.ts`, `LoginView.vue` |
-| 4 | Vault + note composables | CRUD state and operations consumed by views | `useVaults.ts`, `useNotes.ts` |
+| 4 | Vault + note stores | CRUD state and operations consumed by views | `stores/vaults.ts`, `stores/notes.ts` |
 | 5 | App shell + NoteView | Layout, vault switcher, note list, first navigable view | `App.vue`, `VaultSwitcher.vue`, `NoteList.vue`, `NoteView.vue` |
 | 6 | Editor | `NoteEditor.vue` wrapping `NyxEditor`, toolbar with permission selector | `NoteEditor.vue`, `NoteToolbar.vue` |
 | 7 | Comments | Comment composable, sidebar, thread, composer | `useComments.ts`, `CommentSidebar.vue`, `CommentThread.vue`, `CommentComposer.vue` |

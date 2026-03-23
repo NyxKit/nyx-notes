@@ -6,30 +6,38 @@
 
 ---
 
+## 0. Consuming Stores — `storeToRefs` Rule
+
+Always use `storeToRefs` when destructuring reactive state. Actions (functions) are destructured directly from the store instance.
+
+```typescript
+import { storeToRefs } from 'pinia'
+import { useVaultStore } from '@/stores/vaults'
+
+const vaultStore = useVaultStore()
+const { vaults, activeVault, loading, error } = storeToRefs(vaultStore)  // refs — reactive
+const { load, create, remove, setActive } = vaultStore                    // actions — no wrapper needed
+```
+
+Omitting `storeToRefs` silently strips ref wrappers, breaking reactivity (component never re-renders on state change).
+
+---
+
 ## 1. `useVaultStore` — `stores/vaults.ts`
 
 ### Public interface
 
 ```typescript
+import { storeToRefs } from 'pinia'
 import { useVaultStore } from '@/stores/vaults'
 
-const store = useVaultStore()
+const vaultStore = useVaultStore()
 
-// State (reactive, read directly)
-store.vaults        // Vault[]
-store.activeVault   // Vault | null
-store.loading       // boolean
-store.error         // string | null
+// State — destructure via storeToRefs
+const { vaults, activeVault, loading, error } = storeToRefs(vaultStore)
 
-// Actions
-await store.load()
-const vault = await store.create(body)
-await store.remove(vaultId)
-store.setActive(vault)   // Vault | null
-await store.patchPermission(teamId, vaultId, permission)
-const vault = await store.addTeamVault(teamId, body)
-await store.removeTeamVault(teamId, vaultId)
-store.$reset()
+// Actions — destructure directly
+const { load, create, remove, setActive, patchPermission, addTeamVault, removeTeamVault, $reset } = vaultStore
 ```
 
 ### Invariants
@@ -45,30 +53,16 @@ store.$reset()
 ### Public interface
 
 ```typescript
+import { storeToRefs } from 'pinia'
 import { useNotesStore } from '@/stores/notes'
 
-const store = useNotesStore()
+const notesStore = useNotesStore()
 
-// State
-store.notesByVault  // Record<string, NoteMeta[]>
-store.activeNote    // Note | null
-store.listLoading   // boolean
-store.loading       // boolean
-store.saving        // boolean
-store.error         // string | null
+// State — destructure via storeToRefs
+const { notesByVault, activeNote, listLoading, loading, saving, error } = storeToRefs(notesStore)
 
-// Cache accessor (reactive when called inside computed/template)
-store.notesFor(vaultId)   // NoteMeta[]
-
-// Actions
-await store.loadAll(vaultIds)
-await store.loadList(vaultId)
-await store.loadNote(vaultId, id)
-const meta = await store.create(vaultId, body)
-const meta = await store.save(vaultId, id, body)
-await store.remove(vaultId, id)
-const meta = await store.updatePermission(vaultId, id, permission)
-store.$reset()
+// Actions/functions — destructure directly
+const { notesFor, loadAll, loadList, loadNote, create, save, remove, updatePermission, $reset } = notesStore
 ```
 
 ### Invariants

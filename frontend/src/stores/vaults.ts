@@ -1,14 +1,15 @@
 import { ref } from 'vue'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 import { fetchVaults, createVault, deleteVault, patchVaultPermission } from '@/api/vaults'
 import { createTeamVault, deleteTeamVault } from '@/api/teams'
 import type { Vault, CreateVaultRequest, NotePermission } from '@/types'
 
-const vaults = ref<Vault[]>([])
-const activeVault = ref<Vault | null>(null)
-const loading = ref(false)
-const error = ref<string | null>(null)
+export const useVaultStore = defineStore('vaults', () => {
+  const vaults = ref<Vault[]>([])
+  const activeVault = ref<Vault | null>(null)
+  const loading = ref(false)
+  const error = ref<string | null>(null)
 
-export function useVaults() {
   async function load() {
     loading.value = true
     error.value = null
@@ -55,6 +56,13 @@ export function useVaults() {
     if (activeVault.value?.id === vaultId) activeVault.value = null
   }
 
+  function $reset() {
+    vaults.value = []
+    activeVault.value = null
+    loading.value = false
+    error.value = null
+  }
+
   return {
     vaults,
     activeVault,
@@ -67,5 +75,8 @@ export function useVaults() {
     patchPermission,
     addTeamVault,
     removeTeamVault,
+    $reset,
   }
-}
+})
+
+if (import.meta.hot) acceptHMRUpdate(useVaultStore, import.meta.hot)

@@ -1,20 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { NyxSelect } from 'nyx-kit/components'
 import { NyxSize } from 'nyx-kit/types'
 import type { NyxSelectOptionGroup } from 'nyx-kit/types'
-import { useVaults } from '@/composables/useVaults'
+import { useVaultStore } from '@/stores/vaults'
+import { useNotesStore } from '@/stores/notes'
 import { useTeams } from '@/composables/useTeams'
-import { useNotes } from '@/composables/useNotes'
 import type { Vault } from '@/types'
 
 const props = withDefaults(defineProps<{ dest?: 'notes' | 'vault' }>(), { dest: 'notes' })
 
 const router = useRouter()
-const { vaults, activeVault, setActive } = useVaults()
+const vaultStore = useVaultStore()
+const { vaults, activeVault } = storeToRefs(vaultStore)
+const { setActive } = vaultStore
 const { load: loadTeams, teamName } = useTeams()
-const { notesFor } = useNotes()
+const { notesFor } = useNotesStore()
 
 onMounted(loadTeams)
 
