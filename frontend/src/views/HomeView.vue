@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useVaults } from '@/composables/useVaults'
+import { storeToRefs } from 'pinia'
+import { useVaultStore } from '@/stores/vaults'
 import { NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
 import { NyxVariant } from 'nyx-kit/types'
 
 const router = useRouter()
-const { vaults, loading, load: loadVaults, create: createVault, setActive } = useVaults()
+const vaultStore = useVaultStore()
+const { vaults, loading } = storeToRefs(vaultStore)
+const { load: loadVaults, create: createVault, setActive } = vaultStore
 
 const showCreateForm = ref(false)
 const newSlug = ref('')

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { NyxEditor } from 'nyx-kit/components'
 import { NyxEditorFormat, NyxEditorMode, NyxEditorToolbar, NyxVariant, NyxEditorSelection } from 'nyx-kit/types'
 import { useAuth } from '@/composables/useAuth'
-import { useNotes } from '@/composables/useNotes'
+import { useNotesStore } from '@/stores/notes'
 import { useEditorStore } from '@/stores/editor'
 import NoteToolbar from '@/components/NoteToolbar.vue'
 import type { Note, NotePermission } from '@/types'
@@ -17,7 +18,9 @@ const emit = defineEmits<{
 }>()
 
 const { authMode, currentUser } = useAuth()
-const { save, saving, updatePermission } = useNotes()
+const notesStore = useNotesStore()
+const { saving } = storeToRefs(notesStore)
+const { save, updatePermission } = notesStore
 const editorStore = useEditorStore()
 
 // Local editable copies — reset when the note changes

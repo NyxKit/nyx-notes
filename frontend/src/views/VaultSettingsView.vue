@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed, watch, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { NyxSelect, NyxButton } from 'nyx-kit/components'
 import { NyxVariant, NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
-import { useVaults } from '@/composables/useVaults'
+import { useVaultStore } from '@/stores/vaults'
 import type { NotePermission } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
-const { vaults, load, remove, patchPermission } = useVaults()
+const vaultStore = useVaultStore()
+const { vaults } = storeToRefs(vaultStore)
+const { load, remove, patchPermission } = vaultStore
 
 const vaultId = computed(() => route.params.vault_id as string)
 const vault = computed(() => vaults.value.find(v => v.id === vaultId.value) ?? null)

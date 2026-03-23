@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useVaults } from '@/composables/useVaults'
-import { useNotes } from '@/composables/useNotes'
+import { storeToRefs } from 'pinia'
+import { useVaultStore } from '@/stores/vaults'
+import { useNotesStore } from '@/stores/notes'
 import { NyxButton, NyxBadge } from 'nyx-kit/components'
 import { NyxVariant, NyxTheme } from 'nyx-kit/types'
 
@@ -10,8 +11,12 @@ const route = useRoute()
 const router = useRouter()
 const vaultId = computed(() => route.params.vault_id as string)
 
-const { vaults, activeVault, load: loadVaults, setActive } = useVaults()
-const { notesFor, listLoading, loadList, create: createNote } = useNotes()
+const vaultStore = useVaultStore()
+const { vaults, activeVault } = storeToRefs(vaultStore)
+const { load: loadVaults, setActive } = vaultStore
+const notesStore = useNotesStore()
+const { listLoading } = storeToRefs(notesStore)
+const { notesFor, loadList, create: createNote } = notesStore
 
 onMounted(async () => {
   await loadVaults()

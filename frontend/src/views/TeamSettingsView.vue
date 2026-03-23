@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { NyxSelect, NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
 import { NyxSize, NyxVariant, NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
 import { useAuth } from '@/composables/useAuth'
 import { useTeams } from '@/composables/useTeams'
-import { useVaults } from '@/composables/useVaults'
+import { useVaultStore } from '@/stores/vaults'
 import type { TeamRole, NotePermission } from '@/types'
 
 const route = useRoute()
 const router = useRouter()
 const { currentUser, authMode } = useAuth()
 const { teams, loadOne, remove: removeTeam, addTeamMember, updateMember, kickMember } = useTeams()
-const { vaults, load: loadVaults, patchPermission, addTeamVault, removeTeamVault } = useVaults()
+const vaultStore = useVaultStore()
+const { vaults } = storeToRefs(vaultStore)
+const { load: loadVaults, patchPermission, addTeamVault, removeTeamVault } = vaultStore
 
 const teamId = computed(() => route.params.team_id as string)
 const team = computed(() => teams.value.find(t => t.id === teamId.value) ?? null)

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
-import { useVaults } from '@/composables/useVaults'
-import { useNotes } from '@/composables/useNotes'
+import { storeToRefs } from 'pinia'
+import { useVaultStore } from '@/stores/vaults'
+import { useNotesStore } from '@/stores/notes'
 import { useEditorStore } from '@/stores/editor'
 import { NyxModal, NyxButton } from 'nyx-kit/components'
 import { NyxVariant, NyxTheme, NyxShape } from 'nyx-kit/types'
@@ -45,8 +46,12 @@ async function confirmDelete() {
   router.replace(`/vaults/${note.meta.vault_id}/notes`)
 }
 
-const { vaults, load: loadVaults, setActive, activeVault } = useVaults()
-const { loadNote, activeNote, saving, remove } = useNotes()
+const vaultStore = useVaultStore()
+const { vaults, activeVault } = storeToRefs(vaultStore)
+const { load: loadVaults, setActive } = vaultStore
+const notesStore = useNotesStore()
+const { activeNote, saving } = storeToRefs(notesStore)
+const { loadNote, remove } = notesStore
 
 const LAST_NOTE_KEY = 'nyx_last_note'
 

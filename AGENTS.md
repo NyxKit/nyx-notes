@@ -183,6 +183,7 @@ domain model design, trait signatures, crate boundaries and layering, `StorageBa
 - Axum routes that return 200 where they should return 201 / 204
 - `AsyncStorageAdapter` methods that are missing (coverage gaps vs. `StorageBackend` trait)
 - Vue composables that share module-level state incorrectly across vault contexts
+- Pinia store state destructured without `storeToRefs` (silently breaks reactivity — component never re-renders on state change)
 - Frontend API calls that don't handle non-2xx responses
 - `ofetch` error handling gaps in `api/client.ts`
 - TypeScript types that diverge from the Rust types (field names, nullable vs. optional)

@@ -25,6 +25,9 @@ Do not add a new Rust crate, npm package, or external service without flagging i
 - N/A — UI-only refactor (002-nyx-kit-primitives)
 - TypeScript 5.x / Vue 3.5 / Vite + nyx-kit 2.x (NyxButton, NyxBadge), ofetch 1.5, Vue Router 5.0, Pinia 3.0 (003-sidebar-recent-notes)
 - N/A — frontend-only; uses existing REST API endpoints (003-sidebar-recent-notes)
+- TypeScript 5.x / Vue 3.5 / Vite + Pinia 3.0 (already installed), nyx-kit 2.x, Vue Router 5.0 (004-pinia-stores)
+- N/A — frontend-only; existing REST API endpoints unchanged (004-pinia-stores)
 
 ## Recent Changes
 - 001-route-domains: Added TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5
+- 004-pinia-stores: Replaced `useVaults` and `useNotes` module-level composables with `useVaultStore` (`stores/vaults.ts`) and `useNotesStore` (`stores/notes.ts`) Pinia setup stores; vault-keyed notes cache (`notesByVault`); both stores expose `$reset()` and `acceptHMRUpdate`
