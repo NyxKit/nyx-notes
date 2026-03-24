@@ -6,7 +6,7 @@ import { useVaultStore } from '@/stores/vaults'
 import { useNotesStore } from '@/stores/notes'
 import { useEditorStore } from '@/stores/editor'
 import { NyxModal, NyxButton } from 'nyx-kit/components'
-import { NyxVariant, NyxTheme, NyxShape } from 'nyx-kit/types'
+import { NyxTheme, NyxShape } from 'nyx-kit/types'
 import NoteEditor from '@/components/NoteEditor.vue'
 import CommentSidebar from '@/components/CommentSidebar.vue'
 
@@ -47,7 +47,7 @@ async function confirmDelete() {
 }
 
 const vaultStore = useVaultStore()
-const { vaults, activeVault } = storeToRefs(vaultStore)
+const { vaults } = storeToRefs(vaultStore)
 const { load: loadVaults, setActive } = vaultStore
 const notesStore = useNotesStore()
 const { activeNote, saving } = storeToRefs(notesStore)

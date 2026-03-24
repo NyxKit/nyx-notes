@@ -8,12 +8,14 @@
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
     "clean": "rm -rf node_modules && rm -rf dist && rm -rf .vite && rm -rf .vue-tsc && rm -rf .tauri"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
-    "nyx-kit": "^2.0.0",
+    "nyx-kit": "^2.0.2",
     "ofetch": "^1.5.1",
     "pinia": "^3.0.4",
     "vue": "^3.5.13",
@@ -22,6 +24,10 @@
   "devDependencies": {
     "@tauri-apps/cli": "^2",
     "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/eslint-config-typescript": "^14.7.0",
+    "eslint": "^9.39.4",
+    "eslint-plugin-oxlint": "^0.15.15",
+    "eslint-plugin-vue": "^9.33.0",
     "typescript": "~5.6.2",
     "vite": "^6.0.3",
     "vue-tsc": "^2.1.10"

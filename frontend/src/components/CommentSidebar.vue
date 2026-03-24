@@ -6,7 +6,7 @@ import CommentThread from '@/components/CommentThread.vue'
 import CommentComposer from '@/components/CommentComposer.vue'
 import type { Note } from '@/types'
 import { NyxButton, NyxTabs } from 'nyx-kit/components'
-import { NyxVariant, NyxShape } from 'nyx-kit/types'
+import { NyxShape } from 'nyx-kit/types'
 
 const props = defineProps<{
   note: Note
