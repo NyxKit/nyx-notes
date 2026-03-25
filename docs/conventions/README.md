@@ -35,6 +35,32 @@ Coding conventions, naming rules, and file organization standards for Nyx Notes.
 - Use `nyx-kit` for all UI primitives; do not introduce additional component libraries
 - No semicolons; single quotes for strings — enforced by `pnpm lint` (in `frontend/`)
 
+## Frontend Directory Structure
+
+`frontend/src/` uses a domain-based layout. Each business domain owns all its files.
+
+| Where to put a new file | Location |
+|---|---|
+| View, component, store, composable, or API module for one domain | Inside that domain's subfolder (`vaults/`, `notes/`, `comments/`, `auth/`, `teams/`) |
+| File used by two or more domains | `shared/` |
+| Application entry point | `src/` root (`main.ts`, `App.vue`, `vite-env.d.ts` only) |
+
+Valid subdirectory types per domain: `api/`, `assets/`, `classes/`, `components/`,
+`composables/`, `stores/`, `types/`, `utils/`, `views/`. Create only those with actual files.
+
+The `@/` alias maps to `frontend/src/`. Cross-domain imports use `@/shared/...`; same-domain
+imports use `@/domainname/...`. Direct imports between two domain folders are not permitted —
+extract shared code to `shared/` instead.
+
+Every importable subdirectory must contain an `index.ts` barrel file that re-exports every module
+in that folder. Code must import from the folder path, not from an individual file path.
+
+| Preferred | Avoid |
+|---|---|
+| `import { NoteToolbar } from '@/notes/components'` | `import NoteToolbar from '@/notes/components/NoteToolbar.vue'` |
+| `import { useVaultStore } from '@/vaults/stores'` | `import { useVaultStore } from '@/vaults/stores/vaults'` |
+| `import { api } from '@/shared/api'` | `import { api } from '@/shared/api/client'` |
+
 ## Git
 
 - Commit messages: imperative mood, present tense (`add vault switcher`, not `added` or `adds`)
