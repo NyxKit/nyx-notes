@@ -1,14 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: none → 1.0.0 (initial ratification)
-Modified principles: N/A (new)
-Added sections: Core Principles (I–VI), Development Workflow, Code Conventions, Governance
+Version change: 1.0.0 → 1.0.1 (PATCH — added domain-structure rule to Principle VI)
+Modified principles: VI. Frontend Constraints (added one bullet on domain-based src/ layout)
+Added sections: N/A
 Removed sections: N/A
 Templates requiring updates:
   - .specify/templates/plan-template.md ✅ — no outdated references found; constitution-aligned
   - .specify/templates/spec-template.md ✅ — no misaligned constraints
   - .specify/templates/tasks-template.md ✅ — task categories (testing, security, layer) consistent
+  - docs/interface/frontend.md ✅ — Application Layout and Implementation Layers updated (007)
+  - docs/conventions/README.md ✅ — Frontend Directory Structure section added (007)
 Follow-up TODOs: none
 -->
 
@@ -86,6 +88,10 @@ The Vue 3 frontend MUST follow the Composition API exclusively.
 - `nyx-kit` MUST be used for all UI primitives; no additional component libraries are permitted.
 - TypeScript types MUST match the Rust types (field names, nullability, optional fields).
 - No semicolons in frontend TypeScript/Vue files; single quotes for strings.
+- `frontend/src/` MUST use a domain-based layout (`vaults/`, `notes/`, `comments/`, `auth/`,
+  `teams/`, `shared/`). A file belongs in its domain folder if used by one domain; in `shared/`
+  if used by two or more. Direct imports between two domain folders are NOT permitted — extract
+  shared code to `shared/` instead.
 
 ## Development Workflow
 
@@ -118,4 +124,4 @@ Conventions are defined in `docs/conventions/README.md`. Key rules:
   considered complete.
 - The checklist in `AGENTS.md` (§ What Must Be Validated) is the compliance gate.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-21
+**Version**: 1.0.1 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-25
