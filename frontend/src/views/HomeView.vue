@@ -4,8 +4,8 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVaultStore } from '@/stores/vaults'
 import { NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
-import VaultIcon from '@/components/VaultIcon.vue'
 import VaultIconPicker from '@/components/VaultIconPicker.vue'
+import VaultCard from '@/components/VaultCard.vue'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
@@ -81,22 +81,12 @@ function cancelCreate() {
           </div>
           <div class="home__masonry">
 
-            <NyxButton
+            <VaultCard
               v-for="vault in vaults"
               :key="vault.id"
-              class="home__vault-card"
+              :model-value="vault"
               @click="openVault(vault.id)"
-            >
-              <div class="home__vault-text">
-                <span class="home__vault-name">{{ vault.name }}</span>
-                <span class="home__vault-slug">{{ vault.slug }}</span>
-              </div>
-              <VaultIcon
-                :slug="vault.icon || 'folder'"
-                class="home__vault-bg-icon"
-                aria-hidden="true"
-              />
-            </NyxButton>
+            />
 
             <!-- Inline create form card -->
             <NyxForm v-if="showCreateForm" class="home__vault-card home__vault-card--form" @submit="submitCreate">
@@ -234,77 +224,6 @@ function cancelCreate() {
   columns: 5 160px;
   column-gap: 1rem;
   width: 100%;
-}
-
-/* ── Vault card ─────────────────────────────────────────────── */
-.home__vault-card {
-  position: relative;
-  overflow: hidden;
-  aspect-ratio: 1 / 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
-  background: var(--nyx-c-bg-soft);
-  border-radius: var(--nyx-radius-xl);
-  padding: 1.25rem;
-  margin-bottom: 1rem;
-  break-inside: avoid;
-  cursor: pointer;
-  text-align: left;
-  border: 1px solid transparent;
-  width: 100%;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.home__vault-card:hover {
-  border-color: var(--nyx-c-divider);
-  background: var(--nyx-c-bg-mute);
-}
-
-.home__vault-card--form {
-  aspect-ratio: unset;
-  justify-content: flex-start;
-  cursor: default;
-  gap: 0.75rem;
-}
-
-.home__vault-card--form:hover {
-  background: var(--nyx-c-bg-soft);
-}
-
-.home__vault-text {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  position: relative;
-  z-index: 1;
-}
-
-.home__vault-name {
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--nyx-c-text-1);
-  line-height: 1.4;
-}
-
-.home__vault-slug {
-  font-size: 0.6875rem;
-  color: var(--nyx-c-text-3);
-  font-family: 'Inter', monospace;
-}
-
-.home__vault-bg-icon {
-  position: absolute;
-  right: -8%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 70%;
-  height: auto;
-  opacity: 0.12;
-  pointer-events: none;
-  color: var(--nyx-c-text-1);
 }
 
 /* ── Inline create form ─────────────────────────────────────── */

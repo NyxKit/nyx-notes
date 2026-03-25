@@ -6,7 +6,7 @@ import { useVaultStore } from '@/stores/vaults'
 import { useNotesStore } from '@/stores/notes'
 import { useEditorStore } from '@/stores/editor'
 import { NyxModal, NyxButton } from 'nyx-kit/components'
-import { NyxTheme, NyxShape } from 'nyx-kit/types'
+import { NyxTheme, NyxShape, NyxVariant } from 'nyx-kit/types'
 import NoteEditor from '@/components/NoteEditor.vue'
 import CommentSidebar from '@/components/CommentSidebar.vue'
 
@@ -43,6 +43,7 @@ async function confirmDelete() {
   const note = activeNote.value
   if (!note) return
   await remove(note.meta.vault_id, note.meta.id)
+  showDeleteConfirm.value = false
   router.replace(`/vaults/${note.meta.vault_id}/notes`)
 }
 
@@ -221,14 +222,10 @@ watch(
       </footer>
 
     <!-- Delete confirmation modal -->
-    <NyxModal
-      v-model="showDeleteConfirm"
-      title="Delete note"
-      @cancel="showDeleteConfirm = false"
-    >
+    <NyxModal v-model="showDeleteConfirm" title="Delete note">
       <p>This note will be permanently deleted. This cannot be undone.</p>
       <template #footer>
-        <NyxButton @click="showDeleteConfirm = false">Cancel</NyxButton>
+        <NyxButton :variant="NyxVariant.Subtle" @click="showDeleteConfirm = false">Cancel</NyxButton>
         <NyxButton :theme="NyxTheme.Danger" @click="confirmDelete">Delete</NyxButton>
       </template>
     </NyxModal>
