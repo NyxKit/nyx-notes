@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useAuth } from '@/shared/composables/useAuth'
-import { useComments } from '@/comments/composables/useComments'
-import CommentThread from './CommentThread.vue'
-import CommentComposer from './CommentComposer.vue'
+import { useAuth } from '@/shared/composables'
+import { useComments } from '@/comments/composables'
+import { CommentThread, CommentComposer } from '@/comments/components'
 import type { Note } from '@/shared/types'
 import { NyxButton, NyxTabs } from 'nyx-kit/components'
 import { NyxShape } from 'nyx-kit/types'

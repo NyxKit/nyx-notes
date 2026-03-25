@@ -52,6 +52,15 @@ The `@/` alias maps to `frontend/src/`. Cross-domain imports use `@/shared/...`;
 imports use `@/domainname/...`. Direct imports between two domain folders are not permitted —
 extract shared code to `shared/` instead.
 
+Every importable subdirectory must contain an `index.ts` barrel file that re-exports every module
+in that folder. Code must import from the folder path, not from an individual file path.
+
+| Preferred | Avoid |
+|---|---|
+| `import { NoteToolbar } from '@/notes/components'` | `import NoteToolbar from '@/notes/components/NoteToolbar.vue'` |
+| `import { useVaultStore } from '@/vaults/stores'` | `import { useVaultStore } from '@/vaults/stores/vaults'` |
+| `import { api } from '@/shared/api'` | `import { api } from '@/shared/api/client'` |
+
 ## Git
 
 - Commit messages: imperative mood, present tense (`add vault switcher`, not `added` or `adds`)

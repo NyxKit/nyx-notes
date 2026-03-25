@@ -7,7 +7,7 @@ import {
   updateNote,
   deleteNote,
   patchNotePermission,
-} from '@/notes/api/notes'
+} from '@/notes/api'
 import type { Note, NoteMeta, CreateNoteRequest, UpdateNoteRequest, NotePermission } from '@/shared/types'
 
 export const useNotesStore = defineStore('notes', () => {

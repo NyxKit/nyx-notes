@@ -1,4 +1,4 @@
-import { api } from '@/shared/api/client'
+import { api } from '@/shared/api'
 import type { AuthModeResponse, LoginToken } from '@/shared/types'
 
 export function fetchAuthMode() {

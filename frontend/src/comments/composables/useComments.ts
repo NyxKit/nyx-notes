@@ -6,7 +6,7 @@ import {
   patchComment,
   createReply,
   deleteReply,
-} from '@/comments/api/comments'
+} from '@/comments/api'
 import type { Comment } from '@/shared/types'
 
 const comments = ref<Comment[]>([])

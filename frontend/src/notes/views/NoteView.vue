@@ -2,13 +2,13 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useVaultStore } from '@/vaults/stores/vaults'
-import { useNotesStore } from '@/notes/stores/notes'
-import { useEditorStore } from '@/notes/stores/editor'
+import { useVaultStore } from '@/vaults/stores'
+import { useNotesStore } from '@/notes/stores'
+import { useEditorStore } from '@/notes/stores'
 import { NyxModal, NyxButton } from 'nyx-kit/components'
 import { NyxTheme, NyxShape, NyxVariant } from 'nyx-kit/types'
-import NoteEditor from '@/notes/components/NoteEditor.vue'
-import CommentSidebar from '@/comments/components/CommentSidebar.vue'
+import { NoteEditor } from '@/notes/components'
+import { CommentSidebar } from '@/comments/components'
 
 const route = useRoute()
 const router = useRouter()

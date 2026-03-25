@@ -1,47 +1,47 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuth } from '@/shared/composables/useAuth'
+import { useAuth } from '@/shared/composables'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
-      component: () => import('@/shared/components/AppLayout.vue'),
+      component: () => import('@/shared/components').then(({ AppLayout }) => AppLayout),
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
-          component: () => import('@/vaults/views/HomeView.vue'),
+          component: () => import('@/vaults/views').then(({ HomeView }) => HomeView),
         },
         {
           path: 'vaults/:vault_id',
-          component: () => import('@/vaults/views/VaultView.vue'),
+          component: () => import('@/vaults/views').then(({ VaultView }) => VaultView),
         },
         {
           path: 'vaults/:vault_id/notes/:id?',
-          component: () => import('@/notes/views/NoteView.vue'),
+          component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
         },
         {
           path: 'vaults/:vault_id/favorites',
-          component: () => import('@/notes/views/NoteView.vue'),
+          component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
         },
         {
           path: 'vaults/:vault_id/drafts',
-          component: () => import('@/notes/views/NoteView.vue'),
+          component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
         },
         {
           path: 'vaults/:vault_id/settings',
-          component: () => import('@/vaults/views/VaultSettingsView.vue'),
+          component: () => import('@/vaults/views').then(({ VaultSettingsView }) => VaultSettingsView),
         },
         {
           path: 'teams/:team_id/settings',
-          component: () => import('@/teams/views/TeamSettingsView.vue'),
+          component: () => import('@/teams/views').then(({ TeamSettingsView }) => TeamSettingsView),
         },
       ],
     },
     {
       path: '/login',
-      component: () => import('@/auth/views/LoginView.vue'),
+      component: () => import('@/auth/views').then(({ LoginView }) => LoginView),
     },
   ],
 })

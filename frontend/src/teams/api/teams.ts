@@ -1,4 +1,4 @@
-import { api } from '@/shared/api/client'
+import { api } from '@/shared/api'
 import type { Team, Vault, CreateTeamRequest, AddMemberRequest, PatchMemberRequest } from '@/shared/types'
 
 export function fetchTeams() {

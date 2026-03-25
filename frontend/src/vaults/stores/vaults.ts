@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
-import { fetchVaults, createVault, deleteVault, patchVaultPermission, updateVault } from '@/vaults/api/vaults'
-import { createTeamVault, deleteTeamVault } from '@/teams/api/teams'
+import { fetchVaults, createVault, deleteVault, patchVaultPermission, updateVault } from '@/vaults/api'
+import { createTeamVault, deleteTeamVault } from '@/teams/api'
 import type { Vault, CreateVaultRequest, UpdateVaultRequest, NotePermission } from '@/shared/types'
 
 export const useVaultStore = defineStore('vaults', () => {

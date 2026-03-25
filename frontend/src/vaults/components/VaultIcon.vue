@@ -1,26 +1,28 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import homeRaw from '@/vaults/assets/icons/home.svg?raw'
-import bookRaw from '@/vaults/assets/icons/book.svg?raw'
-import starRaw from '@/vaults/assets/icons/star.svg?raw'
-import briefcaseRaw from '@/vaults/assets/icons/briefcase.svg?raw'
-import codeRaw from '@/vaults/assets/icons/code.svg?raw'
-import penRaw from '@/vaults/assets/icons/pen.svg?raw'
-import heartRaw from '@/vaults/assets/icons/heart.svg?raw'
-import globeRaw from '@/vaults/assets/icons/globe.svg?raw'
-import lockRaw from '@/vaults/assets/icons/lock.svg?raw'
-import rocketRaw from '@/vaults/assets/icons/rocket.svg?raw'
-import lightbulbRaw from '@/vaults/assets/icons/lightbulb.svg?raw'
-import musicRaw from '@/vaults/assets/icons/music.svg?raw'
-import cameraRaw from '@/vaults/assets/icons/camera.svg?raw'
-import folderRaw from '@/vaults/assets/icons/folder.svg?raw'
-import compassRaw from '@/vaults/assets/icons/compass.svg?raw'
-import flaskRaw from '@/vaults/assets/icons/flask.svg?raw'
-import graduationCapRaw from '@/vaults/assets/icons/graduation-cap.svg?raw'
-import chartRaw from '@/vaults/assets/icons/chart.svg?raw'
-import leafRaw from '@/vaults/assets/icons/leaf.svg?raw'
-import diamondRaw from '@/vaults/assets/icons/diamond.svg?raw'
+import {
+  homeRaw,
+  bookRaw,
+  starRaw,
+  briefcaseRaw,
+  codeRaw,
+  penRaw,
+  heartRaw,
+  globeRaw,
+  lockRaw,
+  rocketRaw,
+  lightbulbRaw,
+  musicRaw,
+  cameraRaw,
+  folderRaw,
+  compassRaw,
+  flaskRaw,
+  graduationCapRaw,
+  chartRaw,
+  leafRaw,
+  diamondRaw,
+} from '@/vaults/assets/icons'
 
 const icons: Record<string, string> = {
   'home': homeRaw,

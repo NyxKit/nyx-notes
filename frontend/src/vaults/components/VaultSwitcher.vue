@@ -5,9 +5,9 @@ import { storeToRefs } from 'pinia'
 import { NyxSelect } from 'nyx-kit/components'
 import { NyxSize } from 'nyx-kit/types'
 import type { NyxSelectOptionGroup } from 'nyx-kit/types'
-import { useVaultStore } from '@/vaults/stores/vaults'
-import { useNotesStore } from '@/notes/stores/notes'
-import { useTeams } from '@/teams/composables/useTeams'
+import { useVaultStore } from '@/vaults/stores'
+import { useNotesStore } from '@/notes/stores'
+import { useTeams } from '@/teams/composables'
 import type { Vault } from '@/shared/types'
 
 const props = withDefaults(defineProps<{ dest?: 'notes' | 'vault' }>(), { dest: 'notes' })

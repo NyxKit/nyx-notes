@@ -5,9 +5,9 @@ import { storeToRefs } from 'pinia'
 import { NyxSelect, NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
 import { NyxSize, NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
-import { useAuth } from '@/shared/composables/useAuth'
-import { useTeams } from '@/teams/composables/useTeams'
-import { useVaultStore } from '@/vaults/stores/vaults'
+import { useAuth } from '@/shared/composables'
+import { useTeams } from '@/teams/composables'
+import { useVaultStore } from '@/vaults/stores'
 import type { TeamRole, NotePermission } from '@/shared/types'
 
 const route = useRoute()

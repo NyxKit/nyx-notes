@@ -5,8 +5,8 @@ import { storeToRefs } from 'pinia'
 import { NyxSelect, NyxButton } from 'nyx-kit/components'
 import { NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
-import VaultIconPicker from '@/vaults/components/VaultIconPicker.vue'
-import { useVaultStore } from '@/vaults/stores/vaults'
+import { VaultIconPicker } from '@/vaults/components'
+import { useVaultStore } from '@/vaults/stores'
 import type { NotePermission } from '@/shared/types'
 
 const route = useRoute()

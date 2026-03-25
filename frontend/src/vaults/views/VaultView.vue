@@ -2,11 +2,11 @@
 import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useVaultStore } from '@/vaults/stores/vaults'
-import { useNotesStore } from '@/notes/stores/notes'
+import { useVaultStore } from '@/vaults/stores'
+import { useNotesStore } from '@/notes/stores'
 import { NyxButton, NyxBadge } from 'nyx-kit/components'
 import { NyxVariant, NyxTheme } from 'nyx-kit/types'
-import VaultIcon from '@/vaults/components/VaultIcon.vue'
+import { VaultIcon } from '@/vaults/components'
 
 const route = useRoute()
 const router = useRouter()

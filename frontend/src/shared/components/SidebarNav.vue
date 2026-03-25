@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useVaultStore } from '@/vaults/stores/vaults'
-import { useNotesStore } from '@/notes/stores/notes'
+import { useVaultStore } from '@/vaults/stores'
+import { useNotesStore } from '@/notes/stores'
 import { NyxButton } from 'nyx-kit/components'
 
 const route = useRoute()

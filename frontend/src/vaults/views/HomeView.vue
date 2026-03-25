@@ -2,10 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useVaultStore } from '@/vaults/stores/vaults'
+import { useVaultStore } from '@/vaults/stores'
 import { NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
-import VaultIconPicker from '@/vaults/components/VaultIconPicker.vue'
-import VaultCard from '@/vaults/components/VaultCard.vue'
+import { VaultIconPicker, VaultCard } from '@/vaults/components'
 
 const router = useRouter()
 const vaultStore = useVaultStore()

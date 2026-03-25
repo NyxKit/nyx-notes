@@ -7,7 +7,7 @@ import {
   addMember,
   patchMember,
   removeMember,
-} from '@/teams/api/teams'
+} from '@/teams/api'
 import type { Team, TeamRole } from '@/shared/types'
 
 const teams = ref<Team[]>([])

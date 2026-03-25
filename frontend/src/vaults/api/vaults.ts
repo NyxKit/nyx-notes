@@ -1,4 +1,4 @@
-import { api } from '@/shared/api/client'
+import { api } from '@/shared/api'
 import type { Vault, CreateVaultRequest, UpdateVaultRequest, NotePermission } from '@/shared/types'
 
 export function fetchVaults() {

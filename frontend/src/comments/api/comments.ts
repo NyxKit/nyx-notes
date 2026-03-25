@@ -1,4 +1,4 @@
-import { api } from '@/shared/api/client'
+import { api } from '@/shared/api'
 import type { Comment, CommentReply } from '@/shared/types'
 
 export function fetchComments(vaultId: string, noteId: string) {

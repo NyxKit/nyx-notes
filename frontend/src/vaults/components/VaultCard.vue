@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NyxButton } from 'nyx-kit/components'
-import VaultIcon from './VaultIcon.vue'
+import { VaultIcon } from '@/vaults/components'
 import type { Vault } from '@/shared/types'
 
 const model = defineModel<Vault>({ required: true })

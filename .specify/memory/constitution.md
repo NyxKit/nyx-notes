@@ -1,16 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.0.0 → 1.0.1 (PATCH — added domain-structure rule to Principle VI)
-Modified principles: VI. Frontend Constraints (added one bullet on domain-based src/ layout)
+Version change: 1.0.1 → 1.0.2 (PATCH — added barrel-export rule to Principle VI)
+Modified principles: VI. Frontend Constraints (added one bullet on index-based subdirectory exports/imports)
 Added sections: N/A
 Removed sections: N/A
 Templates requiring updates:
   - .specify/templates/plan-template.md ✅ — no outdated references found; constitution-aligned
   - .specify/templates/spec-template.md ✅ — no misaligned constraints
   - .specify/templates/tasks-template.md ✅ — task categories (testing, security, layer) consistent
-  - docs/interface/frontend.md ✅ — Application Layout and Implementation Layers updated (007)
-  - docs/conventions/README.md ✅ — Frontend Directory Structure section added (007)
+  - docs/interface/frontend.md ✅ — Application Layout updated with barrel export/import rules
+  - docs/conventions/README.md ✅ — Frontend Directory Structure updated with barrel export/import rules
 Follow-up TODOs: none
 -->
 
@@ -92,6 +92,9 @@ The Vue 3 frontend MUST follow the Composition API exclusively.
   `teams/`, `shared/`). A file belongs in its domain folder if used by one domain; in `shared/`
   if used by two or more. Direct imports between two domain folders are NOT permitted — extract
   shared code to `shared/` instead.
+- Every importable frontend subdirectory MUST expose an `index.ts` barrel file that re-exports
+  every module in that subdirectory. Imports MUST target the directory barrel (for example,
+  `@/notes/components`) rather than reaching into a specific module file.
 
 ## Development Workflow
 
@@ -124,4 +127,4 @@ Conventions are defined in `docs/conventions/README.md`. Key rules:
   considered complete.
 - The checklist in `AGENTS.md` (§ What Must Be Validated) is the compliance gate.
 
-**Version**: 1.0.1 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-25
+**Version**: 1.0.2 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-25

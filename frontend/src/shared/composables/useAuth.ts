@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
-import { fetchAuthMode, login as apiLogin } from '@/auth/api/auth'
-import { setApiToken } from '@/shared/api/client'
+import { fetchAuthMode, login as apiLogin } from '@/auth/api'
+import { setApiToken } from '@/shared/api'
 import type { AuthMode, User } from '@/shared/types'
 
 const authMode = ref<AuthMode | null>(null)

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useAuth } from '@/shared/composables/useAuth'
-import { useComments } from '@/comments/composables/useComments'
-import CommentComposer from './CommentComposer.vue'
+import { useAuth } from '@/shared/composables'
+import { useComments } from '@/comments/composables'
+import { CommentComposer } from '@/comments/components'
 import type { Comment } from '@/shared/types'
 import { NyxButton } from 'nyx-kit/components'
 import { NyxVariant, NyxTheme, NyxSize } from 'nyx-kit/types'

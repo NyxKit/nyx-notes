@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useVaultStore } from '@/vaults/stores/vaults'
-import { useNotesStore } from '@/notes/stores/notes'
-import VaultSwitcher from '@/vaults/components/VaultSwitcher.vue'
-import SidebarNav from '@/shared/components/SidebarNav.vue'
-import NoteList from '@/notes/components/NoteList.vue'
+import { useVaultStore } from '@/vaults/stores'
+import { useNotesStore } from '@/notes/stores'
+import { VaultSwitcher } from '@/vaults/components'
+import { SidebarNav } from '@/shared/components'
+import { NoteList } from '@/notes/components'
 
 const vaultStore = useVaultStore()
 const { vaults, activeVault } = storeToRefs(vaultStore)

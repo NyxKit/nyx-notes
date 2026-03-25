@@ -22,6 +22,10 @@ A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to
 composables, and API module. Cross-domain code lives in `shared/`. Entry points stay at
 the `src/` root.
 
+Every importable subdirectory exposes an `index.ts` barrel file. Internal code imports from the
+directory path (`@/notes/components`, `@/shared/api`, `@/vaults/views`) rather than directly from
+individual files.
+
 ```
 frontend/src/
   main.ts
@@ -29,65 +33,94 @@ frontend/src/
   vite-env.d.ts
 
   vaults/
+    index.ts                 # re-exports the vault barrels below
     api/vaults.ts            # vault CRUD API calls
+    api/index.ts             # exports vault API functions
     assets/icons/            # 20 solid vault-themed SVGs (book.svg, briefcase.svg, …)
+    assets/icons/index.ts    # exports vault icon raw strings
     components/
       VaultCard.vue          # single vault card (icon + name + actions)
       VaultIcon.vue          # renders a vault icon SVG by slug prop; falls back to folder
       VaultIconPicker.vue    # 5×4 grid of 20 icon options; emits select with chosen slug
       VaultSwitcher.vue      # dropdown: switch between personal and team vaults
+      index.ts               # exports vault components
     stores/vaults.ts         # useVaultStore — vault list, activeVault, CRUD, $reset()
+    stores/index.ts          # exports vault stores
     views/
       HomeView.vue           # multi-vault dashboard; redirects to vault if only one exists
       VaultView.vue          # notes masonry for a single vault; getting-started if empty
       VaultSettingsView.vue  # rename vault, change icon, change permission, delete vault
+      index.ts               # exports vault views
 
   notes/
+    index.ts                 # re-exports the notes barrels below
     api/notes.ts             # note CRUD API calls
+    api/index.ts             # exports note API functions
     components/
       NoteEditor.vue         # thin wrapper around <NyxEditor> from nyx-kit
       NoteList.vue           # sidebar: list of notes in the active vault
       NoteToolbar.vue        # save, delete, tags, permission selector
+      index.ts               # exports note components
     stores/
       notes.ts               # useNotesStore — vault-keyed notes cache, $reset()
       editor.ts              # useEditorStore — editor mode and source view toggle
+      index.ts               # exports note stores
     views/
       NoteView.vue           # editor for a specific note (:vault_id/:id)
+      index.ts               # exports note views
 
   comments/
+    index.ts                 # re-exports the comments barrels below
     api/comments.ts          # comment CRUD API calls
+    api/index.ts             # exports comment API functions
     components/
       CommentComposer.vue    # new comment / reply input
       CommentSidebar.vue     # comment thread panel (right of editor)
       CommentThread.vue      # single thread: anchor quote + replies
+      index.ts               # exports comment components
     composables/
       useComments.ts         # comment CRUD and anchor resolution
+      index.ts               # exports comment composables
 
   auth/
+    index.ts                 # re-exports auth barrels below
     api/auth.ts              # auth mode discovery and login
-    composables/
-      useAuth.ts             # auth state and token management
+    api/index.ts             # exports auth API functions
     views/
       LoginView.vue          # login UI (adapts to auth mode)
+      index.ts               # exports auth views
 
   teams/
+    index.ts                 # re-exports the team barrels below
     api/teams.ts             # team CRUD API calls
+    api/index.ts             # exports team API functions
     composables/
       useTeams.ts            # team management (members, roles, team vaults)
+      index.ts               # exports team composables
     views/
       TeamSettingsView.vue   # manage members, roles, and team vaults
+      index.ts               # exports team views
 
   shared/
+    index.ts                 # re-exports shared barrels below
     api/client.ts            # base ofetch HTTP client (used by all domain API modules)
+    api/index.ts             # exports shared API utilities
     assets/
+      index.ts               # re-exports shared assets and loads global theme CSS
       icons/                 # 20 generic outline SVGs (shared across UI)
+      icons/index.ts         # exports shared icon raw strings
       theme.css              # global design tokens
     components/
       AppLayout.vue          # persistent authenticated shell: sidebar + <RouterView />
       SidebarNav.vue         # primary navigation links in the sidebar
-    router/index.ts          # all routes; references all domain views
+      index.ts               # exports shared components
+    composables/
+      useAuth.ts             # auth state and token management
+      index.ts               # exports shared composables
+    router/index.ts          # router module and folder barrel for shared routing
     types/index.ts           # TypeScript interfaces mirroring Rust domain types
     utils/time.ts            # date/time formatting utilities
+    utils/index.ts           # exports shared utilities
 ```
 
 ### Adding new files
@@ -96,6 +129,8 @@ frontend/src/
 - New file used by ≥ 2 domains → place in `shared/`
 - Supported subdirectory types per domain: `api/`, `assets/`, `classes/`, `components/`,
   `composables/`, `stores/`, `types/`, `utils/`, `views/` — create only those with actual files
+- Every importable subdirectory gets an `index.ts` barrel that re-exports all modules in that
+  folder, and imports target the folder path rather than a file path
 
 ## Views
 
@@ -183,7 +218,7 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
 On startup, the frontend calls `GET /api/auth/mode` to discover which auth mode the server is running, then renders the appropriate login UI (or skips it for `local` mode).
 
 ```ts
-// auth/composables/useAuth.ts
+// shared/composables/useAuth.ts
 const authMode = ref<'local' | 'secret_key' | 'oidc' | null>(null)
 const idToken = ref<string | null>(null)
 
