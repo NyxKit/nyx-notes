@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuth } from '@/shared/composables'
+import { useAuth } from '@/auth/composables'
 import { NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
 import { NyxInputType } from 'nyx-kit/types'
 

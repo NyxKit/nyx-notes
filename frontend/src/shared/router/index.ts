@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useAuth } from '@/shared/composables'
+import { useAuth } from '@/auth/composables'
 
 const router = createRouter({
   history: createWebHistory(),

@@ -1,7 +1,6 @@
 export * from './api'
 export * from './assets'
 export * from './components'
-export * from './composables'
 export { default as router } from './router'
 export * from './types'
 export * from './utils'

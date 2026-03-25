@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useAuth } from '@/shared/composables'
+import { useAuth } from '@/auth/composables'
 import { useComments } from '@/comments/composables'
 import { CommentThread, CommentComposer } from '@/comments/components'
 import type { Note } from '@/shared/types'

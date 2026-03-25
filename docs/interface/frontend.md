@@ -86,6 +86,9 @@ frontend/src/
     index.ts                 # re-exports auth barrels below
     api/auth.ts              # auth mode discovery and login
     api/index.ts             # exports auth API functions
+    composables/
+      useAuth.ts             # auth state and token management
+      index.ts               # exports auth composables
     views/
       LoginView.vue          # login UI (adapts to auth mode)
       index.ts               # exports auth views
@@ -114,9 +117,6 @@ frontend/src/
       AppLayout.vue          # persistent authenticated shell: sidebar + <RouterView />
       SidebarNav.vue         # primary navigation links in the sidebar
       index.ts               # exports shared components
-    composables/
-      useAuth.ts             # auth state and token management
-      index.ts               # exports shared composables
     router/index.ts          # router module and folder barrel for shared routing
     types/index.ts           # TypeScript interfaces mirroring Rust domain types
     utils/time.ts            # date/time formatting utilities
@@ -218,7 +218,7 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
 On startup, the frontend calls `GET /api/auth/mode` to discover which auth mode the server is running, then renders the appropriate login UI (or skips it for `local` mode).
 
 ```ts
-// shared/composables/useAuth.ts
+// auth/composables/useAuth.ts
 const authMode = ref<'local' | 'secret_key' | 'oidc' | null>(null)
 const idToken = ref<string | null>(null)
 
