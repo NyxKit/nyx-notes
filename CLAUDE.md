@@ -32,6 +32,8 @@ Do not add a new Rust crate, npm package, or external service without flagging i
 - TypeScript 5.6 / Vue 3.5 (frontend only) + `nyx-kit/eslint` (shared config); `eslint ^9.18`, `eslint-plugin-vue ^9.32`, `@vue/eslint-config-typescript ^14.3`, `eslint-plugin-oxlint ^0.15` (peer deps) (006-frontend-eslint)
 - TypeScript 5.6 / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 2.0.2, ofetch 1.5 (007-frontend-domain-structure)
 - N/A — frontend-only refactor, no data model changes (007-frontend-domain-structure)
+- TypeScript 5.6.x, Vue 3.5.x single-file components + `vue`, `pinia`, `vue-router`, `nyx-kit` 2.0.3, `ofetch` (008-adopt-nyxcard-cards)
+- N/A for this feature; frontend presentation only (008-adopt-nyxcard-cards)
 
 ## Recent Changes
 - 001-route-domains: Added TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5
