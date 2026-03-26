@@ -43,18 +43,7 @@ const model = defineModel<Vault>({ required: true })
   position: relative;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  background: var(--nyx-browse-card-bg) !important;
-  border: 0 !important;
-  box-shadow: var(--nyx-browse-card-shadow) !important;
-  border-radius: var(--nyx-radius-xl) !important;
-  max-width: none !important;
-  width: 100% !important;
-  transition: background-color var(--nyx-speed-regular), transform var(--nyx-speed-regular);
-}
-
-.vault-item:hover .vault-item__shell,
-.vault-item:focus-visible .vault-item__shell {
-  background: var(--nyx-browse-card-hover) !important;
+  width: 100%;
 }
 
 .vault-item:focus-visible .vault-item__shell {

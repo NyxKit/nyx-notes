@@ -83,10 +83,7 @@ function cancelCreate() {
             :model-value="vault"
           />
 
-          <NyxCard
-            v-if="showCreateForm"
-            class="home__create-card"
-          >
+          <NyxCard v-if="showCreateForm">
             <div class="home__create-copy">
               <h3 class="home__create-title">New vault</h3>
               <p class="home__create-supporting">Choose a name, slug, description, and icon.</p>
@@ -229,16 +226,6 @@ function cancelCreate() {
   columns: 5 160px;
   column-gap: 1rem;
   width: 100%;
-}
-
-.home__create-card {
-  margin-bottom: 1rem;
-  background: var(--nyx-browse-card-bg) !important;
-  border: 0 !important;
-  box-shadow: var(--nyx-browse-card-shadow) !important;
-  border-radius: var(--nyx-radius-xl) !important;
-  max-width: none !important;
-  width: 100% !important;
 }
 
 .home__create-copy {

@@ -50,16 +50,6 @@ defineProps<{
   break-inside: avoid;
 }
 
-.note-card__shell {
-  background: var(--nyx-browse-card-bg) !important;
-  border: 0 !important;
-  box-shadow: var(--nyx-browse-card-shadow) !important;
-  border-radius: var(--nyx-radius-xl) !important;
-  max-width: none !important;
-  width: 100% !important;
-  transition: background-color var(--nyx-speed-regular), transform var(--nyx-speed-regular);
-}
-
 .note-card:hover .note-card__shell,
 .note-card:focus-visible .note-card__shell {
   background: var(--nyx-browse-card-hover) !important;
