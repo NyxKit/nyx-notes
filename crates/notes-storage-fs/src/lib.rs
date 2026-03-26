@@ -1,6 +1,9 @@
 mod frontmatter;
 mod meta;
 
+#[cfg(test)]
+mod tests;
+
 use std::path::{Path, PathBuf};
 
 use notes_core::{

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { NyxCard } from 'nyx-kit/components'
+import { NyxCard, NyxBadge } from 'nyx-kit/components'
 import { VaultIcon } from '@/vaults/components'
 import type { Vault } from '@/shared/types'
 
@@ -15,11 +15,9 @@ const model = defineModel<Vault>({ required: true })
   >
     <NyxCard class="vault-item__shell">
       <div class="vault-item__content">
-        <div class="vault-item__text">
-          <h3 class="vault-item__name">{{ model.name }}</h3>
-          <p class="vault-item__slug">{{ model.slug }}</p>
-          <p v-if="model.description" class="vault-item__description">{{ model.description }}</p>
-        </div>
+        <h3 class="vault-item__name">{{ model.name }}</h3>
+        <NyxBadge class="vault-item__slug">{{ model.slug }}</NyxBadge>
+        <p v-if="model.description" class="vault-item__description">{{ model.description }}</p>
       </div>
 
       <VaultIcon
@@ -38,6 +36,7 @@ const model = defineModel<Vault>({ required: true })
   text-decoration: none;
   color: inherit;
   break-inside: avoid;
+  line-height: 1.5;
 }
 
 .vault-item__shell {
@@ -67,44 +66,31 @@ const model = defineModel<Vault>({ required: true })
   position: relative;
   z-index: 1;
   height: 100%;
-}
-
-.vault-item__text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.35rem;
+  width: 100%;
 }
 
 .vault-item__name {
-  margin: 0;
   font-family: 'Manrope', sans-serif;
-  font-size: 0.9375rem;
+  font-size: calc(var(--nyx-font-size-xl) * 1.5);
   font-weight: 600;
-  line-height: 1.35;
   color: var(--nyx-browse-card-text);
 }
 
 .vault-item__slug {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.6875rem;
-  line-height: 1.4;
-  color: var(--nyx-browse-card-muted);
-  overflow-wrap: anywhere;
+  position: absolute;
+  bottom: 0;
+  right: 0;
 }
 
 .vault-item__description {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.75rem;
-  line-height: 1.55;
-  color: var(--nyx-c-text-2);
+  color: var(--nyx-c-text-3);
+  max-width: 85%;
+  margin-top: 0.5rem;
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
 }
 
 .vault-item__bg-icon {
@@ -113,7 +99,7 @@ const model = defineModel<Vault>({ required: true })
   bottom: 0;
   width: 100%;
   height: auto;
-  opacity: 0.12;
+  opacity: 0.06;
   pointer-events: none;
   fill: var(--nyx-c-text-1);
   transform: scale(1) translate(15%, 15%);
