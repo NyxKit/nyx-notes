@@ -53,6 +53,16 @@ Traditional drop shadows are too "software-like." We use **Tonal Layering**.
 *   **Style:** A glassmorphic card using `surface-container-high` at 70% opacity.
 *   **Interaction:** On hover, the background shifts to `surface-bright` (#2b2c32).
 
+### Browse Card Family
+*   **In Scope:** Only vault dashboard cards, the inline create-vault card, and vault note masonry cards belong to the shared browse-card family.
+*   **Component Strategy:** Keep `VaultCard` and `NoteCard` as standalone components. Do not introduce a shared `BrowseCardSurface` abstraction.
+*   **Visual Shell:** Use `NyxCard` as the visible shell, but wrap the rendered card content in an internal anchor so the default browser link context menu remains available.
+*   **Surface Treatment:** Use tonal layering (`surface-container-low` to `surface-container-high`) instead of visible dividers. Hover and focus should strengthen the surface shift, not introduce a hard border.
+*   **Typography:** Card titles use **Manrope** with structural weight; supporting metadata stays subdued in **Inter**.
+*   **Vault Card Layout:** Title, slug, and description sit in the top-left. The decorative icon is oversized, anchored in the bottom-right, and allowed to overflow the card by roughly 10% on the bottom and right edges.
+*   **Note Card Content:** Show the title and a subdued description distilled from the first actual paragraph of saved note content, followed by supporting metadata such as tags or update time.
+*   **Exclusions:** Do not restyle the vault switcher, empty-state prompts, comment threads, settings containers, modals, or navigation chrome to match the browse-card family.
+
 ### Threaded Comment Cards
 *   **Structure:** Avoid lines. Use 1rem of indentation and a slight background shift to `surface-container-lowest` (#000000) for each nested reply.
 *   **Connectors:** If needed, use a 1px vertical track of `surface-variant` (#25252b) at 30% opacity.

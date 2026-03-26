@@ -102,6 +102,12 @@
   --nyx-color-surface-hover:  var(--nyx-c-bg-mute);
   --nyx-color-surface-muted:  var(--nyx-c-bg-soft);
   --nyx-color-accent:         var(--nyx-c-primary);
+  --nyx-browse-card-bg:       var(--nyx-c-bg-soft);
+  --nyx-browse-card-hover:    var(--nyx-c-bg-mute);
+  --nyx-browse-card-text:     var(--nyx-c-text-1);
+  --nyx-browse-card-muted:    var(--nyx-c-text-3);
+  --nyx-browse-card-outline:  rgba(71, 71, 77, 0.24);
+  --nyx-browse-card-shadow:   0 0 24px -6px rgba(230, 228, 236, 0.06);
 }
 
 /* -------------------------------------------------------------------------

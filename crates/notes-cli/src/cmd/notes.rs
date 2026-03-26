@@ -62,6 +62,7 @@ pub fn new(
             id: Uuid::new_v4().to_string(),
             vault_id: vault.id.clone(),
             title,
+            description: None,
             author_id: user_id.to_string(),
             tags,
             category,
@@ -83,12 +84,7 @@ pub fn new(
     Ok(())
 }
 
-pub fn edit(
-    storage: &FsStorage,
-    vault_id: &str,
-    id: &str,
-    editor: &str,
-) -> anyhow::Result<()> {
+pub fn edit(storage: &FsStorage, vault_id: &str, id: &str, editor: &str) -> anyhow::Result<()> {
     let path = storage.note_file_path(vault_id, id)?;
 
     let status = Process::new(editor)
@@ -120,12 +116,7 @@ pub fn show(note: &Note, raw: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn delete(
-    storage: &FsStorage,
-    vault_id: &str,
-    id: &str,
-    force: bool,
-) -> anyhow::Result<()> {
+pub fn delete(storage: &FsStorage, vault_id: &str, id: &str, force: bool) -> anyhow::Result<()> {
     if !force {
         let confirmed = dialoguer::Confirm::new()
             .with_prompt(format!("Delete note '{id}'?"))

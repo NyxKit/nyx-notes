@@ -56,6 +56,7 @@ pub async fn create_vault(
         id: Uuid::new_v4().to_string(),
         slug: body.slug,
         name: body.name,
+        description: body.description,
         owner: VaultOwner::User(user.id),
         permission: NotePermission::Restricted,
         icon: body.icon,
@@ -70,7 +71,7 @@ pub async fn patch_vault(
     Path(vault_id): Path<String>,
     Json(body): Json<PatchVaultRequest>,
 ) -> Result<Json<Vault>, AppError> {
-    if body.name.is_none() && body.icon.is_none() {
+    if body.name.is_none() && body.description.is_none() && body.icon.is_none() {
         return Err(AppError::UnprocessableEntity("at least one field required".into()));
     }
     if let Some(Some(slug)) = &body.icon {
@@ -102,6 +103,7 @@ pub async fn patch_vault(
 
     let update = VaultUpdate {
         name: body.name,
+        description: body.description,
         icon: body.icon.map(|opt| match opt {
             Some(slug) => VaultIconUpdate::Set(slug),
             None => VaultIconUpdate::Clear,

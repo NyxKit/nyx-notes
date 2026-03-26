@@ -36,16 +36,12 @@ pub fn list(storage: &FsStorage, user_id: &str) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn new(
-    storage: &FsStorage,
-    user_id: &str,
-    slug: String,
-    name: String,
-) -> anyhow::Result<()> {
+pub fn new(storage: &FsStorage, user_id: &str, slug: String, name: String) -> anyhow::Result<()> {
     let vault = Vault {
         id: Uuid::new_v4().to_string(),
         slug,
         name,
+        description: None,
         owner: VaultOwner::User(user_id.to_string()),
         permission: NotePermission::Restricted,
         icon: None,
@@ -59,7 +55,10 @@ pub fn delete(storage: &FsStorage, user_id: &str, slug: String) -> anyhow::Resul
     let vault = resolve_vault(storage, user_id, &slug)?;
 
     let confirmed = dialoguer::Confirm::new()
-        .with_prompt(format!("Delete vault '{}'? This cannot be undone.", vault.slug))
+        .with_prompt(format!(
+            "Delete vault '{}'? This cannot be undone.",
+            vault.slug
+        ))
         .default(false)
         .interact()?;
 

@@ -1,7 +1,17 @@
 /target
 .env
+.env.*
 frontend/node_modules
 frontend/dist
+frontend/coverage
+frontend/playwright-report
+frontend/test-results
+
+# Workspace noise
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
 
 # Notes storage — never commit user data even if NOTES_ROOT points inside the project
 /notes/

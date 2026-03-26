@@ -9,6 +9,8 @@ pub struct VaultJson {
     pub id: String,
     pub name: String,
     pub slug: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     /// Present only in team vaults. Absent for personal vaults (always restricted).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permission: Option<NotePermission>,

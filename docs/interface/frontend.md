@@ -39,7 +39,7 @@ frontend/src/
     assets/icons/            # 20 solid vault-themed SVGs (book.svg, briefcase.svg, …)
     assets/icons/index.ts    # exports vault icon raw strings
     components/
-      VaultCard.vue          # single vault card (icon + name + actions)
+      VaultCard.vue          # single vault card (title, slug, description, oversized icon, link)
       VaultIcon.vue          # renders a vault icon SVG by slug prop; falls back to folder
       VaultIconPicker.vue    # 5×4 grid of 20 icon options; emits select with chosen slug
       VaultSwitcher.vue      # dropdown: switch between personal and team vaults
@@ -57,6 +57,7 @@ frontend/src/
     api/notes.ts             # note CRUD API calls
     api/index.ts             # exports note API functions
     components/
+      NoteCard.vue           # single note card (title, distilled description, metadata, link)
       NoteEditor.vue         # thin wrapper around <NyxEditor> from nyx-kit
       NoteList.vue           # sidebar: list of notes in the active vault
       NoteToolbar.vue        # save, delete, tags, permission selector
@@ -146,15 +147,27 @@ frontend/src/
 ### `HomeView`
 
 - If the user has exactly **one vault**: redirects immediately to `/vaults/:vault_id` (replaces history entry)
-- If the user has **more than one vault**: renders a masonry grid of vault cards; each card navigates to `/vaults/:vault_id`
-- Provides a "New Vault" inline form (slug + name) that calls `useVaultStore().create()` and redirects to the new vault
+- If the user has **more than one vault**: renders a masonry grid of `VaultCard` links; each card navigates to `/vaults/:vault_id` via an internal `RouterLink` anchor that preserves standard browser link affordances
+- `VaultCard` aligns title, slug, and optional description to the top-left and places the decorative icon as a large element in the bottom-right, overflowing the card only slightly on both edges
+- Provides a "New Vault" inline form (slug + name + optional description) that uses the same card family while preserving form semantics; it calls `useVaultStore().create()` and redirects to the new vault
 
 ### `VaultView` (`/vaults/:vault_id`)
 
 - Fetches notes for the vault from `GET /api/vaults/:vault_id/notes`
-- **Notes present**: renders a masonry grid of note cards (sorted by `updated_at` desc); clicking a card navigates to `/vaults/:vault_id/notes/:id`
+- **Notes present**: renders a masonry grid of `NoteCard` links (sorted by `updated_at` desc); each note card navigates to `/vaults/:vault_id/notes/:id` via an internal `RouterLink` anchor that preserves standard browser link affordances
+- `NoteCard` shows the note title, a distilled description generated from the first actual paragraph of saved content, and supporting metadata such as tags and update time
 - **No notes**: renders a getting-started prompt with a "New Note" CTA that creates a blank note and navigates to the editor
 - Header shows vault name and a persistent "New Note" action button
+
+## Browse Card Family
+
+The frontend uses a shared browse-card family for browse-and-select surfaces only.
+
+- In scope: vault tiles on the home dashboard, the inline create-vault card, and note tiles in the vault notes masonry view
+- Out of scope: `VaultSwitcher`, empty-state containers, comment threads, settings panels, modals, and navigation chrome
+- `VaultCard` and `NoteCard` are standalone components; do not introduce a shared `BrowseCardSurface` abstraction for this feature
+- Both `VaultCard` and `NoteCard` wrap their rendered card content in an internal `RouterLink` anchor so users retain standard link behavior such as open-in-new-tab and copy-link
+- `NyxCard` remains the visual shell for both card components, but the anchor is the user-facing interactive surface
 
 ### `NoteView` (`/vaults/:vault_id/notes/:id`)
 
@@ -166,6 +179,7 @@ frontend/src/
 ### `VaultSettingsView` (`/vaults/:vault_id/settings`)
 
 - Rename vault
+- Edit or clear the vault description
 - For team vaults: change vault permission level (team owner or admin only)
 - Delete vault (must be empty; shows note count if not)
 

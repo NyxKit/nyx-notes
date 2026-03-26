@@ -53,7 +53,7 @@ The frontend calls this on startup to decide which login UI to render (or to ski
 | `GET` | `/api/vaults` | List all vaults accessible to the user |
 | `POST` | `/api/vaults` | Create a personal vault |
 | `DELETE` | `/api/vaults/:vault_id` | Delete a personal vault (must be empty) |
-| `PATCH` | `/api/vaults/:vault_id` | Update vault name and/or icon — personal: owner only; team: owner or admin |
+| `PATCH` | `/api/vaults/:vault_id` | Update vault name, description, and/or icon — personal: owner only; team: owner or admin |
 | `PATCH` | `/api/teams/:team_id/vaults/:vault_id/permission` | Change a team vault's permission (team owner or admin) |
 
 ### Team Routes
@@ -103,6 +103,8 @@ Response: `201 Created` with the created `NoteMeta`.
 
 Request body: same shape as `POST` (excluding `permission`).
 
+`description` in the returned `NoteMeta` is recomputed on every save from the first actual Markdown paragraph in `content`. Headings, lists, and other non-paragraph blocks do not qualify.
+
 Response: `200 OK` with updated `NoteMeta`. `403` if the user cannot edit. `404` if not found.
 
 ### `DELETE /api/vaults/:vault_id/notes/:id`
@@ -129,11 +131,27 @@ Response: `200 OK` with `Vec<Vault>`.
 
 ### `POST /api/vaults`
 
-Creates a personal vault. Request body: `{ "slug": "journal", "name": "Journal" }`.
+Creates a personal vault. Request body: `{ "slug": "journal", "name": "Journal", "description": "Private daily writing." }`.
 
 `slug` must be unique among the user's personal vaults.
 
 Response: `201 Created` with the created `Vault`.
+
+### `PATCH /api/vaults/:vault_id`
+
+Updates personal or team vault metadata.
+
+Request body may include any subset of:
+
+```json
+{
+  "name": "Research",
+  "description": "Source material and working drafts.",
+  "icon": "briefcase"
+}
+```
+
+Response: `200 OK` with the updated `Vault`.
 
 ### `POST /api/teams`
 

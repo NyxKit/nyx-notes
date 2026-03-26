@@ -1,6 +1,8 @@
 use thiserror::Error;
 
-use crate::domain::{Comment, Note, NoteMeta, NotePermission, Team, Vault, VaultOwner, VaultUpdate};
+use crate::domain::{
+    Comment, Note, NoteMeta, NotePermission, Team, Vault, VaultOwner, VaultUpdate,
+};
 
 #[derive(Debug, Error)]
 pub enum StorageError {
