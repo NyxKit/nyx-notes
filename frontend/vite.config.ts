@@ -8,6 +8,10 @@ const host = process.env.TAURI_DEV_HOST
 export default defineConfig(async () => ({
   plugins: [vue()],
 
+  optimizeDeps: {
+    exclude: ['nyx-kit', 'nyx-kit/components', 'nyx-kit/types'],
+  },
+
   resolve: {
     alias: { '@': resolve(__dirname, 'src') },
   },

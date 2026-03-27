@@ -2,7 +2,8 @@
 import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
-import { NyxButton } from 'nyx-kit/components'
+import { NyxButton, NyxGrid } from 'nyx-kit/components'
+import { NyxGridMode } from 'nyx-kit/types'
 import { NoteCard } from '@/notes/components'
 import { useNotesStore } from '@/notes/stores'
 import { VaultIcon } from '@/vaults/components'
@@ -74,12 +75,8 @@ async function createFirst() {
         </div>
       </div>
 
-      <div v-else-if="sortedNotes.length > 0" class="app-shell__canvas app-shell__canvas--masonry">
-        <div class="vault__masonry-header">
-          <h2 class="vault__masonry-title">Notes</h2>
-        </div>
-
-        <div class="vault__masonry">
+      <div v-else-if="sortedNotes.length > 0" class="app-shell__canvas app-shell__canvas--overview">
+        <NyxGrid title="Notes" :mode="NyxGridMode.Masonry" :columns="5">
           <NoteCard
             v-for="note in sortedNotes"
             :key="note.id"
@@ -87,7 +84,7 @@ async function createFirst() {
             :vault-id="vaultId"
             :updated-label="formatDate(note.updated_at)"
           />
-        </div>
+        </NyxGrid>
       </div>
 
       <div v-else class="app-shell__canvas app-shell__canvas--center">
@@ -162,11 +159,9 @@ async function createFirst() {
   justify-content: center;
 }
 
-.app-shell__canvas--masonry {
+.app-shell__canvas--overview {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  align-items: flex-start;
 }
 
 .app-shell__footer {
@@ -184,28 +179,6 @@ async function createFirst() {
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--nyx-c-text-3);
-}
-
-.vault__masonry-header {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.vault__masonry-title {
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--nyx-c-text-3);
-  margin: 0;
-}
-
-.vault__masonry {
-  columns: 3 220px;
-  column-gap: 1rem;
-  width: 100%;
 }
 
 .vault__skeleton-grid {

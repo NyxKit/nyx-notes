@@ -44,6 +44,7 @@ const model = defineModel<Vault>({ required: true })
   aspect-ratio: 1 / 1;
   overflow: hidden;
   width: 100%;
+  max-width: none;
 }
 
 .vault-item:focus-visible .vault-item__shell {

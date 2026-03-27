@@ -147,14 +147,14 @@ frontend/src/
 ### `HomeView`
 
 - If the user has exactly **one vault**: redirects immediately to `/vaults/:vault_id` (replaces history entry)
-- If the user has **more than one vault**: renders a masonry grid of `VaultCard` links; each card navigates to `/vaults/:vault_id` via an internal `RouterLink` anchor that preserves standard browser link affordances
+- If the user has **more than one vault**: renders a `NyxGrid` overview in `grid` mode containing `VaultCard` links; each card navigates to `/vaults/:vault_id` via an internal `RouterLink` anchor that preserves standard browser link affordances
 - `VaultCard` aligns title, slug, and optional description to the top-left and places the decorative icon as a large element in the bottom-right, overflowing the card only slightly on both edges
 - Provides a "New Vault" inline form (slug + name + optional description) that uses the same card family while preserving form semantics; it calls `useVaultStore().create()` and redirects to the new vault
 
 ### `VaultView` (`/vaults/:vault_id`)
 
 - Fetches notes for the vault from `GET /api/vaults/:vault_id/notes`
-- **Notes present**: renders a masonry grid of `NoteCard` links (sorted by `updated_at` desc); each note card navigates to `/vaults/:vault_id/notes/:id` via an internal `RouterLink` anchor that preserves standard browser link affordances
+- **Notes present**: renders a `NyxGrid` overview in `masonry` mode containing `NoteCard` links (sorted by `updated_at` desc); each note card navigates to `/vaults/:vault_id/notes/:id` via an internal `RouterLink` anchor that preserves standard browser link affordances
 - `NoteCard` shows the note title, a distilled description generated from the first actual paragraph of saved content, and supporting metadata such as tags and update time
 - **No notes**: renders a getting-started prompt with a "New Note" CTA that creates a blank note and navigates to the editor
 - Header shows vault name and a persistent "New Note" action button
@@ -168,6 +168,7 @@ The frontend uses a shared browse-card family for browse-and-select surfaces onl
 - `VaultCard` and `NoteCard` are standalone components; do not introduce a shared `BrowseCardSurface` abstraction for this feature
 - Both `VaultCard` and `NoteCard` wrap their rendered card content in an internal `RouterLink` anchor so users retain standard link behavior such as open-in-new-tab and copy-link
 - `NyxCard` remains the visual shell for both card components, but the anchor is the user-facing interactive surface
+- Overview layouts use `NyxGrid`: `HomeView` uses `grid` mode for vault cards and `VaultView` uses `masonry` mode for note cards
 
 ### `NoteView` (`/vaults/:vault_id/notes/:id`)
 

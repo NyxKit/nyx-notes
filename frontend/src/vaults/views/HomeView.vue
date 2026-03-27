@@ -2,9 +2,10 @@
 import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
-import { NyxButton, NyxCard, NyxForm, NyxFormField, NyxInput, NyxTextarea } from 'nyx-kit/components'
-import { useVaultStore } from '@/vaults/stores'
+import { NyxButton, NyxCard, NyxForm, NyxFormField, NyxGrid, NyxInput, NyxTextarea } from 'nyx-kit/components'
+import { NyxGridMode } from 'nyx-kit/types'
 import { VaultCard, VaultIconPicker } from '@/vaults/components'
+import { useVaultStore } from '@/vaults/stores'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
@@ -71,12 +72,8 @@ function cancelCreate() {
         </div>
       </div>
 
-      <div v-else class="app-shell__canvas app-shell__canvas--masonry">
-        <div class="home__masonry-header">
-          <h2 class="home__masonry-title">Your Vaults</h2>
-        </div>
-
-        <div class="home__masonry">
+      <div v-else class="app-shell__canvas app-shell__canvas--overview">
+        <NyxGrid title="Your Vaults" :mode="NyxGridMode.Grid" :columns="5">
           <VaultCard
             v-for="vault in vaults"
             :key="vault.id"
@@ -122,7 +119,7 @@ function cancelCreate() {
               </div>
             </NyxForm>
           </NyxCard>
-        </div>
+        </NyxGrid>
       </div>
     </main>
 
@@ -183,11 +180,9 @@ function cancelCreate() {
   justify-content: center;
 }
 
-.app-shell__canvas--masonry {
+.app-shell__canvas--overview {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  align-items: flex-start;
 }
 
 .app-shell__footer {
@@ -204,28 +199,6 @@ function cancelCreate() {
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--nyx-c-text-3);
-}
-
-.home__masonry-header {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.home__masonry-title {
-  font-family: 'Manrope', sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--nyx-c-text-3);
-  margin: 0;
-}
-
-.home__masonry {
-  columns: 5 160px;
-  column-gap: 1rem;
-  width: 100%;
 }
 
 .home__create-copy {

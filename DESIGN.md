@@ -57,6 +57,7 @@ Traditional drop shadows are too "software-like." We use **Tonal Layering**.
 *   **In Scope:** Only vault dashboard cards, the inline create-vault card, and vault note masonry cards belong to the shared browse-card family.
 *   **Component Strategy:** Keep `VaultCard` and `NoteCard` as standalone components. Do not introduce a shared `BrowseCardSurface` abstraction.
 *   **Visual Shell:** Use `NyxCard` as the visible shell, but wrap the rendered card content in an internal anchor so the default browser link context menu remains available.
+*   **Overview Layouts:** Use `NyxGrid` for browse overviews. `HomeView` uses `grid` mode for vault cards, while `VaultView` uses `masonry` mode for note cards.
 *   **Surface Treatment:** Use tonal layering (`surface-container-low` to `surface-container-high`) instead of visible dividers. Hover and focus should strengthen the surface shift, not introduce a hard border.
 *   **Typography:** Card titles use **Manrope** with structural weight; supporting metadata stays subdued in **Inter**.
 *   **Vault Card Layout:** Title, slug, and description sit in the top-left. The decorative icon is oversized, anchored in the bottom-right, and allowed to overflow the card by roughly 10% on the bottom and right edges.

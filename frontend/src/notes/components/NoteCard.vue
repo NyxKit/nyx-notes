@@ -60,6 +60,11 @@ defineProps<{
   outline-offset: 0;
 }
 
+.note-card__shell {
+  width: 100%;
+  max-width: none;
+}
+
 .note-card__content {
   display: flex;
   flex-direction: column;
