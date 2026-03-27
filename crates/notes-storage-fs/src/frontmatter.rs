@@ -1,4 +1,4 @@
-use notes_core::{Note, NoteMeta, StorageError};
+use notes_core::{distill_markdown_description, Note, NoteMeta, StorageError};
 
 /// Parse a full note file (frontmatter + body).
 ///
@@ -22,8 +22,12 @@ pub fn parse_note_file(input: &str) -> Result<(NoteMeta, String), StorageError> 
     // Skip past "\n---\n" (5 bytes) to get the body; preserve trailing content as-is.
     let body = rest[end + 5..].to_string();
 
-    let meta: NoteMeta = serde_yaml::from_str(yaml)
-        .map_err(|e| StorageError::ParseError(e.to_string()))?;
+    let mut meta: NoteMeta =
+        serde_yaml::from_str(yaml).map_err(|e| StorageError::ParseError(e.to_string()))?;
+
+    if meta.description.is_none() {
+        meta.description = distill_markdown_description(&body);
+    }
 
     Ok((meta, body))
 }
@@ -37,7 +41,8 @@ pub fn parse_frontmatter_only(input: &str) -> Result<NoteMeta, StorageError> {
 
 /// Serialize a `Note` into the on-disk format: YAML frontmatter + Markdown body.
 pub fn serialize_note_file(note: &Note) -> Result<String, StorageError> {
-    let yaml = serde_yaml::to_string(&note.meta)
-        .map_err(|e| StorageError::ParseError(e.to_string()))?;
+    let mut meta = note.meta.clone();
+    meta.description = distill_markdown_description(&note.content);
+    let yaml = serde_yaml::to_string(&meta).map_err(|e| StorageError::ParseError(e.to_string()))?;
     Ok(format!("---\n{}---\n{}", yaml, note.content))
 }

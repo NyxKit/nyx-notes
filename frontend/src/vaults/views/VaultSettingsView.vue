@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, watch, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { NyxSelect, NyxButton } from 'nyx-kit/components'
+import { NyxButton, NyxInput, NyxSelect, NyxTextarea } from 'nyx-kit/components'
 import { NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
 import { VaultIconPicker } from '@/vaults/components'
@@ -22,11 +22,37 @@ const permissionError = ref<string | null>(null)
 const deleteError = ref<string | null>(null)
 const confirmDelete = ref(false)
 const iconError = ref<string | null>(null)
+const detailsError = ref<string | null>(null)
+const detailsSaved = ref(false)
+const localName = ref('')
+const localDescription = ref('')
 
 // Load vaults if not yet populated
 watch(vaultId, async () => {
   if (!vaults.value.length) await load()
 }, { immediate: true })
+
+watch(vault, (currentVault) => {
+  localName.value = currentVault?.name ?? ''
+  localDescription.value = currentVault?.description ?? ''
+  detailsSaved.value = false
+}, { immediate: true })
+
+async function onDetailsSave() {
+  if (!vault.value) return
+  detailsError.value = null
+  detailsSaved.value = false
+
+  try {
+    await update(vaultId.value, {
+      name: localName.value.trim() || vault.value.name,
+      description: localDescription.value.trim() || null,
+    })
+    detailsSaved.value = true
+  } catch (e) {
+    detailsError.value = String(e)
+  }
+}
 
 async function onIconChange(slug: string | undefined) {
   if (!vault.value) return
@@ -85,9 +111,17 @@ const permissionModel = computed({
         <!-- Info -->
         <section class="settings-section">
           <h2 class="settings-section__heading">Details</h2>
-          <div class="settings-row">
-            <span class="settings-row__label">Name</span>
-            <span class="settings-row__value">{{ vault.name }}</span>
+          <div class="settings-field">
+            <label class="settings-field__label" for="vault-name">Name</label>
+            <NyxInput id="vault-name" v-model="localName" placeholder="Vault name" />
+          </div>
+          <div class="settings-field">
+            <label class="settings-field__label" for="vault-description">Description</label>
+            <NyxTextarea
+              id="vault-description"
+              v-model="localDescription"
+              placeholder="Optional description"
+            />
           </div>
           <div class="settings-row">
             <span class="settings-row__label">Slug</span>
@@ -99,6 +133,11 @@ const permissionModel = computed({
               {{ vault.owner.type === 'user' ? 'Personal' : `Team: ${vault.owner.id}` }}
             </span>
           </div>
+          <div class="settings-actions">
+            <NyxButton :gradient="true" @click="onDetailsSave">Save details</NyxButton>
+            <span v-if="detailsSaved" class="settings-success">Saved</span>
+          </div>
+          <p v-if="detailsError" class="settings-error">{{ detailsError }}</p>
         </section>
 
         <!-- Icon -->
@@ -237,6 +276,30 @@ const permissionModel = computed({
 
 .settings-row__value--mono {
   font-family: monospace;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.settings-field__label {
+  font-size: 0.875rem;
+  color: var(--nyx-color-muted, #718096);
+}
+
+.settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.settings-success {
+  font-size: 0.8125rem;
+  color: var(--nyx-c-primary);
 }
 
 

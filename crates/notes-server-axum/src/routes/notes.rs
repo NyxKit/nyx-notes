@@ -4,7 +4,7 @@ use axum::{
     Json,
 };
 use chrono::Utc;
-use notes_core::{Note, NoteMeta, NotePermission, TeamRole, VaultOwner};
+use notes_core::{Note, NoteMeta, NotePermission, TeamRole, VaultOwner, distill_markdown_description};
 use uuid::Uuid;
 
 use crate::{
@@ -70,6 +70,7 @@ pub async fn create_note(
             id: Uuid::new_v4().to_string(),
             vault_id,
             title: body.title,
+            description: distill_markdown_description(&body.content),
             author_id: user.id,
             tags: body.tags,
             category: body.category,
@@ -99,6 +100,7 @@ pub async fn update_note(
     }
 
     note.meta.title = body.title;
+    note.meta.description = distill_markdown_description(&body.content);
     note.meta.tags = body.tags;
     note.meta.category = body.category;
     note.meta.updated_at = Utc::now();

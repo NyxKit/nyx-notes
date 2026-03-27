@@ -2,9 +2,12 @@ pub mod auth;
 pub mod domain;
 pub mod storage;
 
+#[cfg(test)]
+mod tests;
+
 pub use auth::{AuthError, AuthStore, LoginToken, User};
 pub use domain::{
-    Comment, CommentReply, Note, NoteMeta, NotePermission, Team, TeamMember, TeamRole, Vault,
-    VaultIconUpdate, VaultOwner, VaultUpdate,
+    distill_markdown_description, Comment, CommentReply, Note, NoteMeta, NotePermission, Team,
+    TeamMember, TeamRole, Vault, VaultIconUpdate, VaultOwner, VaultUpdate,
 };
 pub use storage::{StorageBackend, StorageError};

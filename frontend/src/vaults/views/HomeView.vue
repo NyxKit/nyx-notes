@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
+import { NyxButton, NyxCard, NyxForm, NyxFormField, NyxInput, NyxTextarea } from 'nyx-kit/components'
 import { useVaultStore } from '@/vaults/stores'
-import { NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
-import { VaultIconPicker, VaultCard } from '@/vaults/components'
+import { VaultCard, VaultIconPicker } from '@/vaults/components'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
@@ -14,28 +14,30 @@ const { load: loadVaults, create: createVault, setActive } = vaultStore
 const showCreateForm = ref(false)
 const newSlug = ref('')
 const newName = ref('')
+const newDescription = ref('')
 const newIcon = ref<string | undefined>(undefined)
 const creating = ref(false)
 
 onMounted(async () => {
   setActive(null)
   await loadVaults()
-  // Only auto-redirect on initial page load (no back history entry means this is the entry point)
   const isInitialLoad = !window.history.state?.back
   if (isInitialLoad && vaults.value.length === 1) {
     router.replace(`/vaults/${vaults.value[0].id}`)
   }
 })
 
-function openVault(vaultId: string) {
-  router.push(`/vaults/${vaultId}`)
-}
-
 async function submitCreate() {
   if (!newSlug.value.trim() || !newName.value.trim()) return
+
   creating.value = true
   try {
-    const vault = await createVault({ slug: newSlug.value.trim(), name: newName.value.trim(), icon: newIcon.value })
+    const vault = await createVault({
+      slug: newSlug.value.trim(),
+      name: newName.value.trim(),
+      description: newDescription.value.trim() || undefined,
+      icon: newIcon.value,
+    })
     router.push(`/vaults/${vault.id}`)
   } finally {
     creating.value = false
@@ -46,82 +48,87 @@ function cancelCreate() {
   showCreateForm.value = false
   newSlug.value = ''
   newName.value = ''
+  newDescription.value = ''
   newIcon.value = undefined
 }
 </script>
 
 <template>
   <div class="app-shell__main">
+    <header class="app-shell__header">
+      <div class="app-shell__header-left">
+        <span class="app-shell__title">Vaults</span>
+      </div>
+      <div class="app-shell__header-right">
+        <NyxButton :gradient="true" @click="showCreateForm = true">New Vault</NyxButton>
+      </div>
+    </header>
 
-      <!-- Header -->
-      <header class="app-shell__header">
-        <div class="app-shell__header-left">
-          <span class="app-shell__title">Vaults</span>
+    <main class="app-shell__body">
+      <div v-if="loading" class="app-shell__canvas app-shell__canvas--center">
+        <div class="home__skeleton-grid">
+          <div v-for="n in 4" :key="n" class="home__skeleton-card" />
         </div>
-        <div class="app-shell__header-right">
-          <NyxButton :gradient="true" @click="showCreateForm = true">New Vault</NyxButton>
-        </div>
-      </header>
+      </div>
 
-      <!-- Body -->
-      <main class="app-shell__body">
-
-        <!-- Loading -->
-        <div v-if="loading" class="app-shell__canvas app-shell__canvas--center">
-          <div class="home__skeleton-grid">
-            <div v-for="n in 4" :key="n" class="home__skeleton-card" />
-          </div>
+      <div v-else class="app-shell__canvas app-shell__canvas--masonry">
+        <div class="home__masonry-header">
+          <h2 class="home__masonry-title">Your Vaults</h2>
         </div>
 
-        <!-- Vault masonry -->
-        <div v-else class="app-shell__canvas app-shell__canvas--masonry">
-          <div class="home__masonry-header">
-            <h2 class="home__masonry-title">Your Vaults</h2>
-          </div>
-          <div class="home__masonry">
+        <div class="home__masonry">
+          <VaultCard
+            v-for="vault in vaults"
+            :key="vault.id"
+            :model-value="vault"
+          />
 
-            <VaultCard
-              v-for="vault in vaults"
-              :key="vault.id"
-              :model-value="vault"
-              @click="openVault(vault.id)"
-            />
+          <NyxCard v-if="showCreateForm">
+            <div class="home__create-copy">
+              <h3 class="home__create-title">New vault</h3>
+              <p class="home__create-supporting">Choose a name, slug, description, and icon.</p>
+            </div>
 
-            <!-- Inline create form card -->
-            <NyxForm v-if="showCreateForm" class="home__vault-card home__vault-card--form" @submit="submitCreate">
+            <NyxForm class="home__create-form" @submit="submitCreate">
               <NyxFormField label="Vault name">
                 <template #default="{ id }">
                   <NyxInput :id="id" v-model="newName" placeholder="Vault name" autofocus />
                 </template>
               </NyxFormField>
+
               <NyxFormField label="Slug">
                 <template #default="{ id }">
                   <NyxInput :id="id" v-model="newSlug" placeholder="slug (e.g. work)" />
                 </template>
               </NyxFormField>
+
+              <NyxFormField label="Description">
+                <template #default="{ id }">
+                  <NyxTextarea :id="id" v-model="newDescription" placeholder="Optional description" />
+                </template>
+              </NyxFormField>
+
               <NyxFormField label="Icon">
                 <template #default>
                   <VaultIconPicker v-model="newIcon" />
                 </template>
               </NyxFormField>
+
               <div class="home__form-actions">
                 <NyxButton :gradient="true" type="submit" :disabled="creating">
                   {{ creating ? 'Creating…' : 'Create' }}
                 </NyxButton>
-                <NyxButton @click="cancelCreate">Cancel</NyxButton>
+                <NyxButton type="button" @click="cancelCreate">Cancel</NyxButton>
               </div>
             </NyxForm>
-
-          </div>
+          </NyxCard>
         </div>
+      </div>
+    </main>
 
-      </main>
-
-      <!-- Footer -->
-      <footer class="app-shell__footer">
-        <span class="app-shell__footer-text">Nyx Notes — Silent Atelier</span>
-      </footer>
-
+    <footer class="app-shell__footer">
+      <span class="app-shell__footer-text">Nyx Notes — Silent Atelier</span>
+    </footer>
   </div>
 </template>
 
@@ -134,7 +141,6 @@ function cancelCreate() {
   min-width: 0;
 }
 
-/* ── Header ─────────────────────────────────────────────────── */
 .app-shell__header {
   height: 64px;
   flex-shrink: 0;
@@ -159,7 +165,6 @@ function cancelCreate() {
   color: var(--nyx-c-text-2);
 }
 
-/* ── Body ────────────────────────────────────────────────────── */
 .app-shell__body {
   flex: 1;
   overflow: hidden;
@@ -185,7 +190,6 @@ function cancelCreate() {
   align-items: flex-start;
 }
 
-/* ── Footer ─────────────────────────────────────────────────── */
 .app-shell__footer {
   height: 40px;
   flex-shrink: 0;
@@ -202,7 +206,6 @@ function cancelCreate() {
   color: var(--nyx-c-text-3);
 }
 
-/* ── Masonry ─────────────────────────────────────────────────── */
 .home__masonry-header {
   display: flex;
   align-items: center;
@@ -225,15 +228,50 @@ function cancelCreate() {
   width: 100%;
 }
 
-/* ── Inline create form ─────────────────────────────────────── */
+.home__create-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.home__create-title {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--nyx-browse-card-text);
+}
+
+.home__create-supporting {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--nyx-c-text-2);
+}
+
+.home__create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
 .home__form-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   margin-top: 0.25rem;
 }
 
-/* ── Skeleton ────────────────────────────────────────────────── */
+.home__create-card :deep(.nyx-card__body) {
+  display: flex;
+  flex-direction: column;
+  padding: 1.25rem;
+}
+
 .home__skeleton-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

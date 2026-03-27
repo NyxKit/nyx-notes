@@ -1,6 +1,41 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+pub fn distill_markdown_description(content: &str) -> Option<String> {
+    content
+        .split("\n\n")
+        .map(str::trim)
+        .filter(|block| !block.is_empty())
+        .find_map(|block| {
+            let first_line = block.lines().find(|line| !line.trim().is_empty())?.trim();
+
+            let is_numbered_list = first_line
+                .split_once('.')
+                .map(|(prefix, _)| {
+                    !prefix.is_empty() && prefix.chars().all(|ch| ch.is_ascii_digit())
+                })
+                .unwrap_or(false);
+
+            if first_line.starts_with('#')
+                || first_line.starts_with("- ")
+                || first_line.starts_with("* ")
+                || first_line.starts_with("+ ")
+                || first_line.starts_with('>')
+                || first_line.starts_with("```")
+                || is_numbered_list
+            {
+                return None;
+            }
+
+            let distilled = block.split_whitespace().collect::<Vec<_>>().join(" ");
+            if distilled.is_empty() {
+                None
+            } else {
+                Some(distilled)
+            }
+        })
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommentReply {
     pub id: String,
@@ -41,6 +76,8 @@ pub struct NoteMeta {
     pub id: String,
     pub vault_id: String,
     pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     pub author_id: String,
     pub tags: Vec<String>,
     pub category: Option<String>,
@@ -75,6 +112,8 @@ pub struct Vault {
     pub slug: String,
     /// Display name.
     pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     pub owner: VaultOwner,
     /// Only meaningful for team vaults.
     /// Personal vaults are always implicitly `Restricted` to the owner.
@@ -88,6 +127,7 @@ pub struct Vault {
 #[derive(Debug, Clone)]
 pub struct VaultUpdate {
     pub name: Option<String>,
+    pub description: Option<Option<String>>,
     pub icon: Option<VaultIconUpdate>,
 }
 

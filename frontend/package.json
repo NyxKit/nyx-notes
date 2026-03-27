@@ -10,6 +10,10 @@
     "tauri": "tauri",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
+    "test:unit": "vitest",
+    "test:unit:run": "vitest run",
+    "test:e2e": "playwright test",
+    "validate": "npm run lint && npm run test:unit:run && npm run build",
     "clean": "rm -rf node_modules && rm -rf dist && rm -rf .vite && rm -rf .vue-tsc && rm -rf .tauri"
   },
   "dependencies": {
@@ -22,14 +26,18 @@
     "vue-router": "^5.0.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.53.1",
     "@tauri-apps/cli": "^2",
     "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/test-utils": "^2.4.6",
     "@vue/eslint-config-typescript": "^14.7.0",
     "eslint": "^9.39.4",
     "eslint-plugin-oxlint": "^0.15.15",
     "eslint-plugin-vue": "^9.33.0",
+    "jsdom": "^26.1.0",
     "typescript": "~5.6.2",
     "vite": "^6.0.3",
+    "vitest": "^3.2.4",
     "vue-tsc": "^2.1.10"
   }
 }

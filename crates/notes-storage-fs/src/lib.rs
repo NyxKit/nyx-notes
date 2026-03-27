@@ -1,6 +1,9 @@
 mod frontmatter;
 mod meta;
 
+#[cfg(test)]
+mod tests;
+
 use std::path::{Path, PathBuf};
 
 use notes_core::{
@@ -125,8 +128,8 @@ impl FsStorage {
     }
 
     fn write_vault_json(vault_dir: &Path, meta: &VaultJson) -> Result<(), StorageError> {
-        let content =
-            serde_json::to_string_pretty(meta).map_err(|e| StorageError::ParseError(e.to_string()))?;
+        let content = serde_json::to_string_pretty(meta)
+            .map_err(|e| StorageError::ParseError(e.to_string()))?;
         std::fs::write(vault_dir.join(".vault.json"), content)?;
         Ok(())
     }
@@ -160,6 +163,7 @@ impl StorageBackend for FsStorage {
                 id: meta.id,
                 slug: meta.slug,
                 name: meta.name,
+                description: meta.description,
                 owner: owner.clone(),
                 permission: meta.permission.unwrap_or(NotePermission::Restricted),
                 icon: meta.icon,
@@ -172,13 +176,14 @@ impl StorageBackend for FsStorage {
     fn load_vault(&self, vault_id: &str) -> Result<Vault, StorageError> {
         let vault_dir = self.find_vault_path(vault_id)?;
         let meta = Self::read_vault_json(&vault_dir)?;
-        let owner = self
-            .vault_owner_from_path(&vault_dir)
-            .ok_or_else(|| StorageError::ParseError("cannot determine vault owner from path".into()))?;
+        let owner = self.vault_owner_from_path(&vault_dir).ok_or_else(|| {
+            StorageError::ParseError("cannot determine vault owner from path".into())
+        })?;
         Ok(Vault {
             id: meta.id,
             slug: meta.slug,
             name: meta.name,
+            description: meta.description,
             owner,
             permission: meta.permission.unwrap_or(NotePermission::Restricted),
             icon: meta.icon,
@@ -193,6 +198,7 @@ impl StorageBackend for FsStorage {
             id: vault.id.clone(),
             name: vault.name.clone(),
             slug: vault.slug.clone(),
+            description: vault.description.clone(),
             permission: match &vault.owner {
                 VaultOwner::Team(_) => Some(vault.permission.clone()),
                 VaultOwner::User(_) => None,
@@ -237,6 +243,9 @@ impl StorageBackend for FsStorage {
         if let Some(name) = &update.name {
             meta.name = name.clone();
         }
+        if let Some(description) = &update.description {
+            meta.description = description.clone();
+        }
         if let Some(icon_update) = &update.icon {
             match icon_update {
                 VaultIconUpdate::Set(slug) => meta.icon = Some(slug.clone()),
@@ -273,8 +282,8 @@ impl StorageBackend for FsStorage {
             name: team.name.clone(),
             members: team.members.clone(),
         };
-        let content =
-            serde_json::to_string_pretty(&meta).map_err(|e| StorageError::ParseError(e.to_string()))?;
+        let content = serde_json::to_string_pretty(&meta)
+            .map_err(|e| StorageError::ParseError(e.to_string()))?;
         std::fs::write(team_dir.join(".team.json"), content)?;
 
         // Ensure the default `home` vault exists.
@@ -284,6 +293,7 @@ impl StorageBackend for FsStorage {
                 id: format!("{}-home", team.id),
                 slug: "home".to_string(),
                 name: "Home".to_string(),
+                description: None,
                 owner: VaultOwner::Team(team.id.clone()),
                 permission: NotePermission::Restricted,
                 icon: None,
@@ -363,7 +373,10 @@ impl StorageBackend for FsStorage {
 
         let content = std::fs::read_to_string(&note_path)?;
         let (meta, body) = frontmatter::parse_note_file(&content)?;
-        Ok(Note { meta, content: body })
+        Ok(Note {
+            meta,
+            content: body,
+        })
     }
 
     fn save_note(&self, note: &Note) -> Result<(), StorageError> {
@@ -423,8 +436,8 @@ impl StorageBackend for FsStorage {
             return Ok(());
         }
 
-        let content =
-            serde_json::to_string_pretty(comments).map_err(|e| StorageError::ParseError(e.to_string()))?;
+        let content = serde_json::to_string_pretty(comments)
+            .map_err(|e| StorageError::ParseError(e.to_string()))?;
         std::fs::write(&path, content)?;
         Ok(())
     }

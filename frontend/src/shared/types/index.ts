@@ -31,6 +31,7 @@ export interface Vault {
   id: string
   slug: string
   name: string
+  description?: string
   owner: VaultOwner
   permission: NotePermission
   icon?: string
@@ -46,6 +47,7 @@ export interface NoteMeta {
   id: string
   vault_id: string
   title: string
+  description?: string
   author_id: string
   tags: string[]
   category: string | null
@@ -119,11 +121,13 @@ export interface PatchPermissionRequest {
 export interface CreateVaultRequest {
   slug: string
   name: string
+  description?: string
   icon?: string
 }
 
 export interface UpdateVaultRequest {
   name?: string
+  description?: string | null
   icon?: string | null
 }
 

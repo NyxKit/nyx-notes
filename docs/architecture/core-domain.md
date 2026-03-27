@@ -29,6 +29,7 @@ pub struct NoteMeta {
     pub id: String,           // globally unique slug or UUID; used as filename stem
     pub vault_id: String,     // which vault this note belongs to
     pub title: String,
+    pub description: Option<String>,  // distilled from the first actual Markdown paragraph on save
     pub author_id: String,
     pub tags: Vec<String>,
     pub category: Option<String>,
@@ -42,6 +43,7 @@ pub struct Vault {
     pub id: String,
     pub slug: String,
     pub name: String,
+    pub description: Option<String>,
     pub owner: VaultOwner,
     pub permission: NotePermission,
     pub icon: Option<String>,   // optional curated icon slug (e.g. "briefcase"); None = no icon
@@ -50,6 +52,7 @@ pub struct Vault {
 /// Used by `StorageBackend::update_vault` for partial vault updates.
 pub struct VaultUpdate {
     pub name: Option<String>,
+    pub description: Option<String>,
     pub icon: Option<VaultIconUpdate>,
 }
 

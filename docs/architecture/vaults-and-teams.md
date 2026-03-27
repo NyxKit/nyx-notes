@@ -45,6 +45,7 @@ pub struct Vault {
     pub id: String,             // stable identifier (uuid or slug)
     pub slug: String,           // filesystem/URL-safe name, unique per owner (e.g. "home", "work")
     pub name: String,           // display name
+    pub description: Option<String>,  // optional user-authored summary shown in vault cards
     pub owner: VaultOwner,
     /// Only meaningful for team vaults.
     /// Personal vaults are always implicitly `Restricted` to the owner.
@@ -97,7 +98,7 @@ $NOTES_ROOT/
   users/
     <uid>/                     # one directory per user
       home/                    # default personal vault (always exists)
-        .vault.json            # vault metadata (id, name, slug — no permission)
+        .vault.json            # vault metadata (id, name, slug[, description] — no permission)
         note-slug.md
       <vault-slug>/            # additional personal vaults
         .vault.json
@@ -106,7 +107,7 @@ $NOTES_ROOT/
     <team-id>/
       .team.json               # team metadata (name, members, roles)
       home/                    # default team vault (always exists)
-        .vault.json            # vault metadata (id, name, slug, permission)
+        .vault.json            # vault metadata (id, name, slug, permission[, description])
         note-slug.md
       <vault-slug>/
         .vault.json
@@ -137,7 +138,8 @@ Personal vault example (no `permission` field — personal vaults are always res
 {
   "id": "vault-abc123",
   "name": "Home",
-  "slug": "home"
+  "slug": "home",
+  "description": "Private writing and reference notes."
 }
 ```
 
@@ -148,6 +150,7 @@ Personal vault with icon:
   "id": "vault-def456",
   "name": "Work",
   "slug": "work",
+  "description": "Active client work and meeting notes.",
   "icon": "briefcase"
 }
 ```
@@ -159,6 +162,7 @@ Team vault example:
   "id": "vault-xyz456",
   "name": "Home",
   "slug": "home",
+  "description": "Shared team planning and documentation.",
   "permission": "comment",
   "icon": "book"
 }
@@ -175,7 +179,7 @@ Team vault example:
 | `GET` | `/api/vaults` | List all vaults accessible to the user (personal + team) |
 | `POST` | `/api/vaults` | Create a new personal vault |
 | `DELETE` | `/api/vaults/:vault_id` | Delete a personal vault (must be empty) |
-| `PATCH` | `/api/vaults/:vault_id` | Update vault name and/or icon (owner for personal; team owner/admin for team) |
+| `PATCH` | `/api/vaults/:vault_id` | Update vault name, description, and/or icon (owner for personal; team owner/admin for team) |
 | `PATCH` | `/api/teams/:team_id/vaults/:vault_id/permission` | Change a team vault's permission (owner or admin) |
 
 ### Team Routes

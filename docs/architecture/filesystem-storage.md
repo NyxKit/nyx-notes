@@ -20,7 +20,7 @@ $NOTES_ROOT/
   users/
     <uid>/                    # one directory per user
       home/                   # default personal vault (always exists)
-        .vault.json           # vault metadata: id, name, slug[, icon] (no permission field)
+        .vault.json           # vault metadata: id, name, slug[, description, icon] (no permission field)
         <slug>.md
       <vault-slug>/           # additional personal vaults
         .vault.json
@@ -29,7 +29,7 @@ $NOTES_ROOT/
     <team-id>/
       .team.json              # team metadata: name, members, roles
       home/                   # default team vault (always exists)
-        .vault.json           # vault metadata: id, name, slug, permission[, icon]
+        .vault.json           # vault metadata: id, name, slug, permission[, description, icon]
         <slug>.md
       <vault-slug>/
         .vault.json
@@ -45,6 +45,7 @@ Each `.md` file uses YAML frontmatter:
 id: "my-note-slug"
 vault_id: "vault-xyz456"
 title: "My Note"
+description: "The first actual paragraph of the note body."
 author_id: "user-123"
 tags: ["rust", "backend"]
 category: "work"
@@ -63,6 +64,7 @@ Note body in **Markdown**.
 - `vault_id` identifies the containing vault; it must match the actual directory the file resides in
 - `created_at` is set on first write and never updated
 - `updated_at` is updated on every save
+- `description` is derived on every save from the first actual Markdown paragraph; headings, lists, and other non-paragraph blocks are ignored
 - If `is_encrypted: true`, the body below `---` is opaque ciphertext
 - `permission` must be one of `"restricted"`, `"comment"`, `"edit"`; defaults to the vault's permission if absent
 
@@ -97,7 +99,7 @@ Methods that accept a bare `vault_id: &str` (such as `list_notes`, `load_note`, 
 
 This is intentionally simple: the expected number of vaults per installation is small (tens, not thousands), so a linear scan on each operation is acceptable. If this becomes a bottleneck, a startup index built into `FsStorage::new` can be added without changing the `StorageBackend` trait.
 
-All vault directories — personal and team alike — carry a `.vault.json` file. This uniformity is what makes the scan possible. See the `.vault.json` format in [vaults-and-teams.md](./vaults-and-teams.md). Both personal and team `.vault.json` files may carry an optional `icon` field (a curated slug string). Missing `icon` is treated as `None`.
+All vault directories — personal and team alike — carry a `.vault.json` file. This uniformity is what makes the scan possible. See the `.vault.json` format in [vaults-and-teams.md](./vaults-and-teams.md). Both personal and team `.vault.json` files may carry optional `description` and `icon` fields. Missing `description` or `icon` is treated as `None`.
 
 ### `list_notes(vault_id)`
 
@@ -117,6 +119,7 @@ All vault directories — personal and team alike — carry a `.vault.json` file
 
 - Derive vault path from `note.meta.vault_id`
 - Serialize `NoteMeta` as YAML frontmatter
+- Recompute `description` from the first actual Markdown paragraph before serializing frontmatter
 - Write `---\n{frontmatter}---\n{content}` to `<vault_path>/<id>.md`
 - Create vault directory if it doesn't exist
 - On create: use the provided `created_at`; on update: only update `updated_at`
@@ -129,7 +132,8 @@ All vault directories — personal and team alike — carry a `.vault.json` file
 ### `create_vault(vault)`
 
 - Create the directory at `vault_path(vault)`
-- For team vaults: write `.vault.json` with name and permission
+- Write `.vault.json` with name, slug, optional description, and optional icon
+- For team vaults: include permission in `.vault.json`
 
 ### `delete_vault(vault_id)`
 
