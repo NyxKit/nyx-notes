@@ -46,6 +46,17 @@ The frontend calls this on startup to decide which login UI to render (or to ski
 | `DELETE` | `/api/vaults/:vault_id/notes/:id` | Delete a note (note author or vault owner only) |
 | `PATCH` | `/api/vaults/:vault_id/notes/:id/permission` | Change note-level permission (note author only) |
 
+### Comment Routes (vault-scoped)
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/vaults/:vault_id/notes/:id/comments` | List visible line-based comment threads for a note |
+| `POST` | `/api/vaults/:vault_id/notes/:id/comments` | Create a line-based comment thread |
+| `PATCH` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id` | Resolve or reopen a thread (note author only) |
+| `DELETE` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id` | Delete a thread (thread author or note author) |
+| `POST` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies` | Add a reply to a visible thread |
+| `DELETE` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies/:reply_id` | Delete a reply (reply author or note author) |
+
 ### Vault Routes
 
 | Method | Path | Description |
@@ -120,6 +131,69 @@ Only the note's `author_id` may change note-level permission.
 Request body: `{ "permission": "comment" }`. Valid values: `"restricted"`, `"comment"`, `"edit"`.
 
 Response: `200 OK` with updated `NoteMeta`.
+
+### `GET /api/vaults/:vault_id/notes/:id/comments`
+
+Returns visible open and resolved comment threads for the note.
+
+- Hidden legacy comments without a reliable line anchor are retained in sidecar storage but are not included in this default response
+- Detached visible comments still include their saved `line_preview`
+
+Response: `200 OK` with `Vec<Comment>`.
+
+### `POST /api/vaults/:vault_id/notes/:id/comments`
+
+Request body:
+
+```json
+{
+  "body": "Please expand this thought.",
+  "anchor": {
+    "text": "selected phrase",
+    "prefix": "Text before ",
+    "suffix": " text after",
+    "range_from": 128,
+    "range_to": 143,
+    "line_preview": "A selected line of note text"
+  }
+}
+```
+
+Rules:
+
+- Caller must be the note author or have comment/edit access under the note permission model
+- `anchor.text` must be non-empty
+- `anchor.range_from` must be less than or equal to `anchor.range_to`
+
+Response: `201 Created` with the created `Comment`.
+
+### `PATCH /api/vaults/:vault_id/notes/:id/comments/:comment_id`
+
+Request body: `{ "resolved": true }`.
+
+Only the note author may resolve or reopen a thread.
+
+Response: `200 OK` with the updated `Comment`.
+
+### `DELETE /api/vaults/:vault_id/notes/:id/comments/:comment_id`
+
+Only the thread author or the note author may delete a thread.
+
+Response: `204 No Content`.
+
+### `POST /api/vaults/:vault_id/notes/:id/comments/:comment_id/replies`
+
+Request body: `{ "body": "I can take this update." }`.
+
+Only the note author or a user with comment/edit access may add a reply.
+
+Response: `201 Created` with the created `CommentReply`.
+
+### `DELETE /api/vaults/:vault_id/notes/:id/comments/:comment_id/replies/:reply_id`
+
+Only the reply author or the note author may delete a reply.
+
+Response: `204 No Content`.
 
 ### `GET /api/vaults`
 

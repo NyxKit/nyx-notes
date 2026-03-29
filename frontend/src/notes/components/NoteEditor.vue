@@ -2,7 +2,14 @@
 import { ref, computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { NyxEditor } from 'nyx-kit/components'
-import { NyxEditorFormat, NyxEditorMode, NyxEditorToolbar, NyxVariant, NyxEditorSelection } from 'nyx-kit/types'
+import {
+  NyxEditorFormat,
+  NyxEditorMode,
+  NyxEditorToolbar,
+  NyxVariant,
+  type NyxAnnotation,
+  type NyxAnnotationAnchor,
+} from 'nyx-kit/types'
 import { useAuth } from '@/auth/composables'
 import { useNotesStore } from '@/notes/stores'
 import { useEditorStore } from '@/notes/stores'
@@ -11,10 +18,13 @@ import type { Note, NotePermission } from '@/shared/types'
 
 const props = defineProps<{
   note: Note
+  annotations?: NyxAnnotation[]
 }>()
 
 const emit = defineEmits<{
-  'comment': [selection: NyxEditorSelection]
+  'comment': [selection: NyxAnnotationAnchor]
+  'focus-comment': [commentId: string]
+  'blur-comment': [commentId: string]
 }>()
 
 const { authMode, currentUser } = useAuth()
@@ -82,9 +92,16 @@ async function onPermissionChange(permission: NotePermission) {
   await updatePermission(props.note.meta.vault_id, props.note.meta.id, permission)
 }
 
-function onComment(selection: NyxEditorSelection) {
-  console.log('onComment', selection)
+function onComment(selection: NyxAnnotationAnchor) {
   emit('comment', selection)
+}
+
+function onFocusComment(commentId: string) {
+  emit('focus-comment', commentId)
+}
+
+function onBlurComment(commentId: string) {
+  emit('blur-comment', commentId)
 }
 </script>
 
@@ -113,10 +130,13 @@ function onComment(selection: NyxEditorSelection) {
       :toolbar="NyxEditorToolbar.Full"
       :format="NyxEditorFormat.Markdown"
       :mode="NyxEditorMode.Zen"
+      :annotations="props.annotations ?? []"
       :disabled="readonly"
       placeholder="Start writing…"
       @change="onContentChange"
-      @comment="onComment"
+      @annotation:create="onComment"
+      @annotation:focus="onFocusComment"
+      @annotation:blur="onBlurComment"
     />
   </div>
 </template>

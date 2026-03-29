@@ -1,106 +1,100 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useAuth } from '@/auth/composables'
 import { useComments } from '@/comments/composables'
 import { CommentThread, CommentComposer } from '@/comments/components'
 import type { Note } from '@/shared/types'
-import { NyxButton, NyxTabs } from 'nyx-kit/components'
-import { NyxShape } from 'nyx-kit/types'
+import { NyxTabs } from 'nyx-kit/components'
 
 const props = defineProps<{
   note: Note
 }>()
 
 const { authMode, currentUser } = useAuth()
-const { comments, loading, load, clear, addComment } = useComments()
+const { comments, loading, draftComment, cancelDraftComment, submitDraftComment, setActiveComment, activeCommentId, activeTab } = useComments()
 
 const showComposer = ref(false)
 const submitting = ref(false)
-const activeTab = ref('Open')
+const threadRefs = ref<Record<string, HTMLElement | null>>({})
 
 const isNoteAuthor = computed(() =>
   authMode.value === 'local' || currentUser.value?.id === props.note.meta.author_id
 )
 
-const canComment = computed(() =>
-  isNoteAuthor.value || props.note.meta.permission !== 'restricted'
-)
-
 const openComments = computed(() => comments.value.filter(c => !c.resolved))
 const resolvedComments = computed(() => comments.value.filter(c => c.resolved))
 
-watch(
-  () => props.note.meta.id,
-  async (noteId) => {
-    clear()
-    if (noteId) await load(props.note.meta.vault_id, noteId)
-  },
-  { immediate: true }
-)
+watch(draftComment, (value) => {
+  showComposer.value = value !== null
+  if (value) {
+    activeTab.value = 'Open'
+  }
+})
+
+watch(activeCommentId, async (commentId) => {
+  if (!commentId) return
+  await nextTick()
+  threadRefs.value[commentId]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+})
 
 async function onSubmitComment(body: string) {
   submitting.value = true
   try {
-    await addComment(props.note.meta.vault_id, props.note.meta.id, '', body)
+    await submitDraftComment(props.note.meta.vault_id, props.note.meta.id, body)
     showComposer.value = false
   } finally {
     submitting.value = false
+  }
+}
+
+function onCancelComment() {
+  cancelDraftComment()
+  showComposer.value = false
+}
+
+function setThreadRef(commentId: string) {
+  return (el: Element | { $el?: Element } | null) => {
+    const target = el instanceof Element ? el : el?.$el ?? null
+    threadRefs.value[commentId] = target as HTMLElement | null
   }
 }
 </script>
 
 <template>
   <div class="comment-sidebar">
-
-    <!-- Header -->
-    <div class="comment-sidebar__header">
-      <div class="comment-sidebar__header-row">
-        <span class="comment-sidebar__title">Review</span>
-        <span v-if="openComments.length" class="comment-sidebar__thread-count">
-          {{ openComments.length }} active {{ openComments.length === 1 ? 'thread' : 'threads' }}
-        </span>
-        <NyxButton
-          v-if="canComment"
-          :shape="NyxShape.Square"
-          title="New comment"
-          @click="showComposer = !showComposer"
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          </svg>
-        </NyxButton>
-      </div>
-
-    </div>
-
     <NyxTabs v-model="activeTab" :tabs="['Open', 'Resolved']">
 
       <template #tab-Open>
-        <div v-if="loading" class="comment-sidebar__state">Loading…</div>
-        <template v-else>
-          <!-- New comment composer -->
-          <div v-if="showComposer" class="comment-sidebar__composer">
-            <CommentComposer
-              :submitting="submitting"
-              @submit="onSubmitComment"
-              @cancel="showComposer = false"
-            />
-          </div>
+        <!-- New comment composer -->
+        <div v-if="showComposer" class="comment-sidebar__composer">
+          <CommentComposer
+            :quoted-text="draftComment?.anchor.line_preview"
+            :submitting="submitting"
+            :autofocus="showComposer"
+            @submit="onSubmitComment"
+            @cancel="onCancelComment"
+          />
+        </div>
 
+        <div v-if="loading && !openComments.length && !showComposer" class="comment-sidebar__state">Loading…</div>
+        <template v-else>
           <!-- Open threads -->
           <div v-if="openComments.length" class="comment-sidebar__threads">
             <CommentThread
               v-for="comment in openComments"
               :key="comment.id"
+              :ref="setThreadRef(comment.id)"
               :comment="comment"
               :vault-id="note.meta.vault_id"
               :note-id="note.meta.id"
               :is-note-author="isNoteAuthor"
+              :active="activeCommentId === comment.id"
+              @focus="setActiveComment(comment.id)"
             />
           </div>
 
           <div
-            v-if="!openComments.length && !showComposer"
+            v-if="!loading && !openComments.length && !showComposer"
             class="comment-sidebar__state"
           >
             No open comments
@@ -114,11 +108,14 @@ async function onSubmitComment(body: string) {
           <CommentThread
             v-for="comment in resolvedComments"
             :key="comment.id"
+            :ref="setThreadRef(comment.id)"
             :comment="comment"
-            :vault-id="note.meta.vault_id"
-            :note-id="note.meta.id"
-            :is-note-author="isNoteAuthor"
-          />
+              :vault-id="note.meta.vault_id"
+              :note-id="note.meta.id"
+              :is-note-author="isNoteAuthor"
+              :active="activeCommentId === comment.id"
+              @focus="setActiveComment(comment.id)"
+            />
         </div>
         <div v-else class="comment-sidebar__state">No resolved comments</div>
       </template>
@@ -136,34 +133,6 @@ async function onSubmitComment(body: string) {
   overflow: hidden;
 }
 
-/* Header */
-.comment-sidebar__header {
-  padding: 1.25rem 1rem 0;
-  flex-shrink: 0;
-}
-
-.comment-sidebar__header-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.875rem;
-}
-
-.comment-sidebar__title {
-  font-weight: 700;
-  font-size: 0.9375rem;
-  color: var(--nyx-c-text-1);
-  flex: 1;
-}
-
-.comment-sidebar__thread-count {
-  font-size: 0.6875rem;
-  font-family: 'Inter', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--nyx-c-text-3);
-}
-
 /* Composer */
 .comment-sidebar__composer {
   padding: 0.75rem 1rem;
@@ -175,7 +144,6 @@ async function onSubmitComment(body: string) {
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
-  padding: 0.875rem 1rem;
   overflow-y: auto;
   flex: 1;
   min-height: 0;

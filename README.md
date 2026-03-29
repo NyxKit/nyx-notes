@@ -5,6 +5,7 @@ A self-hosted, Markdown-first notes app.
 - Notes are stored as plain `.md` files on disk — the filesystem is the **source of truth**
 - Backend: portable Rust server (Axum) — runs on any Linux server, NAS, or local machine
 - Frontend: Vue 3 SPA using [nyx-kit](https://github.com/nyxkit/nyx-kit) and TipTap
+- Review: line-based discussion threads anchored to exact selected text, with comment history stored in `.comments.json` sidecars
 - CLI: terminal-first workflows, operates directly on the filesystem with no server required
 - Auth: pluggable — `local` (no auth), `secret_key` (self-hosted JWT), or `oidc` (any OIDC provider); no external dependency required for local or self-hosted deployments
 - Native app: Tauri desktop app for macOS, Windows, and Linux

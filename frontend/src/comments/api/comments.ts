@@ -1,11 +1,11 @@
 import { api } from '@/shared/api'
-import type { Comment, CommentReply } from '@/shared/types'
+import type { Comment, CommentReply, CreateCommentRequest } from '@/shared/types'
 
 export function fetchComments(vaultId: string, noteId: string) {
   return api<Comment[]>(`/api/vaults/${vaultId}/notes/${noteId}/comments`)
 }
 
-export function createComment(vaultId: string, noteId: string, body: { quoted_text: string; body: string }) {
+export function createComment(vaultId: string, noteId: string, body: CreateCommentRequest) {
   return api<Comment>(`/api/vaults/${vaultId}/notes/${noteId}/comments`, {
     method: 'POST',
     body,

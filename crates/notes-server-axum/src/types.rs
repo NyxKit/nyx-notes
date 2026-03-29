@@ -93,9 +93,19 @@ pub struct PatchVaultRequest {
 // --- Comment request types ---
 
 #[derive(Deserialize)]
+pub struct CreateCommentAnchorRequest {
+    pub text: String,
+    pub prefix: String,
+    pub suffix: String,
+    pub range_from: u32,
+    pub range_to: u32,
+    pub line_preview: String,
+}
+
+#[derive(Deserialize)]
 pub struct CreateCommentRequest {
-    pub quoted_text: String,
     pub body: String,
+    pub anchor: CreateCommentAnchorRequest,
 }
 
 #[derive(Deserialize)]

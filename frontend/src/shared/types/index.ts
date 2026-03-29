@@ -85,16 +85,38 @@ export interface CommentReply {
   created_at: string
 }
 
+export type CommentAttachment = 'attached' | 'detached'
+
+export type CommentVisibility = 'visible' | 'hidden_legacy'
+
+export interface CommentAnchor {
+  text: string
+  prefix: string
+  suffix: string
+  range_from: number
+  range_to: number
+  attachment: CommentAttachment
+  line_preview: string
+  last_matched_at?: string
+}
+
 export interface Comment {
   id: string
   note_id: string
   author_id: string
   author_name: string
   body: string
-  quoted_text: string
+  anchor: CommentAnchor
   resolved: boolean
+  visibility: CommentVisibility
   created_at: string
+  updated_at: string
   replies: CommentReply[]
+}
+
+export interface CreateCommentRequest {
+  body: string
+  anchor: Omit<CommentAnchor, 'attachment' | 'last_matched_at'>
 }
 
 // ─── API request shapes ───────────────────────────────────────────────────────

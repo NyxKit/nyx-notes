@@ -7,7 +7,8 @@ mod tests;
 
 pub use auth::{AuthError, AuthStore, LoginToken, User};
 pub use domain::{
-    distill_markdown_description, Comment, CommentReply, Note, NoteMeta, NotePermission, Team,
-    TeamMember, TeamRole, Vault, VaultIconUpdate, VaultOwner, VaultUpdate,
+    distill_markdown_description, Comment, CommentAnchor, CommentAttachment, CommentReply,
+    CommentVisibility, Note, NoteMeta, NotePermission, Team, TeamMember, TeamRole, Vault,
+    VaultIconUpdate, VaultOwner, VaultUpdate,
 };
 pub use storage::{StorageBackend, StorageError};
