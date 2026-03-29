@@ -2,7 +2,7 @@
 
 ## Purpose
 
-A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to the Axum backend API, adapts its auth UI to the server's `AUTH_MODE`, and uses TipTap as the rich Markdown editor.
+A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to the Axum backend API, adapts its auth UI to the server's `AUTH_MODE`, and uses `NyxEditor` from `nyx-kit` for Markdown editing and line-based discussion annotations.
 
 ## Stack
 
@@ -196,15 +196,17 @@ The frontend uses a shared browse-card family for browse-and-select surfaces onl
 
 The editor is provided by `NyxEditor` from `nyx-kit`. `NoteEditor.vue` is a thin wrapper that passes props and relays events — it does not configure TipTap directly.
 
-TipTap, the Markdown extension, `CommentMark`, and all editor internals live in nyx-kit. This keeps the notes-core frontend clean of editor implementation details.
+TipTap, the Markdown extension, annotation rendering, and all editor internals live in nyx-kit. This keeps the notes-core frontend clean of editor implementation details.
 
 ```vue
 <!-- components/NoteEditor.vue -->
 <NyxEditor
   v-model="draftContent"
   :editable="canEdit"
-  :comments="comments"
-  @comment:create="onCommentCreate"
+  :annotations="annotations"
+  @annotation:create="onAnnotationCreate"
+  @annotation:focus="onAnnotationFocus"
+  @annotation:blur="onAnnotationBlur"
 />
 ```
 
@@ -361,22 +363,33 @@ watch(canEdit, (val) => editor.value?.setEditable(val))
 
 Notes shared with the current user (not owned) appear in a separate "Shared with me" section in `NoteList`, or are visually distinguished with the sharer's display name below the title.
 
-## Inline Comments
+## Line-Based Comments
 
-Users can select any text in a note and attach a comment thread to it — similar to Google Docs. Comments are asynchronous annotations; they do not modify the note body.
+Users can select non-empty text within a rendered line in a note and attach a discussion thread to it. The selected text is the canonical anchor, while the containing line is shown as context in the sidebar. Comments are asynchronous annotations; they do not modify the note body.
 
 ### Data Model
 
 ```ts
+interface CommentAnchor {
+  text: string
+  prefix: string
+  suffix: string
+  range_from: number
+  range_to: number
+  attachment: 'attached' | 'detached'
+  line_preview: string
+}
+
 interface Comment {
   id: string
   note_id: string
   author_id: string
   author_name: string
-  body: string           // plain text (Markdown support optional later)
-  quoted_text: string    // the exact text selection the comment is anchored to
+  body: string
+  anchor: CommentAnchor
   resolved: boolean
-  created_at: string     // ISO 8601
+  created_at: string
+  updated_at: string
   replies: CommentReply[]
 }
 
@@ -391,40 +404,43 @@ interface CommentReply {
 
 ### Anchor Strategy
 
-Comments are anchored by **quoted text** — the exact string the user selected when creating the comment. This approach:
+Comments are anchored by a structured annotation anchor:
 
-- Survives Markdown serialization/deserialization round-trips (no fragile position offsets)
-- Degrades gracefully: if the anchored text is later edited or deleted, the comment becomes "orphaned" and is shown at the top of the comment sidebar with its original quote
-- Requires no special Markdown encoding — the note body stays clean
+- `anchor.text` stores the exact selected text and is the canonical anchor for new comments
+- `anchor.prefix` and `anchor.suffix` provide nearby context for reattachment after note edits
+- `anchor.range_from` and `anchor.range_to` store the last known rendered document range
+- `anchor.line_preview` stores the containing line shown in the sidebar
+- `anchor.attachment` indicates whether the comment is currently attached or detached
 
-On load, the frontend scans the document for each comment's `quoted_text` and applies a `CommentMark` decoration at the first match.
+On load, the frontend maps visible comments into `NyxAnnotation[]` and passes them to `NyxEditor`. Nyx-kit handles highlight rendering, attachment styling, and annotation focus state.
 
-### `CommentMark` Extension
-
-The `CommentMark` TipTap extension is implemented in `nyx-kit` as part of `NyxEditor`. It highlights text associated with a comment thread using a `span[data-comment-id]` decoration.
-
-The mark is **not serialized to Markdown**. It is applied as an in-memory ProseMirror decoration each time a note loads, based on `quoted_text` matching. The note body on disk stays clean.
+Legacy comments without a reliable structured anchor are retained in storage but hidden from the default line-discussion UI.
 
 ### User Interaction Flow
 
-1. **Creating a comment**: User selects text → a "Add comment" tooltip/button appears → `CommentComposer` opens inline → on submit, `POST /api/vaults/:vault_id/notes/:id/comments` → mark applied to matched text
-2. **Viewing comments**: Highlighted text shows a colored underline. `CommentSidebar` renders all threads vertically aligned to their marked text (using the mark's DOM position)
-3. **Replying**: Inside `CommentThread`, a reply input is always visible at the bottom of the thread
-4. **Resolving**: A "Resolve" button on each thread calls `PATCH /api/vaults/:vault_id/notes/:id/comments/:commentId` with `{ resolved: true }` → mark styling changes to muted/strikethrough
-5. **Orphaned comments**: If `quoted_text` is not found in the document, the thread renders at the top of the sidebar with a "Text no longer found" indicator and the original quote displayed
+1. **Creating a comment**: User selects text inside the editor → `NyxEditor` emits `annotation:create` with the selection anchor → `CommentComposer` opens → on submit, `POST /api/vaults/:vault_id/notes/:id/comments`
+2. **Viewing comments**: `CommentSidebar` renders open and resolved threads using `anchor.line_preview` for context while `NyxEditor` renders matching visible annotations
+3. **Replying**: Inside `CommentThread`, a reply input is available for visible unresolved threads
+4. **Resolving**: A "Resolve" button on each thread calls `PATCH /api/vaults/:vault_id/notes/:id/comments/:commentId` with `{ resolved: true }` and the annotation styling updates to the resolved state
+5. **Detached comments**: If a stored anchor can no longer be matched confidently, the thread remains visible in a detached state with its saved line preview
+6. **Legacy comments**: Older note-level comments without a reliable anchor stay stored but do not appear in the default line-discussion experience
+7. **Focusing annotations**: Clicking an annotation in the editor opens the comment sidebar automatically if it is closed and highlights the matching thread
+8. **Resolved annotation visibility**: Open unresolved annotations render in the editor by default; resolved annotations render only while the Resolved tab is active in the sidebar
 
 ### `CommentSidebar.vue`
 
 - Fetches `GET /api/vaults/:vault_id/notes/:id/comments` on note load
-- Renders `CommentThread` for each comment, sorted by document position of the anchor (unresolved first, then resolved)
-- Vertically aligns each thread to the top of its highlighted text in the editor (uses the DOM rect of the `CommentMark` span)
+- Renders `CommentThread` for each visible comment, ordered by attached note position first and detached threads after that
+- Uses `anchor.line_preview` as the sidebar context for the selected-text anchor
+- Synchronizes active thread focus with `NyxEditor` annotation focus/blur events
+- Opens automatically when an annotation is focused while the sidebar is closed
 - Toggle to show/hide resolved threads
 
 ### Backend Impact
 
 Comments require new API routes and storage. See [../architecture/backend-api.md](../architecture/backend-api.md) for route definitions. Storage options:
 
-- **Sidecar file** (preferred for v1): `<slug>.comments.json` alongside `<slug>.md` — keeps the note body clean and the filesystem as source of truth
+- **Sidecar file** (preferred for v1): `<slug>.comments.json` alongside `<slug>.md` — keeps the note body clean and the filesystem as source of truth while storing structured anchors separately from Markdown
 - **Database** (future): migrate to a DB table once multi-user/sharing is needed
 
 ### Keyboard Shortcut
@@ -450,7 +466,7 @@ The frontend is built incrementally. Each layer produces reviewable, running cod
 
 **Layer 5 dependency**: requires `nyx-kit` components (`NyxButton`, `NyxInput`, etc.).
 
-**Layer 6 dependency**: requires `NyxEditor` to be implemented and published in `nyx-kit`. ✅ Satisfied by `nyx-kit` 1.3.3.
+**Layer 6 dependency**: requires `NyxEditor` and annotation APIs to be implemented and published in `nyx-kit`. ✅ Satisfied by `nyx-kit` 2.0.6.
 
 **Layer 7 dependency**: requires new backend routes and `FsStorage` sidecar support for `.comments.json` files. ✅ Implemented alongside this layer.
 

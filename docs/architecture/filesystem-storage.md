@@ -22,18 +22,22 @@ $NOTES_ROOT/
       home/                   # default personal vault (always exists)
         .vault.json           # vault metadata: id, name, slug[, description, icon] (no permission field)
         <slug>.md
+        <slug>.comments.json  # comment sidecar for that note (optional)
       <vault-slug>/           # additional personal vaults
         .vault.json
         <slug>.md
+        <slug>.comments.json
   teams/
     <team-id>/
       .team.json              # team metadata: name, members, roles
       home/                   # default team vault (always exists)
         .vault.json           # vault metadata: id, name, slug, permission[, description, icon]
         <slug>.md
+        <slug>.comments.json
       <vault-slug>/
         .vault.json
         <slug>.md
+        <slug>.comments.json
 ```
 
 ## Note File Format
@@ -127,7 +131,32 @@ All vault directories — personal and team alike — carry a `.vault.json` file
 ### `delete_note(vault_id, id)`
 
 - Remove `<vault_path>/<id>.md`
+- Remove `<vault_path>/<id>.comments.json` if it exists
 - Return `StorageError::NotFound` if the file doesn't exist
+
+### Comment Sidecar Format
+
+Each note may have an optional sidecar named `<id>.comments.json` alongside `<id>.md`.
+
+The sidecar stores serialized `Comment` records, including:
+
+- A structured `anchor` with exact selected text, surrounding context, last-known rendered range, and attachment state
+- `visibility` to distinguish visible line-based threads from retained hidden legacy records
+- Full reply history per thread
+
+Legacy sidecars that only contain `quoted_text` remain readable. When they cannot be converted into reliable structured anchors, they stay stored as hidden legacy records and are omitted from the default line-discussion UI.
+
+### `load_comments(vault_id, note_id)`
+
+- Read `<vault_path>/<note_id>.comments.json` if it exists
+- Return an empty `Vec<Comment>` if the sidecar is absent
+- Parse newer structured anchors and older `quoted_text`-only records through the same compatibility layer
+
+### `save_comments(vault_id, note_id, comments)`
+
+- Write pretty-printed JSON to `<vault_path>/<note_id>.comments.json`
+- Delete the sidecar entirely if the comment slice is empty
+- Preserve hidden legacy records unless an explicit migration or delete path removes them
 
 ### `create_vault(vault)`
 
@@ -154,6 +183,7 @@ All vault directories — personal and team alike — carry a `.vault.json` file
 ## Dependencies
 
 - `std::fs` for synchronous IO (no async runtime dependency; the server layer handles blocking via `tokio::task::spawn_blocking`)
+- `chrono` for comment sidecar timestamps and backward-compatible sidecar parsing
 - `serde` + `serde_yaml` for frontmatter (YAML)
 - `serde_json` for `.vault.json` and `.team.json` (JSON)
 - `walkdir` for recursive directory traversal

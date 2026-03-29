@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { NyxButton, NyxTextarea, NyxForm, NyxFormField } from 'nyx-kit/components'
+import { nextTick, ref, watch } from 'vue'
+import { NyxForm, NyxFormField, NyxInput } from 'nyx-kit/components'
 
 const props = defineProps<{
   quotedText?: string
   placeholder?: string
   submitting?: boolean
+  autofocus?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -14,6 +15,7 @@ const emit = defineEmits<{
 }>()
 
 const body = ref('')
+const inputHostRef = ref<HTMLElement | null>(null)
 
 function onSubmit() {
   const trimmed = body.value.trim()
@@ -21,6 +23,29 @@ function onSubmit() {
   emit('submit', trimmed)
   body.value = ''
 }
+
+function onEscape() {
+  body.value = ''
+  emit('cancel')
+}
+
+async function focusInput() {
+  await nextTick()
+  requestAnimationFrame(() => {
+    const input = inputHostRef.value?.querySelector('input') as HTMLInputElement | null
+    input?.focus()
+    input?.select()
+  })
+}
+
+watch(
+  () => props.autofocus,
+  async (autofocus) => {
+    if (!autofocus) return
+    await focusInput()
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -28,29 +53,20 @@ function onSubmit() {
     <div v-if="props.quotedText" class="composer__quote">
       {{ props.quotedText }}
     </div>
-    <NyxForm @submit="onSubmit">
-      <NyxFormField>
-        <template #default="{ id }">
-          <NyxTextarea
-            :id="id"
-            v-model="body"
-            :placeholder="props.placeholder ?? 'Add a comment…'"
-            :rows="3"
-            @keydown.ctrl.enter="onSubmit"
-            @keydown.meta.enter="onSubmit"
-          />
-        </template>
-      </NyxFormField>
-      <div class="composer__actions">
-        <NyxButton @click="emit('cancel')">
-          Cancel
-        </NyxButton>
-        <NyxButton
-          type="submit"
-          :disabled="!body.trim() || props.submitting"
-        >
-          {{ props.submitting ? 'Posting…' : 'Comment' }}
-        </NyxButton>
+    <NyxForm class="composer__form" @submit.prevent="onSubmit">
+      <div ref="inputHostRef" class="composer__field">
+        <NyxFormField>
+          <template #default="{ id }">
+            <NyxInput
+              :id="id"
+              v-model="body"
+              class="composer__input"
+              :autofocus="props.autofocus"
+              :placeholder="props.placeholder ?? 'Add a comment…'"
+              @keydown.esc="onEscape"
+            />
+          </template>
+        </NyxFormField>
       </div>
     </NyxForm>
   </div>
@@ -78,9 +94,9 @@ function onSubmit() {
   -webkit-box-orient: vertical;
 }
 
-.composer__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
+.composer__form,
+.composer__field,
+.composer__input {
+  width: 100%;
 }
 </style>

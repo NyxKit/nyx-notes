@@ -67,6 +67,49 @@ pub struct Note {
     /// In E2EE mode: opaque ciphertext — the server never parses this.
     pub content: String,
 }
+
+pub struct CommentAnchor {
+    pub text: String,
+    pub prefix: String,
+    pub suffix: String,
+    pub range_from: u32,
+    pub range_to: u32,
+    pub attachment: CommentAttachment,
+    pub line_preview: String,
+    pub last_matched_at: Option<chrono::DateTime<chrono::Utc>>,
+}
+
+pub enum CommentAttachment {
+    Attached,
+    Detached,
+}
+
+pub enum CommentVisibility {
+    Visible,
+    HiddenLegacy,
+}
+
+pub struct CommentReply {
+    pub id: String,
+    pub author_id: String,
+    pub author_name: String,
+    pub body: String,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+}
+
+pub struct Comment {
+    pub id: String,
+    pub note_id: String,
+    pub author_id: String,
+    pub author_name: String,
+    pub body: String,
+    pub anchor: CommentAnchor,
+    pub resolved: bool,
+    pub visibility: CommentVisibility,
+    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub updated_at: chrono::DateTime<chrono::Utc>,
+    pub replies: Vec<CommentReply>,
+}
 ```
 
 ### Permission Matrix
@@ -106,8 +149,17 @@ pub trait StorageBackend: Send + Sync {
     fn load_note(&self, vault_id: &str, id: &str) -> Result<Note, StorageError>;
     fn save_note(&self, note: &Note) -> Result<(), StorageError>;   // vault_id taken from note.meta
     fn delete_note(&self, vault_id: &str, id: &str) -> Result<(), StorageError>;
+
+    // Comment sidecars (vault-scoped; visible + hidden legacy records)
+    fn load_comments(&self, vault_id: &str, note_id: &str) -> Result<Vec<Comment>, StorageError>;
+    fn save_comments(&self, vault_id: &str, note_id: &str, comments: &[Comment]) -> Result<(), StorageError>;
 }
 ```
+
+Comment visibility is a domain concern, not a frontend-only flag:
+
+- `Visible` comments appear in the default line-discussion UI and map to editor annotations
+- `HiddenLegacy` comments preserve older note-level history that lacks a reliable structured anchor
 
 See [vaults-and-teams.md](./vaults-and-teams.md) for the full vault and team model.
 

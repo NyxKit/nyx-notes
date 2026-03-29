@@ -37,6 +37,33 @@ pub fn distill_markdown_description(content: &str) -> Option<String> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum CommentAttachment {
+    Attached,
+    Detached,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CommentVisibility {
+    Visible,
+    HiddenLegacy,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CommentAnchor {
+    pub text: String,
+    pub prefix: String,
+    pub suffix: String,
+    pub range_from: u32,
+    pub range_to: u32,
+    pub attachment: CommentAttachment,
+    pub line_preview: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_matched_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommentReply {
     pub id: String,
     pub author_id: String,
@@ -52,9 +79,11 @@ pub struct Comment {
     pub author_id: String,
     pub author_name: String,
     pub body: String,
-    pub quoted_text: String,
+    pub anchor: CommentAnchor,
     pub resolved: bool,
+    pub visibility: CommentVisibility,
     pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub replies: Vec<CommentReply>,
 }
 

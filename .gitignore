@@ -12,6 +12,8 @@ frontend/test-results
 Thumbs.db
 *.log
 *.tmp
+.vscode/
+.idea/
 
 # Notes storage — never commit user data even if NOTES_ROOT points inside the project
 /notes/

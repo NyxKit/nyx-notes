@@ -2,23 +2,31 @@
 import { ref } from 'vue'
 import { useAuth } from '@/auth/composables'
 import { useComments } from '@/comments/composables'
-import { CommentComposer } from '@/comments/components'
 import type { Comment } from '@/shared/types'
-import { NyxButton } from 'nyx-kit/components'
-import { NyxVariant, NyxTheme, NyxSize } from 'nyx-kit/types'
+import { NyxButton, NyxForm, NyxFormField, NyxInput, NyxModal } from 'nyx-kit/components'
+import { NyxTheme, NyxSize, NyxVariant } from 'nyx-kit/types'
 
 const props = defineProps<{
   comment: Comment
   vaultId: string
   noteId: string
   isNoteAuthor: boolean
+  active?: boolean
+}>()
+
+const emit = defineEmits<{
+  focus: []
 }>()
 
 const { currentUser, authMode } = useAuth()
 const { resolveComment, removeComment, addReply, removeReply } = useComments()
 
-const showReplyComposer = ref(false)
+const replyBody = ref('')
 const submittingReply = ref(false)
+const confirmDeleteThread = ref(false)
+const confirmDeleteReplyId = ref<string | null>(null)
+
+const replyPendingDelete = () => props.comment.replies.find(reply => reply.id === confirmDeleteReplyId.value) ?? null
 
 const isAuthor = (authorId: string) =>
   authMode.value === 'local' || currentUser.value?.id === authorId
@@ -29,39 +37,50 @@ async function onResolve() {
 
 async function onDelete() {
   await removeComment(props.vaultId, props.noteId, props.comment.id)
+  confirmDeleteThread.value = false
 }
 
 async function onSubmitReply(body: string) {
   submittingReply.value = true
   try {
     await addReply(props.vaultId, props.noteId, props.comment.id, body)
-    showReplyComposer.value = false
+    replyBody.value = ''
   } finally {
     submittingReply.value = false
   }
 }
 
+async function onSubmitReplyForm() {
+  const trimmed = replyBody.value.trim()
+  if (!trimmed || submittingReply.value) return
+  await onSubmitReply(trimmed)
+}
+
 async function onDeleteReply(replyId: string) {
   await removeReply(props.vaultId, props.noteId, props.comment.id, replyId)
+  confirmDeleteReplyId.value = null
 }
 </script>
 
 <template>
-  <div class="thread" :class="{ 'thread--resolved': comment.resolved }">
+  <div
+    class="thread"
+    :class="{ 'thread--resolved': comment.resolved, 'thread--active': props.active }"
+    @click="emit('focus')"
+  >
 
     <!-- Quoted text anchor -->
-    <div v-if="comment.quoted_text" class="thread__quote">
-      {{ comment.quoted_text }}
+    <div v-if="comment.anchor.line_preview" class="thread__quote">
+      {{ comment.anchor.line_preview }}
     </div>
 
     <!-- Root comment -->
     <div class="thread__comment">
       <div class="thread__header">
         <span class="thread__author">{{ comment.author_name }}</span>
-        <div class="thread__actions">
+        <div class="thread__actions" @click.stop>
           <NyxButton
             v-if="isNoteAuthor"
-            :variant="NyxVariant.Ghost"
             :size="NyxSize.Small"
             :title="comment.resolved ? 'Unresolve' : 'Resolve'"
             @click="onResolve"
@@ -70,11 +89,10 @@ async function onDeleteReply(replyId: string) {
           </NyxButton>
           <NyxButton
             v-if="isAuthor(comment.author_id) || isNoteAuthor"
-            :variant="NyxVariant.Ghost"
             :theme="NyxTheme.Danger"
             :size="NyxSize.Small"
             title="Delete"
-            @click="onDelete"
+            @click="confirmDeleteThread = true"
           >
             ✕
           </NyxButton>
@@ -94,11 +112,10 @@ async function onDeleteReply(replyId: string) {
           <span class="thread__author">{{ reply.author_name }}</span>
           <NyxButton
             v-if="isAuthor(reply.author_id) || isNoteAuthor"
-            :variant="NyxVariant.Ghost"
             :theme="NyxTheme.Danger"
             :size="NyxSize.Small"
             title="Delete reply"
-            @click="onDeleteReply(reply.id)"
+            @click="confirmDeleteReplyId = reply.id"
           >
             ✕
           </NyxButton>
@@ -109,23 +126,46 @@ async function onDeleteReply(replyId: string) {
 
     <!-- Reply area -->
     <div v-if="!comment.resolved" class="thread__reply-area">
-      <CommentComposer
-        v-if="showReplyComposer"
-        placeholder="Reply…"
-        :submitting="submittingReply"
-        @submit="onSubmitReply"
-        @cancel="showReplyComposer = false"
-      />
-      <NyxButton
-        v-else
-        :variant="NyxVariant.Ghost"
-        @click="showReplyComposer = true"
-      >
-        Reply
-      </NyxButton>
+      <NyxForm class="thread__reply-form" @submit.prevent="onSubmitReplyForm" @click.stop>
+        <NyxFormField class="thread__reply-field">
+          <template #default="{ id }">
+            <NyxInput
+              :id="id"
+              v-model="replyBody"
+              class="thread__reply-input"
+              placeholder="Reply…"
+            />
+          </template>
+        </NyxFormField>
+      </NyxForm>
     </div>
 
   </div>
+
+  <NyxModal v-model="confirmDeleteThread" title="Delete comment thread">
+    <p>This comment thread and all of its replies will be permanently deleted.</p>
+    <div class="thread__confirm-preview">
+      <div v-if="comment.anchor.line_preview" class="thread__quote">
+        {{ comment.anchor.line_preview }}
+      </div>
+      <p class="thread__confirm-body">{{ comment.body }}</p>
+    </div>
+    <template #footer>
+      <NyxButton @click="confirmDeleteThread = false">Cancel</NyxButton>
+      <NyxButton :variant="NyxVariant.Soft" :theme="NyxTheme.Danger" @click="onDelete">Delete</NyxButton>
+    </template>
+  </NyxModal>
+
+  <NyxModal :model-value="confirmDeleteReplyId !== null" title="Delete reply" @update:model-value="(open) => { if (!open) confirmDeleteReplyId = null }">
+    <p>This reply will be permanently deleted.</p>
+    <div v-if="replyPendingDelete()" class="thread__confirm-preview">
+      <p class="thread__confirm-body">{{ replyPendingDelete()?.body }}</p>
+    </div>
+    <template #footer>
+      <NyxButton @click="confirmDeleteReplyId = null">Cancel</NyxButton>
+      <NyxButton :variant="NyxVariant.Soft" :theme="NyxTheme.Danger" @click="confirmDeleteReplyId && onDeleteReply(confirmDeleteReplyId)">Delete</NyxButton>
+    </template>
+  </NyxModal>
 </template>
 
 <style scoped>
@@ -141,6 +181,13 @@ async function onDeleteReply(replyId: string) {
 
 .thread--resolved {
   opacity: 0.45;
+}
+
+.thread--active {
+  background: color-mix(in srgb, var(--nyx-c-primary) 8%, rgba(31, 31, 36, 0.5));
+  outline: 1px solid color-mix(in srgb, var(--nyx-c-primary) 60%, white 0%);
+  outline-offset: -1px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--nyx-c-primary) 18%, transparent);
 }
 
 .thread__quote {
@@ -196,6 +243,32 @@ async function onDeleteReply(replyId: string) {
   white-space: pre-wrap;
   color: var(--nyx-c-text-2);
   font-size: 0.8125rem;
+}
+
+.thread__reply-area {
+  padding-top: 0.25rem;
+}
+
+.thread__reply-form,
+.thread__reply-field,
+.thread__reply-input {
+  width: 100%;
+}
+
+.thread__confirm-preview {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.thread__confirm-body {
+  margin: 0;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--nyx-radius-md);
+  background: rgba(31, 31, 36, 0.5);
+  color: var(--nyx-c-text-2);
+  white-space: pre-wrap;
 }
 
 </style>

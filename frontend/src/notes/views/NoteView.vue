@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
 import { useEditorStore } from '@/notes/stores'
+import { useComments, toCommentAnchor } from '@/comments/composables'
 import { NyxModal, NyxButton } from 'nyx-kit/components'
 import { NyxTheme, NyxShape, NyxVariant } from 'nyx-kit/types'
 import { NoteEditor } from '@/notes/components'
@@ -15,6 +16,8 @@ const router = useRouter()
 const isCommentsOpen = ref(false)
 const showDeleteConfirm = ref(false)
 const editorStore = useEditorStore()
+const commentsStore = useComments()
+const { annotations, setActiveComment, beginComment, load: loadComments, clearLoadedComments } = commentsStore
 
 const FAVORITES_KEY = 'nyx_favorites'
 
@@ -37,6 +40,20 @@ function toggleFavorite() {
     else ids.splice(idx, 1)
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids))
   } catch { /* ignore */ }
+}
+
+async function onCreateComment(selection: { text: string; context: { prefix: string; suffix: string }; range: { from: number; to: number } }) {
+  if (!activeNote.value) return
+  isCommentsOpen.value = true
+  beginComment({
+    body: '',
+    anchor: toCommentAnchor(selection),
+  })
+}
+
+function onFocusComment(commentId: string) {
+  isCommentsOpen.value = true
+  setActiveComment(commentId)
 }
 
 async function confirmDelete() {
@@ -104,6 +121,8 @@ watch(
     if (vault) setActive(vault)
 
     await loadNote(vaultId, noteId)
+    clearLoadedComments()
+    await loadComments(vaultId, noteId)
     editorStore.reset()
 
     localStorage.setItem(LAST_NOTE_KEY, JSON.stringify({ vaultId, noteId }))
@@ -183,7 +202,14 @@ watch(
         <!-- Main writing canvas -->
         <main class="app-shell__canvas">
           <template v-if="section === 'notes'">
-            <NoteEditor v-if="activeNote" :note="activeNote" />
+            <NoteEditor
+              v-if="activeNote"
+              :note="activeNote"
+              :annotations="annotations"
+              @comment="onCreateComment"
+              @focus-comment="onFocusComment"
+              @blur-comment="setActiveComment(null)"
+            />
             <div v-else class="app-shell__placeholder">Select a note</div>
           </template>
           <div v-else class="app-shell__wip">

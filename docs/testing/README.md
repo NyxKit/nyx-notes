@@ -29,6 +29,8 @@ What to test:
 - `create_vault` / `delete_vault` (including non-empty vault rejection)
 - `.team.json` and `.vault.json` read/write correctness
 - `created_at` is not modified on update
+- `.comments.json` round-trips structured anchors, visibility state, and replies
+- legacy quote-only sidecars remain readable and are retained as hidden legacy records when no reliable anchor can be restored
 
 ```rust
 #[tokio::test]
@@ -49,6 +51,9 @@ What to test:
 - Auth middleware: `401` on missing or invalid token
 - `PUT` does not change `created_at`
 - `PATCH /permission` is owner-only
+- comment creation accepts structured anchors and returns `201 Created`
+- comment list omits hidden legacy records from the default response
+- reply, resolve, reopen, and delete flows enforce the documented permissions
 
 ```rust
 #[tokio::test]
@@ -66,14 +71,19 @@ async fn non_owner_cannot_edit_restricted_note() {
 What to test:
 - `useNotes`: CRUD methods call correct endpoints with correct payloads
 - `useAuth`: token is attached to requests
-- `useComments`: anchor resolution finds `quoted_text` in document; orphaned handling
+- `useComments`: maps comment records to `NyxAnnotation[]`, tracks active/focused annotations, and orders attached threads before detached ones
+- `useCommentAnnotations`: preserves exact selected-text anchors, exposes containing-line context, and omits hidden legacy comments
 
 **E2E tests** (Playwright): full browser against a running dev server.
 
 What to test:
 - Login → note list loads → open note → edit → save persists
 - Permission selector visible for owner, hidden for non-owner
-- Comment: select text → add comment → thread appears aligned to text
+- Comment: select text → add comment → thread appears with containing-line context while the selected text is annotated in the editor
+- Detached visible comments remain understandable after note edits
+- Legacy quote-only comments remain stored but do not appear in the default line-discussion sidebar
+- Focusing an annotation opens the sidebar if it is closed and highlights the matching thread
+- Resolved annotations appear in the editor only while the Resolved tab is active
 - Vault switcher: switching vault loads correct note list
 
 ### CLI — Integration Tests (Temp Filesystem)

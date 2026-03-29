@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import {
   fetchComments,
   createComment,
@@ -7,18 +7,30 @@ import {
   createReply,
   deleteReply,
 } from '@/comments/api'
-import type { Comment } from '@/shared/types'
+import type { Comment, CreateCommentRequest } from '@/shared/types'
+import { sortCommentsByAnchor, toNyxAnnotations } from './useCommentAnnotations'
 
 const comments = ref<Comment[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
+const activeCommentId = ref<string | null>(null)
+const draftComment = ref<CreateCommentRequest | null>(null)
+const activeTab = ref<'Open' | 'Resolved'>('Open')
 
 export function useComments() {
+  const annotations = computed(() =>
+    toNyxAnnotations(
+      comments.value,
+      activeCommentId.value ?? undefined,
+      activeTab.value === 'Resolved' ? 'resolved' : 'open'
+    )
+  )
+
   async function load(vaultId: string, noteId: string) {
     loading.value = true
     error.value = null
     try {
-      comments.value = await fetchComments(vaultId, noteId)
+      comments.value = sortCommentsByAnchor(await fetchComments(vaultId, noteId))
     } catch (e) {
       error.value = String(e)
     } finally {
@@ -28,11 +40,18 @@ export function useComments() {
 
   function clear() {
     comments.value = []
+    activeCommentId.value = null
+    draftComment.value = null
   }
 
-  async function addComment(vaultId: string, noteId: string, quotedText: string, body: string) {
-    const comment = await createComment(vaultId, noteId, { quoted_text: quotedText, body })
-    comments.value.push(comment)
+  function clearLoadedComments() {
+    comments.value = []
+    activeCommentId.value = null
+  }
+
+  async function addComment(vaultId: string, noteId: string, request: CreateCommentRequest) {
+    const comment = await createComment(vaultId, noteId, request)
+    comments.value = sortCommentsByAnchor([...comments.value, comment])
     return comment
   }
 
@@ -44,7 +63,10 @@ export function useComments() {
   async function resolveComment(vaultId: string, noteId: string, commentId: string, resolved: boolean) {
     const updated = await patchComment(vaultId, noteId, commentId, resolved)
     const idx = comments.value.findIndex(c => c.id === commentId)
-    if (idx !== -1) comments.value[idx] = updated
+    if (idx !== -1) {
+      comments.value[idx] = updated
+      comments.value = sortCommentsByAnchor(comments.value)
+    }
     return updated
   }
 
@@ -61,16 +83,51 @@ export function useComments() {
     if (comment) comment.replies = comment.replies.filter(r => r.id !== replyId)
   }
 
+  function setActiveComment(commentId: string | null) {
+    activeCommentId.value = commentId
+  }
+
+  function beginComment(request: CreateCommentRequest) {
+    draftComment.value = request
+    activeTab.value = 'Open'
+  }
+
+  function cancelDraftComment() {
+    draftComment.value = null
+  }
+  async function submitDraftComment(vaultId: string, noteId: string, body: string) {
+    if (!draftComment.value) {
+      throw new Error('No pending comment anchor')
+    }
+
+    const comment = await addComment(vaultId, noteId, {
+      ...draftComment.value,
+      body,
+    })
+    draftComment.value = null
+    activeCommentId.value = comment.id
+    return comment
+  }
+
   return {
     comments,
+    activeCommentId,
+    activeTab,
+    draftComment,
+    annotations,
     loading,
     error,
     load,
     clear,
+    clearLoadedComments,
     addComment,
     removeComment,
     resolveComment,
     addReply,
     removeReply,
+    setActiveComment,
+    beginComment,
+    cancelDraftComment,
+    submitDraftComment,
   }
 }

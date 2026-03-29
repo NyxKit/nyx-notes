@@ -4,7 +4,9 @@ use axum::{
     Json,
 };
 use chrono::Utc;
-use notes_core::{Comment, CommentReply, NotePermission};
+use notes_core::{
+    Comment, CommentAnchor, CommentAttachment, CommentReply, CommentVisibility, NotePermission,
+};
 use uuid::Uuid;
 
 use crate::{
@@ -41,7 +43,12 @@ pub async fn list_comments(
         .storage
         .load_comments(vault_id, note_id)
         .await?;
-    Ok(Json(comments))
+    Ok(Json(
+        comments
+            .into_iter()
+            .filter(|comment| !matches!(comment.visibility, CommentVisibility::HiddenLegacy))
+            .collect(),
+    ))
 }
 
 pub async fn create_comment(
@@ -62,15 +69,27 @@ pub async fn create_comment(
         .load_comments(vault_id.clone(), note_id.clone())
         .await?;
 
+    let now = Utc::now();
     let comment = Comment {
         id: Uuid::new_v4().to_string(),
         note_id: note_id.clone(),
         author_id: user.id.clone(),
         author_name: user.display_name.clone(),
         body: body.body,
-        quoted_text: body.quoted_text,
+        anchor: CommentAnchor {
+            text: body.anchor.text,
+            prefix: body.anchor.prefix,
+            suffix: body.anchor.suffix,
+            range_from: body.anchor.range_from,
+            range_to: body.anchor.range_to,
+            attachment: CommentAttachment::Attached,
+            line_preview: body.anchor.line_preview,
+            last_matched_at: Some(now),
+        },
         resolved: false,
-        created_at: Utc::now(),
+        visibility: CommentVisibility::Visible,
+        created_at: now,
+        updated_at: now,
         replies: Vec::new(),
     };
 
@@ -138,6 +157,7 @@ pub async fn patch_comment(
         .ok_or(AppError::NotFound)?;
 
     comment.resolved = body.resolved;
+    comment.updated_at = Utc::now();
     let updated = comment.clone();
 
     state
@@ -179,6 +199,7 @@ pub async fn create_reply(
     };
 
     comment.replies.push(reply.clone());
+    comment.updated_at = Utc::now();
 
     state
         .storage
@@ -217,6 +238,7 @@ pub async fn delete_reply(
     }
 
     comment.replies.remove(pos);
+    comment.updated_at = Utc::now();
 
     state
         .storage

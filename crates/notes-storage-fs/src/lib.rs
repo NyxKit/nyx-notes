@@ -6,12 +6,128 @@ mod tests;
 
 use std::path::{Path, PathBuf};
 
+use chrono::{DateTime, Utc};
 use notes_core::{
-    Comment, Note, NoteMeta, NotePermission, StorageBackend, StorageError, Team, Vault,
-    VaultIconUpdate, VaultOwner, VaultUpdate,
+    Comment, CommentAnchor, CommentAttachment, CommentReply, CommentVisibility, Note, NoteMeta,
+    NotePermission, StorageBackend, StorageError, Team, Vault, VaultIconUpdate, VaultOwner,
+    VaultUpdate,
 };
+use serde::{Deserialize, Serialize};
 
 use meta::{TeamJson, VaultJson};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct SidecarCommentAnchor {
+    text: String,
+    prefix: String,
+    suffix: String,
+    range_from: u32,
+    range_to: u32,
+    attachment: CommentAttachment,
+    line_preview: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    last_matched_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct SidecarComment {
+    id: String,
+    note_id: String,
+    author_id: String,
+    author_name: String,
+    body: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    anchor: Option<SidecarCommentAnchor>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    quoted_text: Option<String>,
+    resolved: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    visibility: Option<CommentVisibility>,
+    created_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    updated_at: Option<DateTime<Utc>>,
+    replies: Vec<CommentReply>,
+}
+
+impl SidecarComment {
+    fn into_domain(self) -> Comment {
+        let visibility = self.visibility.unwrap_or_else(|| {
+            if self.anchor.is_some() {
+                CommentVisibility::Visible
+            } else {
+                CommentVisibility::HiddenLegacy
+            }
+        });
+
+        let anchor = match self.anchor {
+            Some(anchor) => CommentAnchor {
+                text: anchor.text,
+                prefix: anchor.prefix,
+                suffix: anchor.suffix,
+                range_from: anchor.range_from,
+                range_to: anchor.range_to,
+                attachment: anchor.attachment,
+                line_preview: anchor.line_preview,
+                last_matched_at: anchor.last_matched_at,
+            },
+            None => {
+                let quoted_text = self.quoted_text.unwrap_or_default();
+                CommentAnchor {
+                    text: quoted_text.clone(),
+                    prefix: String::new(),
+                    suffix: String::new(),
+                    range_from: 0,
+                    range_to: 0,
+                    attachment: CommentAttachment::Detached,
+                    line_preview: quoted_text,
+                    last_matched_at: None,
+                }
+            }
+        };
+
+        Comment {
+            id: self.id,
+            note_id: self.note_id,
+            author_id: self.author_id,
+            author_name: self.author_name,
+            body: self.body,
+            anchor,
+            resolved: self.resolved,
+            visibility,
+            created_at: self.created_at,
+            updated_at: self.updated_at.unwrap_or(self.created_at),
+            replies: self.replies,
+        }
+    }
+}
+
+impl From<&Comment> for SidecarComment {
+    fn from(comment: &Comment) -> Self {
+        Self {
+            id: comment.id.clone(),
+            note_id: comment.note_id.clone(),
+            author_id: comment.author_id.clone(),
+            author_name: comment.author_name.clone(),
+            body: comment.body.clone(),
+            anchor: Some(SidecarCommentAnchor {
+                text: comment.anchor.text.clone(),
+                prefix: comment.anchor.prefix.clone(),
+                suffix: comment.anchor.suffix.clone(),
+                range_from: comment.anchor.range_from,
+                range_to: comment.anchor.range_to,
+                attachment: comment.anchor.attachment.clone(),
+                line_preview: comment.anchor.line_preview.clone(),
+                last_matched_at: comment.anchor.last_matched_at,
+            }),
+            quoted_text: None,
+            resolved: comment.resolved,
+            visibility: Some(comment.visibility.clone()),
+            created_at: comment.created_at,
+            updated_at: Some(comment.updated_at),
+            replies: comment.replies.clone(),
+        }
+    }
+}
 
 pub struct FsStorage {
     root: PathBuf,
@@ -417,7 +533,12 @@ impl StorageBackend for FsStorage {
         }
 
         let content = std::fs::read_to_string(&path)?;
-        serde_json::from_str(&content).map_err(|e| StorageError::ParseError(e.to_string()))
+        let sidecar: Vec<SidecarComment> =
+            serde_json::from_str(&content).map_err(|e| StorageError::ParseError(e.to_string()))?;
+        Ok(sidecar
+            .into_iter()
+            .map(SidecarComment::into_domain)
+            .collect())
     }
 
     fn save_comments(
@@ -436,7 +557,11 @@ impl StorageBackend for FsStorage {
             return Ok(());
         }
 
-        let content = serde_json::to_string_pretty(comments)
+        let serializable = comments
+            .iter()
+            .map(SidecarComment::from)
+            .collect::<Vec<_>>();
+        let content = serde_json::to_string_pretty(&serializable)
             .map_err(|e| StorageError::ParseError(e.to_string()))?;
         std::fs::write(&path, content)?;
         Ok(())
