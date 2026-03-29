@@ -19,7 +19,7 @@
   "dependencies": {
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
-    "nyx-kit": "^2.0.6",
+    "nyx-kit": "^2.0.10",
     "ofetch": "^1.5.1",
     "pinia": "^3.0.4",
     "vue": "^3.5.13",

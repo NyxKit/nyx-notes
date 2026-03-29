@@ -180,7 +180,7 @@ async function onDeleteReply(replyId: string) {
 }
 
 .thread--resolved {
-  opacity: 0.45;
+  opacity: 1;
 }
 
 .thread--active {
