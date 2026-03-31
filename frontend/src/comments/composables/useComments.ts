@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue'
+import { getApiRequestEpoch } from '@/shared/api'
 import {
   fetchComments,
   createComment,
@@ -27,10 +28,13 @@ export function useComments() {
   )
 
   async function load(vaultId: string, noteId: string) {
+    const requestEpoch = getApiRequestEpoch()
     loading.value = true
     error.value = null
     try {
-      comments.value = sortCommentsByAnchor(await fetchComments(vaultId, noteId))
+      const nextComments = sortCommentsByAnchor(await fetchComments(vaultId, noteId))
+      if (requestEpoch !== getApiRequestEpoch()) return
+      comments.value = nextComments
     } catch (e) {
       error.value = String(e)
     } finally {

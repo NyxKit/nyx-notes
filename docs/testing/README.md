@@ -49,6 +49,8 @@ What to test:
 - All CRUD routes return correct status codes
 - Permission enforcement: `403` returned when access is denied
 - Auth middleware: `401` on missing or invalid token
+- `GET /api/auth/mode` returns the documented response shape, including additive metadata fields when present
+- `POST /api/auth/login` returns `422` when password login is unavailable for the configured auth mode
 - `PUT` does not change `created_at`
 - `PATCH /permission` is owner-only
 - comment creation accepts structured anchors and returns `201 Created`
@@ -70,13 +72,17 @@ async fn non_owner_cannot_edit_restricted_note() {
 
 What to test:
 - `useNotes`: CRUD methods call correct endpoints with correct payloads
-- `useAuth`: token is attached to requests
+- `useAuth`: active-profile bootstrap discovers auth mode correctly, tokens are attached only for the active remote profile, and logging out one profile does not clear another saved profile session
+- `useWorkspaceProfiles`: duplicate `server_url + username` entries are rejected while same-server different-username profiles are allowed
 - `useComments`: maps comment records to `NyxAnnotation[]`, tracks active/focused annotations, and orders attached threads before detached ones
 - `useCommentAnnotations`: preserves exact selected-text anchors, exposes containing-line context, and omits hidden legacy comments
 
 **E2E tests** (Playwright): full browser against a running dev server.
 
 What to test:
+- First-run setup: choose local mode and enter the app without a login screen
+- First-run setup: connect to an existing remote `secret_key` server and enter the app with a saved remote profile
+- Profile switcher: switching between local and remote profiles loads the correct workspace and clears stale content from the previous profile
 - Login → note list loads → open note → edit → save persists
 - Permission selector visible for owner, hidden for non-owner
 - Comment: select text → add comment → thread appears with containing-line context while the selected text is annotated in the editor

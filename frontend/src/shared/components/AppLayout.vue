@@ -1,20 +1,42 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { watch } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useAuth } from '@/auth/composables'
+import { useWorkspaceProfiles } from '@/shared/composables'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
+import { useTeams } from '@/teams/composables'
+import { useComments } from '@/comments/composables'
 import { VaultSwitcher } from '@/vaults/components'
 import { SidebarNav } from '@/shared/components'
 import { NoteList } from '@/notes/components'
 
 const vaultStore = useVaultStore()
-const { vaults, activeVault } = storeToRefs(vaultStore)
+const notesStore = useNotesStore()
+const teams = useTeams()
+const comments = useComments()
+const { apiEpoch, isAuthenticated } = useAuth()
+const { activeProfile } = useWorkspaceProfiles()
+const { vaults } = storeToRefs(vaultStore)
 const { load } = vaultStore
-const { loadAll } = useNotesStore()
+const { loadAll } = notesStore
 
-onMounted(async () => {
+async function refreshWorkspace() {
+  vaultStore.$reset()
+  notesStore.$reset()
+  teams.clear()
+  comments.clearLoadedComments()
+
+  if (!isAuthenticated.value) return
+
   await load()
   await loadAll(vaults.value.map(v => v.id))
+}
+
+watch([activeProfile, apiEpoch], async () => {
+  await refreshWorkspace()
+}, {
+  immediate: true,
 })
 </script>
 
@@ -27,27 +49,6 @@ onMounted(async () => {
         <VaultSwitcher />
         <SidebarNav />
         <NoteList />
-        <div class="app-shell__sidebar-footer">
-          <RouterLink
-            v-if="activeVault"
-            :to="`/vaults/${activeVault.id}/settings`"
-            class="app-shell__footer-nav-item"
-          >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <circle cx="7.5" cy="7.5" r="2" stroke="currentColor" stroke-width="1.25"/>
-              <path d="M7.5 1v1.5M7.5 12.5V14M1 7.5h1.5M12.5 7.5H14M2.75 2.75l1.06 1.06M11.19 11.19l1.06 1.06M2.75 12.25l1.06-1.06M11.19 3.81l1.06-1.06" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            </svg>
-            Settings
-          </RouterLink>
-          <a href="#" class="app-shell__footer-nav-item">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
-              <circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.25"/>
-              <path d="M7.5 10.5v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              <path d="M7.5 8.5c0-1 .75-1.5 1.25-2A2.25 2.25 0 105.25 5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
-            </svg>
-            Help
-          </a>
-        </div>
       </div>
     </aside>
 
@@ -97,30 +98,5 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-}
-
-.app-shell__sidebar-footer {
-  margin-top: auto;
-  padding: 0.5rem 0.75rem;
-  flex-shrink: 0;
-  box-shadow: 0 -1px 0 0 var(--nyx-c-divider);
-}
-
-.app-shell__footer-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--nyx-radius-md);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--nyx-c-text-2);
-  text-decoration: none;
-  transition: background 0.2s, color 0.2s;
-}
-
-.app-shell__footer-nav-item:hover {
-  background: #25252b;
-  color: var(--nyx-c-text-1);
 }
 </style>

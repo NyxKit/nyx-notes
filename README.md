@@ -4,10 +4,10 @@ A self-hosted, Markdown-first notes app.
 
 - Notes are stored as plain `.md` files on disk — the filesystem is the **source of truth**
 - Backend: portable Rust server (Axum) — runs on any Linux server, NAS, or local machine
-- Frontend: Vue 3 SPA using [nyx-kit](https://github.com/nyxkit/nyx-kit) and TipTap
+- Frontend: Vue 3 SPA using [nyx-kit](https://github.com/nyxkit/nyx-kit) and TipTap, with one local workspace profile plus multiple remote server profiles per client
 - Review: line-based discussion threads anchored to exact selected text, with comment history stored in `.comments.json` sidecars
 - CLI: terminal-first workflows, operates directly on the filesystem with no server required
-- Auth: pluggable — `local` (no auth), `secret_key` (self-hosted JWT), or `oidc` (any OIDC provider); no external dependency required for local or self-hosted deployments
+- Auth: pluggable on the server — `local` (no auth), `secret_key` (self-hosted JWT), or `oidc` (any OIDC provider); the multi-profile client flow in this feature supports local profiles and remote `secret_key` username/password sign-in
 - Native app: Tauri desktop app for macOS, Windows, and Linux
 - Future: optional end-to-end encryption and optional AI assistant (never required)
 
@@ -162,7 +162,8 @@ vault = "home"
 
 1. Single-user, local-mode Axum API + Vue frontend + CLI
 2. Tauri native app (embedded server, local auth)
-3. Multi-user vault namespacing + `secret_key` auth (self-hosted)
-4. `oidc` auth mode (cloud/managed, any OIDC provider)
-5. Optional E2EE
-6. Optional AI/integrations (never required)
+3. Multi-profile client: local workspace plus multiple remote self-hosted server connections
+4. Multi-user vault namespacing + `secret_key` auth (self-hosted)
+5. `oidc` auth mode (cloud/managed, any OIDC provider)
+6. Optional E2EE
+7. Optional AI/integrations (never required)

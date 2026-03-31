@@ -22,21 +22,46 @@ pub enum AuthConfig {
 
 /// JSON response shape for `GET /api/auth/mode`.
 #[derive(Serialize)]
-#[serde(tag = "mode", rename_all = "snake_case")]
-pub enum AuthModeResponse {
-    Local,
-    SecretKey,
-    Oidc { issuer: String, client_id: String },
+pub struct AuthModeResponse {
+    pub mode: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub issuer: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub client_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub server_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub server_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub api_version: Option<String>,
 }
 
 impl From<&AuthConfig> for AuthModeResponse {
     fn from(cfg: &AuthConfig) -> Self {
         match cfg {
-            AuthConfig::Local => AuthModeResponse::Local,
-            AuthConfig::SecretKey => AuthModeResponse::SecretKey,
-            AuthConfig::Oidc { issuer, client_id } => AuthModeResponse::Oidc {
-                issuer: issuer.clone(),
-                client_id: client_id.clone(),
+            AuthConfig::Local => AuthModeResponse {
+                mode: "local",
+                issuer: None,
+                client_id: None,
+                server_id: None,
+                server_name: None,
+                api_version: Some(env!("CARGO_PKG_VERSION").to_string()),
+            },
+            AuthConfig::SecretKey => AuthModeResponse {
+                mode: "secret_key",
+                issuer: None,
+                client_id: None,
+                server_id: None,
+                server_name: None,
+                api_version: Some(env!("CARGO_PKG_VERSION").to_string()),
+            },
+            AuthConfig::Oidc { issuer, client_id } => AuthModeResponse {
+                mode: "oidc",
+                issuer: Some(issuer.clone()),
+                client_id: Some(client_id.clone()),
+                server_id: None,
+                server_name: None,
+                api_version: Some(env!("CARGO_PKG_VERSION").to_string()),
             },
         }
     }

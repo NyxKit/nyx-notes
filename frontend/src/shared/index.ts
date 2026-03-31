@@ -1,5 +1,6 @@
 export * from './api'
 export * from './assets'
+export * from './composables'
 export * from './components'
 export { default as router } from './router'
 export * from './types'

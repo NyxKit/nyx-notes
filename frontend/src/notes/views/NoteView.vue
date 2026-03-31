@@ -68,7 +68,7 @@ const vaultStore = useVaultStore()
 const { vaults } = storeToRefs(vaultStore)
 const { load: loadVaults, setActive } = vaultStore
 const notesStore = useNotesStore()
-const { activeNote, saving } = storeToRefs(notesStore)
+const { activeNote } = storeToRefs(notesStore)
 const { loadNote, remove } = notesStore
 
 const LAST_NOTE_KEY = 'nyx_last_note'
@@ -83,11 +83,6 @@ const noteTitle = computed(() => {
   if (section.value === 'favorites') return 'Favorites'
   if (section.value === 'drafts') return 'Drafts'
   return activeNote.value?.meta.title || 'Untitled Note'
-})
-
-const wordCount = computed(() => {
-  const text = activeNote.value?.content ?? ''
-  return text.trim() ? text.trim().split(/\s+/).length : 0
 })
 
 async function pruneIfEmpty() {

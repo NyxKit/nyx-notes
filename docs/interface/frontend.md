@@ -138,10 +138,13 @@ frontend/src/
 ### `LoginView`
 
 - Rendered at `/login`
-- UI adapts to the server's `AUTH_MODE`:
-  - `secret_key`: username + password form, submits to `POST /api/auth/login`
-  - `oidc`: redirects to the OIDC provider's login page; exchanges the auth code for a token on return
-  - `local`: never rendered (login is skipped entirely)
+- Acts as both first-run setup and remote-profile sign-in surface
+- First-run setup offers:
+  - `Local` → create the singleton local workspace profile and enter the app without login
+  - `Server` → choose `Set up a new server` or `Connect to an existing server`
+- `Set up a new server` shows guided deployment/setup instructions but does not provision the server directly
+- `Connect to an existing server` collects server URL, username, and password, probes `GET /api/auth/mode`, then signs in only when the selected remote server supports `secret_key`
+- Remote `oidc` servers are shown as unsupported in this feature's multi-profile flow
 - On success: redirects to `/`
 
 ### `HomeView`
@@ -232,28 +235,36 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
 
 ## Auth Flow
 
-On startup, the frontend calls `GET /api/auth/mode` to discover which auth mode the server is running, then renders the appropriate login UI (or skips it for `local` mode).
+The frontend boots from the active workspace profile, not from one global server configuration.
+
+- A local profile skips login entirely
+- A remote profile first calls `GET /api/auth/mode` for that profile's server URL
+- If the remote server reports `secret_key`, the client shows the username/password form and stores the resulting token only for that profile
+- If the remote server reports `oidc`, the client keeps the profile saved but marks it unsupported for this feature's remote flow
+- Switching profiles clears in-memory auth, vault, note, comment, and team state before loading the newly selected profile
 
 ```ts
 // auth/composables/useAuth.ts
+const activeProfile = ref<WorkspaceProfile | null>(null)
 const authMode = ref<'local' | 'secret_key' | 'oidc' | null>(null)
 const idToken = ref<string | null>(null)
 
-onMounted(async () => {
-  const { mode, oidc_issuer } = await fetch('/api/auth/mode').then(r => r.json())
+async function bootstrapActiveProfile() {
+  if (activeProfile.value?.type === 'local') {
+    authMode.value = 'local'
+    idToken.value = null
+    return
+  }
+
+  const { mode } = await fetchAuthModeForProfile(activeProfile.value)
   authMode.value = mode
-  if (mode === 'local') return  // no login needed
-  if (mode === 'oidc') initOidcClient(oidc_issuer)
-  // secret_key: token is set on login form submit
-})
+}
 ```
 
-The token is attached to every API request:
+The token is attached only to requests made through the currently active remote profile:
 
 ```ts
-await fetch(`/api/vaults/${vaultId}/notes/${id}`, {
-  headers: { Authorization: `Bearer ${idToken.value}` },
-})
+await apiForActiveProfile(`/api/vaults/${vaultId}/notes/${id}`)
 ```
 
 ## Routing
@@ -279,7 +290,7 @@ All authenticated routes are nested under the `AppLayout` parent route. `AppLayo
 | `/teams/:team_id/settings` | `TeamSettingsView` (child of `AppLayout`) | Auth required (inherited) |
 | `/login` | `LoginView` | Redirect to `/` if already authed |
 
-A navigation guard redirects unauthenticated users to `/login`. `meta: { requiresAuth: true }` is set on the `AppLayout` parent; child routes inherit it.
+A navigation guard redirects unauthenticated remote profiles to `/login`. `meta: { requiresAuth: true }` is set on the `AppLayout` parent; child routes inherit it. Local profiles bypass the login guard.
 
 ## Component Library (`nyx-kit`)
 

@@ -22,18 +22,20 @@ For the full vault and team model including permission matrices, see [vaults-and
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/auth/mode` | Returns the server's auth mode — called by the frontend on startup |
+| `GET` | `/api/auth/mode` | Returns the server's auth mode — called by the frontend when bootstrapping the active profile |
 | `POST` | `/api/auth/login` | `secret_key` mode only — accepts credentials, returns a signed JWT |
 
 #### `GET /api/auth/mode`
 
 ```json
 { "mode": "local" }
-{ "mode": "secret_key" }
-{ "mode": "oidc", "issuer": "https://auth.example.com", "client_id": "nyx-notes" }
+{ "mode": "secret_key", "api_version": "0.1.0" }
+{ "mode": "oidc", "issuer": "https://auth.example.com", "client_id": "nyx-notes", "api_version": "0.1.0" }
 ```
 
-The frontend calls this on startup to decide which login UI to render (or to skip login entirely in `local` mode).
+Optional additive fields may include `server_id`, `server_name`, and `api_version`. The frontend calls this when bootstrapping the active profile to decide which login UI to render (or to skip login entirely in `local` mode).
+
+For the multi-profile client flow in this feature, only remote `secret_key` servers continue to the username/password login screen. Remote `oidc` servers are reported as unsupported in the client flow and remain saved but unauthenticated.
 
 ### Note Routes (vault-scoped)
 
