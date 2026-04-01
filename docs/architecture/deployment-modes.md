@@ -93,7 +93,9 @@ AUTH_MODE = local   (hardcoded in the Tauri build; not user-configurable)
 
 See [docs/interface/native-app.md](../interface/native-app.md) for full details.
 
-**The native app can also connect to a remote server.** If the user provides a server URL in settings, the app talks to that server instead of the embedded one. This enables a "desktop client for your self-hosted instance" mode.
+**The native app can also connect to remote servers.** The client may keep one local workspace profile plus multiple remote server profiles, then switch between them. Each remote profile stores its own server URL, username, and authenticated session independently from every other profile. This enables a "desktop client for your self-hosted instance" mode without giving up local-only use.
+
+For this feature, connecting to an existing remote server uses username/password login only. A separate `Set up a new server` branch may guide server managers through deployment choices, but does not provision the server directly.
 
 ---
 

@@ -2,7 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
-import { NyxButton, NyxGrid } from 'nyx-kit/components'
+import { NyxButton, NyxGrid, NyxIcon } from 'nyx-kit/components'
 import { NyxGridMode } from 'nyx-kit/types'
 import { NoteCard } from '@/notes/components'
 import { useNotesStore } from '@/notes/stores'
@@ -90,10 +90,7 @@ async function createFirst() {
       <div v-else class="app-shell__canvas app-shell__canvas--center">
         <div class="vault__welcome-card">
           <div class="vault__welcome-icon">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-              <rect x="6" y="4" width="16" height="20" rx="2" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M10 10h8M10 14h8M10 18h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
+            <NyxIcon name="file-text" :size="32" />
           </div>
           <h1 class="vault__heading">This vault is empty.</h1>
           <p class="vault__desc">Start writing your first note. It will appear here once saved.</p>

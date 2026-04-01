@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
+import { getApiRequestEpoch } from '@/shared/api'
 import {
   fetchNotes,
   fetchNote,
@@ -23,19 +24,24 @@ export const useNotesStore = defineStore('notes', () => {
   }
 
   async function loadAll(vaultIds: string[]) {
+    const requestEpoch = getApiRequestEpoch()
     const results = await Promise.allSettled(
       vaultIds.map(id => fetchNotes(id).then(notes => ({ id, notes })))
     )
+    if (requestEpoch !== getApiRequestEpoch()) return
     for (const r of results) {
       if (r.status === 'fulfilled') notesByVault.value[r.value.id] = r.value.notes
     }
   }
 
   async function loadList(vaultId: string) {
+    const requestEpoch = getApiRequestEpoch()
     listLoading.value = true
     error.value = null
     try {
-      notesByVault.value[vaultId] = await fetchNotes(vaultId)
+      const notes = await fetchNotes(vaultId)
+      if (requestEpoch !== getApiRequestEpoch()) return
+      notesByVault.value[vaultId] = notes
     } catch (e) {
       error.value = String(e)
     } finally {
@@ -44,10 +50,13 @@ export const useNotesStore = defineStore('notes', () => {
   }
 
   async function loadNote(vaultId: string, id: string) {
+    const requestEpoch = getApiRequestEpoch()
     loading.value = true
     error.value = null
     try {
-      activeNote.value = await fetchNote(vaultId, id)
+      const note = await fetchNote(vaultId, id)
+      if (requestEpoch !== getApiRequestEpoch()) return
+      activeNote.value = note
     } catch (e) {
       error.value = String(e)
     } finally {

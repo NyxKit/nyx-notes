@@ -1,72 +1,190 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useAuth } from '@/auth/composables'
-import { NyxButton, NyxInput, NyxForm, NyxFormField } from 'nyx-kit/components'
-import { NyxInputType } from 'nyx-kit/types'
+import { NyxButton, NyxCard } from 'nyx-kit/components'
+import { InstallationModeStep, RemoteProfileForm, useAuth } from '@/auth'
+import { useWorkspaceProfiles } from '@/shared/composables'
+import type { InstallationMode } from '@/auth/types/profileSetup'
+import type { ServerSetupChoice } from '@/auth/types/profileSetup'
+import type { RemoteProfileDraft } from '@/shared/types'
 
 const router = useRouter()
 const route = useRoute()
-const { authMode, oidcIssuer, login } = useAuth()
+const auth = useAuth()
+const workspaceProfiles = useWorkspaceProfiles()
 
-const email = ref('')
-const password = ref('')
+const selectedMode = ref<InstallationMode | null>(null)
+const serverChoice = ref<ServerSetupChoice | null>(null)
 const error = ref<string | null>(null)
 const loading = ref(false)
 
-async function handleLogin() {
+const hasProfiles = computed(() => workspaceProfiles.profiles.value.length > 0)
+const addingRemoteProfile = computed(() => route.query.add === 'remote')
+const managingActiveRemote = computed(() => route.query.manage === 'active')
+const activeRemoteProfile = computed(() =>
+  workspaceProfiles.activeProfile.value?.type === 'remote'
+    ? workspaceProfiles.activeProfile.value
+    : null
+)
+
+async function completeLocalSetup() {
   error.value = null
+  workspaceProfiles.createLocalProfile()
+  await auth.bootstrapActiveProfile()
+  await router.push('/')
+}
+
+function chooseServerMode(choice: ServerSetupChoice) {
+  selectedMode.value = 'server'
+  serverChoice.value = choice
+  error.value = null
+}
+
+function chooseMode(mode: InstallationMode) {
+  selectedMode.value = mode
+
+  if (mode === 'local') {
+    void completeLocalSetup()
+    return
+  }
+
+  serverChoice.value = null
+}
+
+async function connectExistingServer(draft: RemoteProfileDraft) {
   loading.value = true
+  error.value = null
+
   try {
-    await login(email.value, password.value)
-    const redirect = (route.query.redirect as string) ?? '/'
-    router.push(redirect)
+    workspaceProfiles.addRemoteProfile(draft)
+    await auth.bootstrapActiveProfile()
+
+    if (auth.isAuthenticated.value) {
+      await router.push((route.query.redirect as string) ?? '/')
+      return
+    }
+
+    if (auth.authMode.value === 'oidc') {
+      error.value = 'This remote server uses OIDC, which is not supported in the multi-profile flow yet.'
+    }
+  } catch (cause) {
+    error.value = cause instanceof Error ? cause.message : 'Unable to connect to this server profile.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function signInRemoteProfile(draft: RemoteProfileDraft) {
+  loading.value = true
+  error.value = null
+
+  try {
+    if (activeRemoteProfile.value) {
+      workspaceProfiles.updateRemoteProfile(activeRemoteProfile.value.id, draft)
+      await auth.login(draft.username, draft.password)
+      await router.push((route.query.redirect as string) ?? '/')
+    }
   } catch {
     error.value = 'Invalid credentials'
   } finally {
     loading.value = false
   }
 }
-
-function handleOidc() {
-  // OIDC redirect — issuer URL comes from server discovery
-  if (oidcIssuer.value) {
-    window.location.href = oidcIssuer.value
-  }
-}
 </script>
 
 <template>
   <div class="login">
-    <h1>Nyx Notes</h1>
+    <NyxCard class="login__card">
+      <h1>Nyx Notes</h1>
 
-    <NyxForm v-if="authMode === 'secret_key'" @submit="handleLogin">
-      <NyxFormField label="Email">
-        <NyxInput v-model="email" :type="NyxInputType.Email" placeholder="you@example.com" required />
-      </NyxFormField>
-      <NyxFormField label="Password">
-        <NyxInput v-model="password" :type="NyxInputType.Password" placeholder="••••••••" required />
-      </NyxFormField>
+      <template v-if="!hasProfiles">
+        <InstallationModeStep
+          :selected-mode="selectedMode"
+          :server-choice="serverChoice"
+          @select-mode="chooseMode"
+          @select-server-choice="chooseServerMode"
+        />
+
+        <NyxCard v-if="serverChoice === 'setup_new_server'" class="login__subcard">
+          <h2>Set Up a New Server</h2>
+          <p>Use Docker or a server binary to start Nyx Notes with `AUTH_MODE=secret_key` on your NAS or home server, then come back here and connect to it.</p>
+          <NyxButton @click="serverChoice = 'connect_existing_server'">Continue to Connection</NyxButton>
+        </NyxCard>
+
+        <RemoteProfileForm
+          v-if="serverChoice === 'connect_existing_server'"
+          submit-label="Connect Server"
+          :loading="loading"
+          @submit="connectExistingServer"
+        />
+      </template>
+
+      <template v-else-if="addingRemoteProfile">
+        <p>Add another remote server profile.</p>
+        <RemoteProfileForm
+          submit-label="Add Server"
+          :loading="loading"
+          @submit="connectExistingServer"
+        />
+      </template>
+
+      <template v-else-if="managingActiveRemote && activeRemoteProfile">
+        <p>Update the active remote profile and re-authenticate it.</p>
+        <RemoteProfileForm
+          :initial-value="{
+            display_name: activeRemoteProfile.display_name,
+            server_url: activeRemoteProfile.server_url,
+            username: activeRemoteProfile.username,
+          }"
+          submit-label="Update Server"
+          :loading="loading"
+          @submit="signInRemoteProfile"
+        />
+      </template>
+
+      <template v-else-if="activeRemoteProfile && !auth.isAuthenticated.value">
+        <p>Sign in to <strong>{{ activeRemoteProfile.display_name }}</strong> to continue.</p>
+        <RemoteProfileForm
+          :initial-value="{
+            display_name: activeRemoteProfile.display_name,
+            server_url: activeRemoteProfile.server_url,
+            username: activeRemoteProfile.username,
+          }"
+          submit-label="Sign In"
+          :loading="loading || auth.bootstrapping.value"
+          @submit="signInRemoteProfile"
+        />
+      </template>
+
+      <template v-else>
+        <p>Loading workspace…</p>
+      </template>
+
       <p v-if="error" class="login__error">{{ error }}</p>
-      <NyxButton type="submit" :disabled="loading">
-        {{ loading ? 'Signing in…' : 'Sign in' }}
-      </NyxButton>
-    </NyxForm>
-
-    <div v-else-if="authMode === 'oidc'">
-      <NyxButton @click="handleOidc">Sign in with SSO</NyxButton>
-    </div>
+    </NyxCard>
   </div>
 </template>
 
 <style scoped>
 .login {
   display: flex;
-  flex-direction: column;
+  min-height: 100vh;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
-  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.login__card {
+  width: min(32rem, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.login__subcard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .login__error {

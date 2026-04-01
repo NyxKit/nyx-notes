@@ -36,6 +36,8 @@ Do not add a new Rust crate, npm package, or external service without flagging i
 - N/A for this feature; frontend presentation only (008-adopt-nyxcard-cards)
 - Rust workspace backend + TypeScript 5.6 / Vue 3.5 frontend + Axum, serde/serde_json, chrono, uuid, Vue 3 Composition API, Pinia, ofetch, nyx-kit 2.0.6 (010-add-line-comments)
 - Filesystem-backed Markdown notes plus JSON comment sidecars (`<note>.comments.json`) (010-add-line-comments)
+- Rust (workspace crates), TypeScript, Vue 3 Composition API + Axum server stack, Vue Router, ofetch/fetch, nyx-kit, Tauri shell for native mode (011-add-server-profiles)
+- Filesystem-backed notes remain unchanged; client profile metadata persists in client app configuration and per-profile secret storage (011-add-server-profiles)
 
 ## Recent Changes
 - 001-route-domains: Added TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5

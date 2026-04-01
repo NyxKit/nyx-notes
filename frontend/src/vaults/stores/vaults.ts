@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
+import { getApiRequestEpoch } from '@/shared/api'
 import { fetchVaults, createVault, deleteVault, patchVaultPermission, updateVault } from '@/vaults/api'
 import { createTeamVault, deleteTeamVault } from '@/teams/api'
 import type { Vault, CreateVaultRequest, UpdateVaultRequest, NotePermission } from '@/shared/types'
@@ -11,10 +12,13 @@ export const useVaultStore = defineStore('vaults', () => {
   const error = ref<string | null>(null)
 
   async function load() {
+    const requestEpoch = getApiRequestEpoch()
     loading.value = true
     error.value = null
     try {
-      vaults.value = await fetchVaults()
+      const nextVaults = await fetchVaults()
+      if (requestEpoch !== getApiRequestEpoch()) return
+      vaults.value = nextVaults
     } catch (e) {
       error.value = String(e)
     } finally {

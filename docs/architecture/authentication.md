@@ -38,7 +38,7 @@ impl AuthStore for LocalAuthStore {
 }
 ```
 
-Frontend behaviour: skip `LoginView` entirely. No token is attached to API requests. The backend ignores the `Authorization` header.
+Frontend behaviour: a local workspace profile skips `LoginView` entirely. No token is attached to API requests for that profile. The backend ignores the `Authorization` header.
 
 ---
 
@@ -87,7 +87,7 @@ impl AuthStore for SecretKeyAuthStore {
 
 **Dependencies:** `jsonwebtoken` for JWT encode/decode (HS256); `argon2` for password hashing. Both live in `notes-auth-local` only — not pulled into `notes-core` or `notes-server-axum`.
 
-Frontend behaviour: show a simple login form (username + password). On success, store the token and attach it to all API requests as `Authorization: Bearer <token>`.
+Frontend behaviour: remote server profiles in this feature use a simple username + password form. On success, the client stores the token in the active profile session and attaches it to that profile's API requests as `Authorization: Bearer <token>`.
 
 ---
 
@@ -119,16 +119,30 @@ Frontend behaviour: redirect to the OIDC provider's login page. On return, excha
 
 ---
 
+## Multi-Profile Client Behaviour
+
+The client may hold one local workspace profile and multiple remote server profiles at the same time.
+
+- Each remote profile is scoped to one `server_url + username` pair
+- The same server URL may appear more than once when each saved profile uses a different username
+- Every remote profile keeps its own auth mode discovery result, credentials, and signed-in state
+- Signing out of or failing authentication for one remote profile must not affect any other saved profile
+- For this feature, remote profiles support username/password login only; remote `oidc` flows remain unsupported in the multi-profile client flow
+
+`Set up a new server` remains a guided onboarding branch for server managers, but server provisioning itself is outside the client-auth contract.
+
+---
+
 ## Auth Mode Discovery
 
-The frontend needs to know which auth mode the server is running so it can show the correct login UI (or none at all).
+The frontend needs to know which auth mode the selected server profile is running so it can show the correct login UI (or none at all).
 
 ```
 GET /api/auth/mode
-→ 200 OK  { "mode": "local" | "secret_key" | "oidc", "oidc_issuer"?: "..." }
+→ 200 OK  { "mode": "local" | "secret_key" | "oidc", "issuer"?: "...", "client_id"?: "...", "server_id"?: "...", "server_name"?: "...", "api_version"?: "..." }
 ```
 
-This endpoint is unauthenticated. The frontend calls it on startup before rendering anything.
+This endpoint is unauthenticated. The frontend calls it when bootstrapping the active profile and before attempting remote login.
 
 ---
 

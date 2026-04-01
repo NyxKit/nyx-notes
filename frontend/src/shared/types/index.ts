@@ -1,16 +1,19 @@
-// ─── Auth ────────────────────────────────────────────────────────────────────
+import type { AuthMode } from './profile'
 
-export type AuthMode = 'local' | 'secret_key' | 'oidc'
+// ─── Auth ────────────────────────────────────────────────────────────────────
 
 export interface AuthModeResponse {
   mode: AuthMode
-  issuer?: string    // only present when mode === 'oidc'
-  client_id?: string // only present when mode === 'oidc'
+  issuer?: string
+  client_id?: string
+  server_id?: string
+  server_name?: string
+  api_version?: string
 }
 
 export interface LoginToken {
   token: string
-  expires_at: string // ISO 8601
+  expires_in: number
 }
 
 export interface User {
@@ -165,3 +168,5 @@ export interface AddMemberRequest {
 export interface PatchMemberRequest {
   role: Exclude<TeamRole, 'owner'>
 }
+
+export * from './profile'

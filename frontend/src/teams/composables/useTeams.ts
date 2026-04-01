@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { getApiRequestEpoch } from '@/shared/api'
 import {
   fetchTeams,
   fetchTeam,
@@ -14,11 +15,16 @@ const teams = ref<Team[]>([])
 
 export function useTeams() {
   async function load() {
-    teams.value = await fetchTeams()
+    const requestEpoch = getApiRequestEpoch()
+    const nextTeams = await fetchTeams()
+    if (requestEpoch !== getApiRequestEpoch()) return
+    teams.value = nextTeams
   }
 
   async function loadOne(teamId: string) {
+    const requestEpoch = getApiRequestEpoch()
     const team = await fetchTeam(teamId)
+    if (requestEpoch !== getApiRequestEpoch()) return team
     const idx = teams.value.findIndex(t => t.id === teamId)
     if (idx !== -1) teams.value[idx] = team
     else teams.value.push(team)
@@ -61,6 +67,10 @@ export function useTeams() {
     if (team) team.members = team.members.filter(m => m.user_id !== userId)
   }
 
+  function clear() {
+    teams.value = []
+  }
+
   return {
     teams,
     load,
@@ -71,5 +81,6 @@ export function useTeams() {
     addTeamMember,
     updateMember,
     kickMember,
+    clear,
   }
 }

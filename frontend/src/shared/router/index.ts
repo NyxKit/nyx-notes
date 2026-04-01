@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '@/auth/composables'
+import { useWorkspaceProfiles } from '@/shared/composables'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -34,6 +35,10 @@ const router = createRouter({
           component: () => import('@/vaults/views').then(({ VaultSettingsView }) => VaultSettingsView),
         },
         {
+          path: 'servers',
+          component: () => import('@/servers/views').then(({ ServersView }) => ServersView),
+        },
+        {
           path: 'teams/:team_id/settings',
           component: () => import('@/teams/views').then(({ TeamSettingsView }) => TeamSettingsView),
         },
@@ -47,23 +52,34 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  const { authMode, isAuthenticated, discoverMode } = useAuth()
+  const { activeProfile } = useWorkspaceProfiles()
+  const { authMode, isAuthenticated, bootstrapActiveProfile } = useAuth()
 
-  // Discover auth mode once on first navigation
-  if (authMode.value === null) {
-    await discoverMode()
+  if (!activeProfile.value) {
+    if (to.path === '/login') return true
+    return { path: '/login', query: { redirect: to.fullPath } }
   }
 
-  // Local mode: no auth needed, skip login entirely
+  if (authMode.value === null) {
+    await bootstrapActiveProfile()
+  }
+
   if (authMode.value === 'local') return true
 
   if (to.meta.requiresAuth && !isAuthenticated.value) {
     return { path: '/login', query: { redirect: to.fullPath } }
   }
 
-  if (to.path === '/login' && isAuthenticated.value) {
+  if (to.path === '/login' && isAuthenticated.value && !('add' in to.query) && !('manage' in to.query)) {
     return { path: '/' }
   }
+})
+
+router.afterEach((to) => {
+  const { activeProfile, updateProfileRoute } = useWorkspaceProfiles()
+  if (!activeProfile.value) return
+  if (to.path === '/login') return
+  updateProfileRoute(activeProfile.value.id, to.fullPath)
 })
 
 export default router
