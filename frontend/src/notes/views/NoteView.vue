@@ -67,11 +67,6 @@ const section = computed(() => {
   return 'notes'
 })
 
-const noteTitle = computed(() => {
-  if (section.value === 'drafts') return 'Drafts'
-  return activeNote.value?.meta.title || 'Untitled Note'
-})
-
 const favoriteActive = computed(() => {
   const profileId = activeProfile.value?.id
   const note = activeNote.value
@@ -133,9 +128,8 @@ watch(
 </script>
 
 <template>
-  <div class="app-shell__main">
-    
-    <Teleport to="#app-shell-header-actions">
+  <div class="note-view">
+    <Teleport to="#layout-header-actions">
       <NyxButton
         :shape="NyxShape.Square"
         title="Toggle source view"
@@ -171,10 +165,10 @@ watch(
     </Teleport>
 
     <!-- Body row: canvas + right comments panel -->
-    <div class="app-shell__body">
+    <div class="note-view__body">
 
       <!-- Main writing canvas -->
-      <main class="app-shell__canvas">
+      <main class="note-view__canvas">
         <template v-if="section === 'notes'">
           <NoteEditor
             v-if="activeNote"
@@ -184,21 +178,21 @@ watch(
             @focus-comment="onFocusComment"
             @blur-comment="setActiveComment(null)"
           />
-          <div v-else class="app-shell__placeholder">Select a note</div>
+          <div v-else class="note-view__placeholder">Select a note</div>
         </template>
-        <div v-else class="app-shell__wip">
-          <div class="app-shell__wip-icon" aria-hidden="true">
+        <div v-else class="note-view__wip">
+          <div class="note-view__wip-icon" aria-hidden="true">
             <NyxIcon v-if="section === 'favorites'" name="star" :size="32" />
             <NyxIcon v-else name="file-edit" :size="32" />
           </div>
-          <span class="app-shell__wip-label">{{ section === 'favorites' ? 'Favorites' : 'Drafts' }}</span>
-          <span class="app-shell__wip-sub">Coming soon</span>
+          <span class="note-view__wip-label">{{ section === 'favorites' ? 'Favorites' : 'Drafts' }}</span>
+          <span class="note-view__wip-sub">Coming soon</span>
         </div>
       </main>
 
       <!-- Right sidebar (comments) -->
-      <aside class="app-shell__comments" :class="{ 'app-shell__comments--open': isCommentsOpen }">
-        <div class="app-shell__comments-inner">
+      <aside class="note-view__comments" :class="{ 'note-view__comments--open': isCommentsOpen }">
+        <div class="note-view__comments-inner">
           <CommentSidebar v-if="activeNote && isCommentsOpen" :note="activeNote" />
         </div>
       </aside>
@@ -218,7 +212,7 @@ watch(
 </template>
 
 <style scoped>
-.app-shell__main {
+.note-view {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -226,51 +220,15 @@ watch(
   min-width: 0;
 }
 
-/* ── Header ─────────────────────────────────────────────────── */
-.app-shell__header {
-  height: 64px;
-  flex-shrink: 0;
-  background: var(--nyx-c-bg);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1rem;
-  box-shadow: 0 1px 0 0 var(--nyx-c-divider);
-}
-
-.app-shell__header-left,
-.app-shell__header-left {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  flex: 1;
-}
-
-.app-shell__header-right {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.app-shell__note-title {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--nyx-c-text-2);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 320px;
-}
-
 /* ── Body row ────────────────────────────────────────────────── */
-.app-shell__body {
+.note-view__body {
   flex: 1;
   display: flex;
   overflow: hidden;
 }
 
 /* ── Main canvas ────────────────────────────────────────────── */
-.app-shell__canvas {
+.note-view__canvas {
   flex: 1;
   background: var(--nyx-c-bg);
   display: flex;
@@ -278,7 +236,7 @@ watch(
   overflow: hidden;
 }
 
-.app-shell__placeholder {
+.note-view__placeholder {
   flex: 1;
   display: flex;
   align-items: center;
@@ -287,7 +245,7 @@ watch(
   font-size: 0.875rem;
 }
 
-.app-shell__wip {
+.note-view__wip {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -296,38 +254,38 @@ watch(
   gap: 0.5rem;
 }
 
-.app-shell__wip-icon {
+.note-view__wip-icon {
   color: var(--nyx-c-primary);
   opacity: 0.4;
   line-height: 0;
   margin-bottom: 0.5rem;
 }
 
-.app-shell__wip-label {
+.note-view__wip-label {
   font-family: 'Manrope', sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--nyx-c-text-2);
 }
 
-.app-shell__wip-sub {
+.note-view__wip-sub {
   font-size: 0.8125rem;
   color: var(--nyx-c-text-3);
 }
 
 /* ── Right sidebar (comments) ───────────────────────────────── */
-.app-shell__comments {
+.note-view__comments {
   width: 0;
   overflow: hidden;
   flex-shrink: 0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.app-shell__comments--open {
+.note-view__comments--open {
   width: 320px;
 }
 
-.app-shell__comments-inner {
+.note-view__comments-inner {
   width: 320px;
   height: 100%;
   background: var(--nyx-c-bg-soft);
@@ -335,32 +293,4 @@ watch(
   flex-direction: column;
   overflow: hidden;
 }
-
-/* ── Footer ─────────────────────────────────────────────────── */
-.app-shell__footer {
-  height: 40px;
-  flex-shrink: 0;
-  background: var(--nyx-c-bg);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1.5rem;
-  box-shadow: 0 -1px 0 0 var(--nyx-c-divider);
-}
-
-.app-shell__footer-left,
-.app-shell__footer-right {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.app-shell__stat {
-  font-size: 0.6875rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--nyx-c-text-3);
-}
-
-
 </style>

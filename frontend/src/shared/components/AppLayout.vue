@@ -93,8 +93,8 @@ function onBreadcrumbClick(item: NyxBreadcrumb) {
     <!-- Global header -->
     <header class="app-shell__header">
       <NyxBreadcrumbs :items="breadcrumbs" @click="onBreadcrumbClick" />
-      <!-- Nested routes cannot fill parent slots; views use Teleport here. -->
-      <div id="app-shell-header-actions" class="app-shell__header-actions" />
+      <!-- Nested routes cannot fill parent slots; views Teleport to #layout-header-actions. -->
+      <div id="layout-header-actions" class="app-shell__header-actions" />
     </header>
 
     <RouterView class="app-shell__body" />
