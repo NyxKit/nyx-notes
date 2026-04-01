@@ -54,7 +54,7 @@ function formatUpdatedLabel(iso: string) {
   return updatedAt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
-function getServerLabel(profile: AnyWorkspaceProfile) {
+export function getServerLabel(profile: AnyWorkspaceProfile) {
   if (profile.type === 'remote') {
     return profile.server_label || profile.display_name || profile.server_url
   }

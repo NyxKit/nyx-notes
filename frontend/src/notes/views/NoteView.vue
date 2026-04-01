@@ -2,6 +2,8 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { NyxBreadcrumbs } from 'nyx-kit/components'
+import type { NyxBreadcrumb } from 'nyx-kit/types'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore, useNoteBrowsingStore } from '@/notes/stores'
@@ -11,6 +13,7 @@ import { NyxModal, NyxButton, NyxIcon } from 'nyx-kit/components'
 import { NyxTheme, NyxShape, NyxVariant } from 'nyx-kit/types'
 import { NoteEditor } from '@/notes/components'
 import { CommentSidebar } from '@/comments/components'
+import { getServerLabel } from '@/notes/composables'
 
 const route = useRoute()
 const router = useRouter()
@@ -71,6 +74,34 @@ const noteTitle = computed(() => {
   if (section.value === 'drafts') return 'Drafts'
   return activeNote.value?.meta.title || 'Untitled Note'
 })
+
+const breadcrumbs = computed((): NyxBreadcrumb[] => {
+  const note = activeNote.value
+  if (!note) return []
+
+  const vault = vaults.value.find(v => v.id === note.meta.vault_id)
+  const profile = activeProfile.value
+
+  const items: NyxBreadcrumb[] = [
+    { label: 'All notes', href: '/notes/search' },
+  ]
+
+  if (profile) {
+    items.push({ label: getServerLabel(profile), href: `/notes/search?profile=${profile.id}` })
+  }
+
+  if (vault) {
+    items.push({ label: vault.name, href: `/vaults/${vault.id}/notes` })
+  }
+
+  items.push({ label: note.meta.title || 'Untitled' })
+
+  return items
+})
+
+function onBreadcrumbClick(item: NyxBreadcrumb) {
+  if (item.href) router.push(item.href)
+}
 
 const favoriteActive = computed(() => {
   const profileId = activeProfile.value?.id
@@ -138,7 +169,8 @@ watch(
     <!-- Top header bar -->
     <header class="app-shell__header">
       <div class="app-shell__header-left">
-        <span class="app-shell__note-title">{{ noteTitle }}</span>
+        <NyxBreadcrumbs v-if="breadcrumbs.length > 1" :items="breadcrumbs" @click="onBreadcrumbClick" />
+        <span v-else class="app-shell__note-title">{{ noteTitle }}</span>
       </div>
       <div v-if="section === 'notes' && activeNote" class="app-shell__header-right">
         <!-- Source view -->
@@ -246,6 +278,13 @@ watch(
 }
 
 .app-shell__header-left,
+.app-shell__header-left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  flex: 1;
+}
+
 .app-shell__header-right {
   display: flex;
   align-items: center;

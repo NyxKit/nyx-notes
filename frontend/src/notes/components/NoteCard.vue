@@ -17,12 +17,6 @@ defineProps<{
   >
     <NyxCard class="note-card__shell">
       <div class="note-card__content">
-        <div class="note-card__origin">
-          <span class="note-card__origin-label">{{ note.server_label }}</span>
-          <span class="note-card__origin-separator">/</span>
-          <span class="note-card__origin-label">{{ note.vault_name }}</span>
-        </div>
-
         <div class="note-card__text">
           <h3 class="note-card__title">{{ note.title || 'Untitled' }}</h3>
           <p v-if="note.description" class="note-card__description">{{ note.description }}</p>
@@ -39,7 +33,15 @@ defineProps<{
           </NyxBadge>
         </div>
 
-        <p class="note-card__date">{{ note.updated_label }}</p>
+
+        <footer class="note-card__meta">
+          <span class="note-card__meta-origin">
+            <span class="note-card__meta-origin-label">{{ note.server_label }}</span>
+            <span class="note-card__meta-origin-separator">/</span>
+            <span class="note-card__meta-origin-label">{{ note.vault_name }}</span>
+          </span>
+          <span class="note-card__meta-time">{{ note.updated_label }}</span>
+        </footer>
       </div>
     </NyxCard>
   </RouterLink>
@@ -74,11 +76,13 @@ defineProps<{
   flex-direction: column;
   gap: 0.625rem;
   min-height: 100%;
+  width: 100%;
 }
 
-.note-card__origin {
+.note-card__meta {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: space-between;
   gap: 0.35rem;
   font-size: 0.6875rem;
   line-height: 1.4;
@@ -87,7 +91,7 @@ defineProps<{
   letter-spacing: 0.05em;
 }
 
-.note-card__origin-label {
+.note-card__meta-origin {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
