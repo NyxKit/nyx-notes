@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { NyxButton, NyxIcon } from 'nyx-kit/components'
+import { NyxButton, NyxIcon, NyxModal } from 'nyx-kit/components'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
+import { RemoteProfileForm } from '@/auth'
+import type { RemoteProfileDraft } from '@/shared/types'
 
 const router = useRouter()
 const auth = useAuth()
@@ -12,6 +14,11 @@ const profilesStore = useWorkspaceProfiles()
 const profiles = computed(() => profilesStore.profiles.value)
 const activeProfile = computed(() => profilesStore.activeProfile.value)
 const canAddLocal = computed(() => !profiles.value.some(profile => profile.type === 'local'))
+
+const showAddServerModal = ref(false)
+const showEditServerModal = ref(false)
+const editingProfile = ref<{ id: string; display_name: string; server_url: string } | null>(null)
+const connecting = ref(false)
 
 async function activateProfile(profileId: string) {
   const result = profilesStore.setActiveProfile(profileId)
@@ -30,12 +37,26 @@ async function addLocalProfile() {
   await router.push('/')
 }
 
-function goToAddServer() {
-  router.push('/login?add=remote')
+async function handleAddServer(draft: RemoteProfileDraft) {
+  connecting.value = true
+  try {
+    profilesStore.addRemoteProfile(draft)
+    showAddServerModal.value = false
+  } finally {
+    connecting.value = false
+  }
 }
 
-function goToManageServer() {
-  router.push('/login?manage=active')
+async function handleEditServer(draft: RemoteProfileDraft) {
+  connecting.value = true
+  try {
+    if (editingProfile.value) {
+      profilesStore.updateRemoteProfile(editingProfile.value.id, draft)
+    }
+    showEditServerModal.value = false
+  } finally {
+    connecting.value = false
+  }
 }
 </script>
 
@@ -83,7 +104,7 @@ function goToManageServer() {
             <h2>All Profiles</h2>
             <div class="servers-section__actions">
               <NyxButton v-if="canAddLocal" @click="addLocalProfile">Add Local</NyxButton>
-              <NyxButton @click="goToAddServer">Add Server</NyxButton>
+              <NyxButton @click="showAddServerModal = true">Add Server</NyxButton>
             </div>
           </div>
 
@@ -100,8 +121,8 @@ function goToManageServer() {
             >
               <div class="profile-card" @click="activateProfile(profile.id)">
                 <div class="profile-card__icon">
-                  <LayoutGrid v-if="profile.type === 'local'" :size="20" />
-                  <Server v-else :size="20" />
+                  <NyxIcon v-if="profile.type === 'local'" name="layout-grid" :size="20" />
+                  <NyxIcon v-else name="server" :size="20" />
                 </div>
                 <div class="profile-card__info">
                   <span class="profile-card__name">{{ profile.display_name }}</span>
@@ -109,11 +130,11 @@ function goToManageServer() {
                   <span v-else class="profile-card__detail">Local workspace</span>
                 </div>
                 <div v-if="profile.id === activeProfile?.id" class="profile-card__indicator">
-                  <Check :size="16" />
+                  <NyxIcon name="check" :size="16" />
                 </div>
               </div>
               <div v-if="profile.type === 'remote'" class="profile-card__actions">
-                <NyxButton @click.stop="goToManageServer">Edit</NyxButton>
+                <NyxButton @click.stop="editingProfile = { id: profile.id, display_name: profile.display_name, server_url: profile.server_url }; showEditServerModal = true">Edit</NyxButton>
               </div>
             </div>
           </div>
@@ -121,6 +142,24 @@ function goToManageServer() {
       </div>
     </div>
   </div>
+
+  <NyxModal v-model="showAddServerModal" title="Add Server">
+    <RemoteProfileForm
+      submit-label="Add Server"
+      :loading="connecting"
+      @submit="handleAddServer"
+    />
+  </NyxModal>
+
+  <NyxModal v-model="showEditServerModal" title="Edit Server">
+    <RemoteProfileForm
+      v-if="editingProfile"
+      :initial-value="editingProfile"
+      submit-label="Save Changes"
+      :loading="connecting"
+      @submit="handleEditServer"
+    />
+  </NyxModal>
 </template>
 
 <style scoped>
