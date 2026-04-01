@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { watch } from 'vue'
+import { computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { NyxBreadcrumbs } from 'nyx-kit/components'
+import type { NyxBreadcrumb } from 'nyx-kit/types'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { useVaultStore } from '@/vaults/stores'
@@ -11,6 +14,8 @@ import { VaultSwitcher } from '@/vaults/components'
 import { SidebarNav } from '@/shared/components'
 import { NoteList } from '@/notes/components'
 
+const route = useRoute()
+const router = useRouter()
 const vaultStore = useVaultStore()
 const notesStore = useNotesStore()
 const teams = useTeams()
@@ -18,6 +23,7 @@ const comments = useComments()
 const { apiEpoch, isAuthenticated } = useAuth()
 const { activeProfile } = useWorkspaceProfiles()
 const { vaults } = storeToRefs(vaultStore)
+const { activeNote } = storeToRefs(notesStore)
 const { load } = vaultStore
 const { loadAll } = notesStore
 
@@ -38,6 +44,34 @@ watch([activeProfile, apiEpoch], async () => {
 }, {
   immediate: true,
 })
+
+const breadcrumbs = computed((): NyxBreadcrumb[] => {
+  const path = route.path
+
+  const items: NyxBreadcrumb[] = [{ label: 'All notes', href: '/notes/search' }]
+
+  if (path.includes('/favorites')) {
+    items.push({ label: 'Favorites', href: '/notes/favorites' })
+  }
+
+  if (path.includes('/vaults/') && route.params.vault_id) {
+    const vaultId = route.params.vault_id as string
+    const vault = vaults.value.find(v => v.id === vaultId)
+    if (vault) {
+      items.push({ label: vault.name, href: `/vaults/${vault.id}` })
+    }
+  }
+
+  if (path.includes('/notes/') && route.params.id && activeNote.value) {
+    items.push({ label: activeNote.value.meta.title || 'Untitled' })
+  }
+
+  return items
+})
+
+function onBreadcrumbClick(item: NyxBreadcrumb) {
+  if (item.href) router.push(item.href)
+}
 </script>
 
 <template>
@@ -54,6 +88,10 @@ watch([activeProfile, apiEpoch], async () => {
 
     <!-- Main content area — renders the active child route -->
     <div class="app-shell__main">
+      <!-- Global breadcrumbs -->
+      <header v-if="breadcrumbs.length > 1" class="app-shell__breadcrumbs">
+        <NyxBreadcrumbs :items="breadcrumbs" @click="onBreadcrumbClick" />
+      </header>
       <RouterView />
     </div>
 
@@ -77,6 +115,13 @@ watch([activeProfile, apiEpoch], async () => {
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
+}
+
+/* ── Breadcrumbs ─────────────────────────────────────────────── */
+.app-shell__breadcrumbs {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--nyx-c-divider);
+  flex-shrink: 0;
 }
 
 /* ── Left sidebar ───────────────────────────────────────────── */
