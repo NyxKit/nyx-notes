@@ -48,6 +48,10 @@ watch([activeProfile, apiEpoch], async () => {
 const breadcrumbs = computed((): NyxBreadcrumb[] => {
   const path = route.path
 
+  if (path === '/' || path === '/vaults') {
+    return []
+  }
+
   const items: NyxBreadcrumb[] = [{ label: 'All notes', href: '/notes/search' }]
 
   if (path.includes('/favorites')) {
@@ -92,7 +96,13 @@ function onBreadcrumbClick(item: NyxBreadcrumb) {
       <header v-if="breadcrumbs.length > 1" class="app-shell__breadcrumbs">
         <NyxBreadcrumbs :items="breadcrumbs" @click="onBreadcrumbClick" />
       </header>
-      <RouterView />
+      <RouterView v-slot="{ Component }">
+        <component :is="Component">
+          <template #header-actions>
+            <slot name="header-actions" />
+          </template>
+        </component>
+      </RouterView>
     </div>
 
   </div>
@@ -122,6 +132,15 @@ function onBreadcrumbClick(item: NyxBreadcrumb) {
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--nyx-c-divider);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-shell__breadcrumbs :slotted(.header-actions) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* ── Left sidebar ───────────────────────────────────────────── */

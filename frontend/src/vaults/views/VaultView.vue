@@ -85,7 +85,7 @@ async function createFirst() {
         <VaultIcon :slug="activeVault?.icon" :size="18" />
         <span class="app-shell__title">{{ activeVault?.name ?? 'Vault' }}</span>
       </div>
-      <div class="app-shell__header-right">
+      <slot name="header-actions">
         <NyxButton
           v-if="sortedNotes.length > 0 && !listLoading"
           :gradient="true"
@@ -93,7 +93,7 @@ async function createFirst() {
         >
           New Note
         </NyxButton>
-      </div>
+      </slot>
     </header>
 
     <main class="app-shell__body">
