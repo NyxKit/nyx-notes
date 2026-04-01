@@ -51,6 +51,15 @@ async function newNote() {
       Vaults
     </RouterLink>
 
+    <RouterLink
+      to="/servers"
+      class="sidebar-nav__item"
+      :class="{ 'sidebar-nav__item--active': route.path === '/servers' }"
+    >
+      <NyxIcon name="server" :size="16" />
+      Servers
+    </RouterLink>
+
     <!-- Workspace section -->
     <div v-if="vaultId" class="sidebar-nav__section-label">Workspace</div>
 
