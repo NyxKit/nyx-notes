@@ -6,7 +6,7 @@ import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
 import { useEditorStore } from '@/notes/stores'
 import { useComments, toCommentAnchor } from '@/comments/composables'
-import { NyxModal, NyxButton } from 'nyx-kit/components'
+import { NyxModal, NyxButton, NyxIcon } from 'nyx-kit/components'
 import { NyxTheme, NyxShape, NyxVariant } from 'nyx-kit/types'
 import { NoteEditor } from '@/notes/components'
 import { CommentSidebar } from '@/comments/components'
@@ -20,15 +20,6 @@ const commentsStore = useComments()
 const { annotations, setActiveComment, beginComment, load: loadComments, clearLoadedComments } = commentsStore
 
 const FAVORITES_KEY = 'nyx_favorites'
-
-function isFavorited(noteId: string): boolean {
-  try {
-    const ids: string[] = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? '[]')
-    return ids.includes(noteId)
-  } catch { return false }
-}
-
-const favorited = computed(() => activeNote.value ? isFavorited(activeNote.value.meta.id) : false)
 
 function toggleFavorite() {
   const note = activeNote.value
@@ -153,9 +144,7 @@ watch(
           title="Toggle source view"
           @click="editorStore.toggleSourceView()"
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M5 4L1 9l4 5M13 4l4 5-4 5M10 2l-2 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <NyxIcon name="code" :size="18" />
         </NyxButton>
         <!-- Favorite -->
         <NyxButton
@@ -163,9 +152,7 @@ watch(
           title="Toggle favorite"
           @click="toggleFavorite()"
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M9 2l1.5 4.5H15l-3.5 2.75 1.5 4.75L9 11.25 5 14l1.5-4.75L3 6.5h4.5L9 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" :fill="favorited ? 'currentColor' : 'none'"/>
-          </svg>
+          <NyxIcon name="star" :size="18" />
         </NyxButton>
         <!-- Delete -->
         <NyxButton
@@ -174,9 +161,7 @@ watch(
           title="Delete note"
           @click="showDeleteConfirm = true"
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M3 5h12M7 5V3h4v2M6 5l.75 10h4.5L12 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+          <NyxIcon name="trash-2" :size="18" />
         </NyxButton>
         <!-- Comments -->
         <NyxButton
@@ -184,9 +169,7 @@ watch(
           title="Toggle comments"
           @click="isCommentsOpen = !isCommentsOpen"
         >
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <path d="M15 9C15 12.31 12.31 15 9 15c-.72 0-1.41-.12-2.05-.33L4 15.5l.61-2.84C4.22 11.79 3 10.52 3 9c0-3.31 2.69-6 6-6s6 2.69 6 6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-          </svg>
+          <NyxIcon name="message-circle" :size="18" />
         </NyxButton>
       </div>
     </header>
@@ -209,13 +192,8 @@ watch(
         </template>
         <div v-else class="app-shell__wip">
           <div class="app-shell__wip-icon" aria-hidden="true">
-            <svg v-if="section === 'favorites'" width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M16 4l3 9h9.5L21 18.5 24 28l-8-5.5L8 28l3-9.5L4 13h9.5L16 4z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            </svg>
-            <svg v-else width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path d="M20 6l6 6-14 14H6v-6L20 6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-              <path d="M17 9l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
+            <NyxIcon v-if="section === 'favorites'" name="star" :size="32" />
+            <NyxIcon v-else name="file-edit" :size="32" />
           </div>
           <span class="app-shell__wip-label">{{ section === 'favorites' ? 'Favorites' : 'Drafts' }}</span>
           <span class="app-shell__wip-sub">Coming soon</span>

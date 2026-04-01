@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { NyxButton } from 'nyx-kit/components'
+import { NyxButton, NyxIcon } from 'nyx-kit/components'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
 
@@ -54,16 +54,8 @@ function goToManageServer() {
           <div v-if="activeProfile" class="servers-section__card">
             <div class="profile-card">
               <div class="profile-card__icon">
-                <svg v-if="activeProfile.type === 'local'" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                  <rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                  <rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                  <rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
-                </svg>
-                <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.5"/>
-                  <path d="M4 20c0-4 4-8 8-8s8 4 8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                </svg>
+                <NyxIcon v-if="activeProfile.type === 'local'" name="layout-grid" :size="24" />
+                <NyxIcon v-else name="server" :size="24" />
               </div>
               <div class="profile-card__info">
                 <span class="profile-card__name">{{ activeProfile.display_name }}</span>
