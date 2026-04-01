@@ -87,14 +87,11 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
   ]
 
   if (profile) {
-    items.push({ label: getServerLabel(profile), href: `/notes/search?profile=${encodeURIComponent(profile.id)}` })
+    items.push({ label: getServerLabel(profile), href: '/notes/search' })
   }
 
   if (vault) {
-    const vaultHref = profile
-      ? `/vaults/${vault.id}/notes?profile=${encodeURIComponent(profile.id)}`
-      : `/vaults/${vault.id}/notes`
-    items.push({ label: vault.name, href: vaultHref })
+    items.push({ label: vault.name, href: `/vaults/${vault.id}` })
   }
 
   items.push({ label: note.meta.title || 'Untitled' })
