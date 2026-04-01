@@ -93,14 +93,11 @@ function onBreadcrumbClick(item: NyxBreadcrumb) {
     <!-- Global header -->
     <header class="app-shell__header">
       <NyxBreadcrumbs :items="breadcrumbs" @click="onBreadcrumbClick" />
-      <slot name="header-actions" />
+      <!-- Nested routes cannot fill parent slots; views use Teleport here. -->
+      <div id="app-shell-header-actions" class="app-shell__header-actions" />
     </header>
 
-    <!-- Main content area — renders the active child route -->
-    <main class="app-shell__main">
-      <RouterView />
-    </main>
-
+    <RouterView class="app-shell__body" />
   </div>
 </template>
 
@@ -154,8 +151,15 @@ function onBreadcrumbClick(item: NyxBreadcrumb) {
   justify-content: space-between;
 }
 
+.app-shell__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 /* ── Main — fills remaining viewport; scrolls internally ─────── */
-.app-shell__main {
+.app-shell__body {
   grid-column: 2;
   grid-row: 2;
   min-height: 0;

@@ -80,7 +80,7 @@ async function createFirst() {
 
 <template>
   <div class="app-shell__main">
-    <slot name="header-actions">
+    <Teleport to="#app-shell-header-actions">
       <NyxButton
         v-if="sortedNotes.length > 0 && !listLoading"
         :gradient="true"
@@ -88,7 +88,7 @@ async function createFirst() {
       >
         New Note
       </NyxButton>
-    </slot>
+    </Teleport>
 
     <main class="app-shell__body">
       <div v-if="listLoading" class="app-shell__canvas app-shell__canvas--center">

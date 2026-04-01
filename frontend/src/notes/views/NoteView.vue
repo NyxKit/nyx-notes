@@ -134,48 +134,41 @@ watch(
 
 <template>
   <div class="app-shell__main">
-
-    <!-- Top header bar -->
-    <header class="app-shell__header">
-      <div class="app-shell__header-left">
-        <span class="app-shell__note-title">{{ noteTitle }}</span>
-      </div>
-      <div v-if="section === 'notes' && activeNote" class="app-shell__header-right">
-        <!-- Source view -->
-        <NyxButton
-          :shape="NyxShape.Square"
-          title="Toggle source view"
-          @click="editorStore.toggleSourceView()"
-        >
-          <NyxIcon name="code" :size="18" />
-        </NyxButton>
-        <!-- Favorite -->
-        <NyxButton
-          :shape="NyxShape.Square"
-          title="Toggle favorite"
-          @click="toggleFavorite()"
-        >
-          <NyxIcon name="star" :size="18" :style="favoriteActive ? 'color: var(--nyx-c-primary); fill: currentColor;' : undefined" />
-        </NyxButton>
-        <!-- Delete -->
-        <NyxButton
-          :shape="NyxShape.Square"
-          :theme="NyxTheme.Danger"
-          title="Delete note"
-          @click="showDeleteConfirm = true"
-        >
-          <NyxIcon name="trash-2" :size="18" />
-        </NyxButton>
-        <!-- Comments -->
-        <NyxButton
-          :shape="NyxShape.Square"
-          title="Toggle comments"
-          @click="isCommentsOpen = !isCommentsOpen"
-        >
-          <NyxIcon name="message-circle" :size="18" />
-        </NyxButton>
-      </div>
-    </header>
+    
+    <Teleport to="#app-shell-header-actions">
+      <NyxButton
+        :shape="NyxShape.Square"
+        title="Toggle source view"
+        @click="editorStore.toggleSourceView()"
+      >
+        <NyxIcon name="code" :size="18" />
+      </NyxButton>
+      <!-- Favorite -->
+      <NyxButton
+        :shape="NyxShape.Square"
+        title="Toggle favorite"
+        @click="toggleFavorite()"
+      >
+        <NyxIcon name="star" :size="18" :style="favoriteActive ? 'color: var(--nyx-c-primary); fill: currentColor;' : undefined" />
+      </NyxButton>
+      <!-- Delete -->
+      <NyxButton
+        :shape="NyxShape.Square"
+        :theme="NyxTheme.Danger"
+        title="Delete note"
+        @click="showDeleteConfirm = true"
+      >
+        <NyxIcon name="trash-2" :size="18" />
+      </NyxButton>
+      <!-- Comments -->
+      <NyxButton
+        :shape="NyxShape.Square"
+        title="Toggle comments"
+        @click="isCommentsOpen = !isCommentsOpen"
+      >
+        <NyxIcon name="message-circle" :size="18" />
+      </NyxButton>
+    </Teleport>
 
     <!-- Body row: canvas + right comments panel -->
     <div class="app-shell__body">
