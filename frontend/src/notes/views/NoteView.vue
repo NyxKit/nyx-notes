@@ -2,8 +2,9 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useWorkspaceProfiles } from '@/shared/composables'
 import { useVaultStore } from '@/vaults/stores'
-import { useNotesStore } from '@/notes/stores'
+import { useNotesStore, useNoteBrowsingStore } from '@/notes/stores'
 import { useEditorStore } from '@/notes/stores'
 import { useComments, toCommentAnchor } from '@/comments/composables'
 import { NyxModal, NyxButton, NyxIcon } from 'nyx-kit/components'
@@ -19,18 +20,14 @@ const editorStore = useEditorStore()
 const commentsStore = useComments()
 const { annotations, setActiveComment, beginComment, load: loadComments, clearLoadedComments } = commentsStore
 
-const FAVORITES_KEY = 'nyx_favorites'
+const { activeProfile } = useWorkspaceProfiles()
+const noteBrowsingStore = useNoteBrowsingStore()
 
 function toggleFavorite() {
   const note = activeNote.value
-  if (!note) return
-  try {
-    const ids: string[] = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? '[]')
-    const idx = ids.indexOf(note.meta.id)
-    if (idx === -1) ids.push(note.meta.id)
-    else ids.splice(idx, 1)
-    localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids))
-  } catch { /* ignore */ }
+  const profileId = activeProfile.value?.id
+  if (!note || !profileId) return
+  noteBrowsingStore.toggleFavoriteForNote(profileId, note.meta)
 }
 
 async function onCreateComment(selection: { text: string; context: { prefix: string; suffix: string }; range: { from: number; to: number } }) {
@@ -71,9 +68,15 @@ const section = computed(() => {
 })
 
 const noteTitle = computed(() => {
-  if (section.value === 'favorites') return 'Favorites'
   if (section.value === 'drafts') return 'Drafts'
   return activeNote.value?.meta.title || 'Untitled Note'
+})
+
+const favoriteActive = computed(() => {
+  const profileId = activeProfile.value?.id
+  const note = activeNote.value
+  if (!profileId || !note) return false
+  return noteBrowsingStore.isFavorite(profileId, note.meta.vault_id, note.meta.id)
 })
 
 async function pruneIfEmpty() {
@@ -152,7 +155,7 @@ watch(
           title="Toggle favorite"
           @click="toggleFavorite()"
         >
-          <NyxIcon name="star" :size="18" />
+          <NyxIcon name="star" :size="18" :style="favoriteActive ? 'color: var(--nyx-c-primary); fill: currentColor;' : undefined" />
         </NyxButton>
         <!-- Delete -->
         <NyxButton

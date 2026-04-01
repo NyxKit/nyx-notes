@@ -56,17 +56,24 @@ frontend/src/
     index.ts                 # re-exports the notes barrels below
     api/notes.ts             # note CRUD API calls
     api/index.ts             # exports note API functions
+    composables/
+      useGlobalNoteBrowsing.ts  # cross-profile browse loading for search and favorites
+      index.ts                  # exports note composables
     components/
-      NoteCard.vue           # single note card (title, distilled description, metadata, link)
+      GlobalNoteBrowseView.vue # shared browse layout for global search and favorites
+      NoteCard.vue           # single note card (title, origin context, distilled description, metadata, link)
       NoteEditor.vue         # thin wrapper around <NyxEditor> from nyx-kit
-      NoteList.vue           # sidebar: list of notes in the active vault
+      NoteList.vue           # sidebar: list of notes in the active vault + global search input
       NoteToolbar.vue        # save, delete, tags, permission selector
       index.ts               # exports note components
     stores/
       notes.ts               # useNotesStore — vault-keyed notes cache, $reset()
+      noteBrowsing.ts        # useNoteBrowsingStore — global search/favorites derived state
       editor.ts              # useEditorStore — editor mode and source view toggle
       index.ts               # exports note stores
     views/
+      GlobalSearchView.vue   # main-window global search results
+      FavoritesView.vue      # main-window global favorites results
       NoteView.vue           # editor for a specific note (:vault_id/:id)
       index.ts               # exports note views
 
@@ -158,17 +165,37 @@ frontend/src/
 
 - Fetches notes for the vault from `GET /api/vaults/:vault_id/notes`
 - **Notes present**: renders a `NyxGrid` overview in `masonry` mode containing `NoteCard` links (sorted by `updated_at` desc); each note card navigates to `/vaults/:vault_id/notes/:id` via an internal `RouterLink` anchor that preserves standard browser link affordances
-- `NoteCard` shows the note title, a distilled description generated from the first actual paragraph of saved content, and supporting metadata such as tags and update time
+- `NoteCard` shows the note title, source server and vault, a distilled description generated from the first actual paragraph of saved content, and supporting metadata such as tags and update time
 - **No notes**: renders a getting-started prompt with a "New Note" CTA that creates a blank note and navigates to the editor
 - Header shows vault name and a persistent "New Note" action button
+
+### `GlobalSearchView` (`/notes/search`)
+
+- Renders in the main window from any authenticated application context
+- Aggregates matching notes from all configured profiles that are currently reachable and authenticated, across all accessible vaults
+- Receives live query updates from the sidebar search input and updates the main window while the user types using debounce or a similar mechanism
+- Matches note title, saved note content, and tags
+- Uses `GlobalNoteBrowseView` for layout, empty/loading states, sort controls, excluded-profile notice, and note grid rendering
+- Defaults to sorting by most recently updated notes first
+- Supports sort modes for `best match`, `recent`, and `grouped by server then vault`
+- Shows a dedicated empty state when no matches are found
+
+### `FavoritesView` (`/notes/favorites`)
+
+- Renders in the main window from any authenticated application context
+- Aggregates favorited notes from all configured profiles that are currently reachable and authenticated, across all accessible vaults
+- Uses the same `GlobalNoteBrowseView` layout and sort-control presentation as `GlobalSearchView`
+- Supports sort modes for `recent` and `grouped by server then vault`
+- Hides the `best match` sort mode because favorites are not query-ranked search results
+- Shows a dedicated empty state when no favorites exist
 
 ## Browse Card Family
 
 The frontend uses a shared browse-card family for browse-and-select surfaces only.
 
-- In scope: vault tiles on the home dashboard, the inline create-vault card, and note tiles in the vault notes masonry view
+- In scope: vault tiles on the home dashboard, the inline create-vault card, note tiles in the vault notes masonry view, and note tiles in the global search/favorites browse surfaces
 - Out of scope: `VaultSwitcher`, empty-state containers, comment threads, settings panels, modals, and navigation chrome
-- `VaultCard` and `NoteCard` are standalone components; do not introduce a shared `BrowseCardSurface` abstraction for this feature
+- `VaultCard` remains standalone; note browse surfaces share one `GlobalNoteBrowseView` layout while `NoteCard` remains the reusable note tile component
 - Both `VaultCard` and `NoteCard` wrap their rendered card content in an internal `RouterLink` anchor so users retain standard link behavior such as open-in-new-tab and copy-link
 - `NyxCard` remains the visual shell for both card components, but the anchor is the user-facing interactive surface
 - Overview layouts use `NyxGrid`: `HomeView` uses `grid` mode for vault cards and `VaultView` uses `masonry` mode for note cards
@@ -226,12 +253,18 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
 
 ## Note List (`NoteList.vue`)
 
-- Fetches `GET /api/vaults/:vault_id/notes` when the active vault changes
-- Displays `NoteMeta[]`: title, category, `updated_at` relative time, tag chips
+- Displays a global recent-notes feed aggregated across all configured profiles that are currently reachable and authenticated, and across all accessible vaults
+- Each entry shows the note title, relative `updated_at`, and its source server/vault so cross-project and cross-vault notes remain identifiable
 - Shows a permission badge on each note: no badge for `restricted`, a comment icon for `comment`, a pencil icon for `edit`
-- Clicking a note navigates to `/vaults/:vault_id/notes/:id`
-- "New Note" button at the top creates a blank note in the current vault
-- Filter/search input (client-side, no server round-trip for basic use)
+- Clicking a note navigates directly to that note, switching profile context first when needed
+- The sidebar search input is global rather than vault-scoped; it routes to `/notes/search` and updates the main window live while the user types
+- The note list no longer owns search results; it remains a recent-notes feed only
+
+## Sidebar Navigation (`SidebarNav.vue`)
+
+- Does not expose a context-free `New Note` action
+- Links `Favorites` to `/notes/favorites`
+- Leaves note creation to vault-specific surfaces such as `VaultView`
 
 ## Auth Flow
 

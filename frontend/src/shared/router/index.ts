@@ -15,6 +15,14 @@ const router = createRouter({
           component: () => import('@/vaults/views').then(({ HomeView }) => HomeView),
         },
         {
+          path: 'notes/search',
+          component: () => import('@/notes/views').then(({ GlobalSearchView }) => GlobalSearchView),
+        },
+        {
+          path: 'notes/favorites',
+          component: () => import('@/notes/views').then(({ FavoritesView }) => FavoritesView),
+        },
+        {
           path: 'vaults/:vault_id',
           component: () => import('@/vaults/views').then(({ VaultView }) => VaultView),
         },
@@ -24,7 +32,7 @@ const router = createRouter({
         },
         {
           path: 'vaults/:vault_id/favorites',
-          component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
+          redirect: '/notes/favorites',
         },
         {
           path: 'vaults/:vault_id/drafts',
@@ -52,15 +60,24 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  const { activeProfile } = useWorkspaceProfiles()
+  const { activeProfile, setActiveProfile } = useWorkspaceProfiles()
   const { authMode, isAuthenticated, bootstrapActiveProfile } = useAuth()
+  let switchedProfile = false
+
+  if (typeof to.query.profile === 'string' && to.query.profile !== activeProfile.value?.id) {
+    const nextProfile = setActiveProfile(to.query.profile)
+    if (!nextProfile) {
+      return { path: '/' }
+    }
+    switchedProfile = true
+  }
 
   if (!activeProfile.value) {
     if (to.path === '/login') return true
     return { path: '/login', query: { redirect: to.fullPath } }
   }
 
-  if (authMode.value === null) {
+  if (switchedProfile || authMode.value === null) {
     await bootstrapActiveProfile()
   }
 

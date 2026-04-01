@@ -103,6 +103,8 @@ describe('VaultView note cards', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('Untitled')
+    expect(wrapper.text()).toContain('Local')
+    expect(wrapper.text()).toContain('Writing')
     expect(wrapper.text()).toContain('The first actual paragraph becomes the card summary.')
     expect(wrapper.text()).toContain('focus')
     expect(wrapper.text()).toContain('draft')
@@ -125,6 +127,6 @@ describe('VaultView note cards', () => {
     await flushPromises()
 
     const link = wrapper.get('a[aria-label="Open Untitled note"]')
-    expect(link.attributes('href')).toBe('/vaults/vault-1/notes/note-1')
+    expect(link.attributes('href')).toBe('/vaults/vault-1/notes/note-1?profile=local')
   })
 })

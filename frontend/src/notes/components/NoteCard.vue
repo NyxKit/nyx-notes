@@ -2,23 +2,27 @@
 import { RouterLink } from 'vue-router'
 import { NyxBadge, NyxCard } from 'nyx-kit/components'
 import { NyxTheme, NyxVariant } from 'nyx-kit/types'
-import type { NoteMeta } from '@/shared/types'
+import type { BrowseNoteCardModel } from '@/shared/types'
 
 defineProps<{
-  note: NoteMeta
-  vaultId: string
-  updatedLabel: string
+  note: BrowseNoteCardModel
 }>()
 </script>
 
 <template>
   <RouterLink
     class="note-card"
-    :to="`/vaults/${vaultId}/notes/${note.id}`"
+    :to="note.href"
     :aria-label="`Open ${note.title || 'Untitled'} note`"
   >
     <NyxCard class="note-card__shell">
       <div class="note-card__content">
+        <div class="note-card__origin">
+          <span class="note-card__origin-label">{{ note.server_label }}</span>
+          <span class="note-card__origin-separator">/</span>
+          <span class="note-card__origin-label">{{ note.vault_name }}</span>
+        </div>
+
         <div class="note-card__text">
           <h3 class="note-card__title">{{ note.title || 'Untitled' }}</h3>
           <p v-if="note.description" class="note-card__description">{{ note.description }}</p>
@@ -35,7 +39,7 @@ defineProps<{
           </NyxBadge>
         </div>
 
-        <p class="note-card__date">{{ updatedLabel }}</p>
+        <p class="note-card__date">{{ note.updated_label }}</p>
       </div>
     </NyxCard>
   </RouterLink>
@@ -70,6 +74,28 @@ defineProps<{
   flex-direction: column;
   gap: 0.625rem;
   min-height: 100%;
+}
+
+.note-card__origin {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--nyx-browse-card-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.note-card__origin-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-card__origin-separator {
+  opacity: 0.7;
 }
 
 .note-card__text {

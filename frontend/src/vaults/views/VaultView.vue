@@ -5,18 +5,22 @@ import { useRoute, useRouter } from 'vue-router'
 import { NyxButton, NyxGrid, NyxIcon } from 'nyx-kit/components'
 import { NyxGridMode } from 'nyx-kit/types'
 import { NoteCard } from '@/notes/components'
-import { useNotesStore } from '@/notes/stores'
+import { useNoteBrowsingStore, useNotesStore } from '@/notes/stores'
+import { useWorkspaceProfiles } from '@/shared/composables'
+import type { BrowseNoteCardModel } from '@/shared/types'
 import { VaultIcon } from '@/vaults/components'
 import { useVaultStore } from '@/vaults/stores'
 
 const route = useRoute()
 const router = useRouter()
 const vaultId = computed(() => route.params.vault_id as string)
+const { activeProfile } = useWorkspaceProfiles()
 
 const vaultStore = useVaultStore()
 const { vaults, activeVault } = storeToRefs(vaultStore)
 const { load: loadVaults, setActive } = vaultStore
 const notesStore = useNotesStore()
+const noteBrowsingStore = useNoteBrowsingStore()
 const { listLoading } = storeToRefs(notesStore)
 const { notesFor, loadList, create: createNote } = notesStore
 
@@ -27,8 +31,32 @@ onMounted(async () => {
   await loadList(vaultId.value)
 })
 
-const sortedNotes = computed(() =>
-  notesFor(vaultId.value).slice().sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+const sortedNotes = computed<BrowseNoteCardModel[]>(() =>
+  notesFor(vaultId.value)
+    .slice()
+    .sort((a, b) => {
+      const favorite = Number(noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', b.vault_id, b.id))
+        - Number(noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', a.vault_id, a.id))
+      if (favorite !== 0) return favorite
+
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    })
+    .map(note => ({
+      note_id: note.id,
+      vault_id: note.vault_id,
+      profile_id: activeProfile.value?.id ?? 'local',
+      title: note.title || 'Untitled',
+      description: note.description,
+      tags: note.tags,
+      updated_at: note.updated_at,
+      updated_label: formatDate(note.updated_at),
+      href: `/vaults/${note.vault_id}/notes/${note.id}?profile=${encodeURIComponent(activeProfile.value?.id ?? 'local')}`,
+      server_label: activeProfile.value?.display_name ?? 'Local',
+      server_id: activeProfile.value?.type === 'remote' ? activeProfile.value.server_id : undefined,
+      vault_name: activeVault.value?.name ?? 'Vault',
+      vault_slug: activeVault.value?.slug ?? '',
+      is_favorite: noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', note.vault_id, note.id),
+    }))
 )
 
 function formatDate(iso: string) {
@@ -79,10 +107,8 @@ async function createFirst() {
         <NyxGrid title="Notes" :mode="NyxGridMode.Masonry" :columns="5">
           <NoteCard
             v-for="note in sortedNotes"
-            :key="note.id"
+            :key="note.note_id"
             :note="note"
-            :vault-id="vaultId"
-            :updated-label="formatDate(note.updated_at)"
           />
         </NyxGrid>
       </div>

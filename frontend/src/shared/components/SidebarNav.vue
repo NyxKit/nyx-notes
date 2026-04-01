@@ -1,43 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVaultStore } from '@/vaults/stores'
-import { useNotesStore } from '@/notes/stores'
-import { NyxButton, NyxIcon } from 'nyx-kit/components'
+import { NyxIcon } from 'nyx-kit/components'
 
 const route = useRoute()
-const router = useRouter()
 const { activeVault } = storeToRefs(useVaultStore())
-const { create } = useNotesStore()
 
 const vaultId = computed(() => activeVault.value?.id ?? '')
 
 const section = computed(() => {
   if (route.path === '/') return 'home'
-  if (route.path.includes('/favorites')) return 'favorites'
+  if (route.path === '/notes/favorites') return 'favorites'
   if (route.path.includes('/drafts')) return 'drafts'
   if (vaultId.value && route.path === `/vaults/${vaultId.value}`) return 'vault'
   return 'notes'
 })
-
-async function newNote() {
-  if (!vaultId.value) return
-  const meta = await create(vaultId.value, { title: '', content: '' })
-  router.push(`/vaults/${vaultId.value}/notes/${meta.id}`)
-}
 </script>
 
 <template>
   <nav class="sidebar-nav">
-
-    <!-- New Note CTA -->
-    <div class="sidebar-nav__cta">
-      <NyxButton :gradient="true" style="width: 100%" @click="newNote">
-        <NyxIcon name="plus" :size="14" />
-        New Note
-      </NyxButton>
-    </div>
 
     <!-- App section -->
     <div class="sidebar-nav__section-label">App</div>
@@ -61,7 +44,7 @@ async function newNote() {
     </RouterLink>
 
     <!-- Workspace section -->
-    <div v-if="vaultId" class="sidebar-nav__section-label">Workspace</div>
+    <div class="sidebar-nav__section-label">Workspace</div>
 
     <RouterLink
       v-if="vaultId"
@@ -74,8 +57,7 @@ async function newNote() {
     </RouterLink>
 
     <RouterLink
-      v-if="vaultId"
-      :to="`/vaults/${vaultId}/favorites`"
+      to="/notes/favorites"
       class="sidebar-nav__item"
       :class="{ 'sidebar-nav__item--active': section === 'favorites' }"
     >
@@ -100,11 +82,6 @@ async function newNote() {
 .sidebar-nav {
   padding: 0 0.75rem;
   flex-shrink: 0;
-}
-
-/* New Note CTA */
-.sidebar-nav__cta {
-  padding: 0.5rem 0.25rem 0.75rem;
 }
 
 /* Section label */

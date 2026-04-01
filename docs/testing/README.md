@@ -74,8 +74,12 @@ What to test:
 - `useNotes`: CRUD methods call correct endpoints with correct payloads
 - `useAuth`: active-profile bootstrap discovers auth mode correctly, tokens are attached only for the active remote profile, and logging out one profile does not clear another saved profile session
 - `useWorkspaceProfiles`: duplicate `server_url + username` entries are rejected while same-server different-username profiles are allowed
+- `useGlobalNoteBrowsing`: loads notes per reachable/authenticated profile without mutating active profile context, aggregates results across vaults, and reports excluded-profile counts
 - `useComments`: maps comment records to `NyxAnnotation[]`, tracks active/focused annotations, and orders attached threads before detached ones
 - `useCommentAnnotations`: preserves exact selected-text anchors, exposes containing-line context, and omits hidden legacy comments
+- `useNoteBrowsingStore`: derives live search results from sidebar query updates, defaults search to recent ordering, exposes search sort modes (`best match`, `recent`, `grouped`), and limits favorites sorting to `recent` and `grouped`
+- `useNoteBrowsingStore`: aggregates the sidebar recent-notes feed across reachable/authenticated profiles and vaults, preserving source origin data per entry
+- `GlobalNoteBrowseView`: renders shared empty/loading states, excluded-profile notice, shared sort controls, and note-card grid consistently for search and favorites
 
 **E2E tests** (Playwright): full browser against a running dev server.
 
@@ -84,6 +88,11 @@ What to test:
 - First-run setup: connect to an existing remote `secret_key` server and enter the app with a saved remote profile
 - Profile switcher: switching between local and remote profiles loads the correct workspace and clears stale content from the previous profile
 - Login → note list loads → open note → edit → save persists
+- Sidebar search: typing in the sidebar search input routes to global search and updates results live without explicit submit
+- Sidebar recent notes: the list shows the most recently updated notes across reachable/authenticated profiles and vaults, with source server/vault labels
+- Global search: the same query returns the same eligible cross-profile/cross-vault result set regardless of current vault page
+- Global favorites: favorites are shown from all reachable/authenticated profiles and vaults using the same browse layout as search
+- Shared browse layout: search and favorites both render server/vault origin labels, excluded-profile notice when applicable, and the correct sort controls for the current surface
 - Permission selector visible for owner, hidden for non-owner
 - Comment: select text → add comment → thread appears with containing-line context while the selected text is annotated in the editor
 - Detached visible comments remain understandable after note edits
