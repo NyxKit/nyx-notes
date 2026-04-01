@@ -56,14 +56,10 @@ function cancelCreate() {
 
 <template>
   <div class="app-shell__main">
-    <header class="app-shell__header">
-      <div class="app-shell__header-left">
-        <span class="app-shell__title">Vaults</span>
-      </div>
-      <slot name="header-actions">
-        <NyxButton :gradient="true" @click="showCreateForm = true">New Vault</NyxButton>
-      </slot>
-    </header>
+    
+    <slot name="header-actions">
+      <NyxButton :gradient="true" @click="showCreateForm = true">New Vault</NyxButton>
+    </slot>
 
     <main class="app-shell__body">
       <div v-if="loading" class="app-shell__canvas app-shell__canvas--center">

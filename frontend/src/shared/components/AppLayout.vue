@@ -90,64 +90,40 @@ function onBreadcrumbClick(item: NyxBreadcrumb) {
       </div>
     </aside>
 
+    <!-- Global header -->
+    <header class="app-shell__header">
+      <NyxBreadcrumbs :items="breadcrumbs" @click="onBreadcrumbClick" />
+      <slot name="header-actions" />
+    </header>
+
     <!-- Main content area — renders the active child route -->
-    <div class="app-shell__main">
-      <!-- Global breadcrumbs -->
-      <header v-if="breadcrumbs.length > 1" class="app-shell__breadcrumbs">
-        <NyxBreadcrumbs :items="breadcrumbs" @click="onBreadcrumbClick" />
-      </header>
-      <RouterView v-slot="{ Component }">
-        <component :is="Component">
-          <template #header-actions>
-            <slot name="header-actions" />
-          </template>
-        </component>
-      </RouterView>
-    </div>
+    <main class="app-shell__main">
+      <RouterView />
+    </main>
 
   </div>
 </template>
 
 <style scoped>
 .app-shell {
-  display: flex;
-  flex-direction: row;
+  --app-shell-header-height: 3.25rem;
+
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: var(--app-shell-header-height) 1fr;
   height: 100vh;
   overflow: hidden;
   background: var(--nyx-c-bg);
   color: var(--nyx-c-text-1);
 }
 
-/* ── Main column ─────────────────────────────────────────────── */
-.app-shell__main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-}
-
-/* ── Breadcrumbs ─────────────────────────────────────────────── */
-.app-shell__breadcrumbs {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--nyx-c-divider);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.app-shell__breadcrumbs :slotted(.header-actions) {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* ── Left sidebar ───────────────────────────────────────────── */
+/* ── Left sidebar — spans header + main rows ─────────────────── */
 .app-shell__sidebar {
+  grid-column: 1;
+  grid-row: 1 / -1;
   width: 0;
   overflow: hidden;
-  flex-shrink: 0;
+  min-width: 0;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -162,5 +138,30 @@ function onBreadcrumbClick(item: NyxBreadcrumb) {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* ── Global header — fixed row height ────────────────────────── */
+.app-shell__header {
+  grid-column: 2;
+  grid-row: 1;
+  box-sizing: border-box;
+  height: 100%;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--nyx-c-divider);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Main — fills remaining viewport; scrolls internally ─────── */
+.app-shell__main {
+  grid-column: 2;
+  grid-row: 2;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
 }
 </style>

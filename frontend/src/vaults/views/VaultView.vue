@@ -80,21 +80,15 @@ async function createFirst() {
 
 <template>
   <div class="app-shell__main">
-    <header class="app-shell__header">
-      <div class="app-shell__header-left">
-        <VaultIcon :slug="activeVault?.icon" :size="18" />
-        <span class="app-shell__title">{{ activeVault?.name ?? 'Vault' }}</span>
-      </div>
-      <slot name="header-actions">
-        <NyxButton
-          v-if="sortedNotes.length > 0 && !listLoading"
-          :gradient="true"
-          @click="createFirst"
-        >
-          New Note
-        </NyxButton>
-      </slot>
-    </header>
+    <slot name="header-actions">
+      <NyxButton
+        v-if="sortedNotes.length > 0 && !listLoading"
+        :gradient="true"
+        @click="createFirst"
+      >
+        New Note
+      </NyxButton>
+    </slot>
 
     <main class="app-shell__body">
       <div v-if="listLoading" class="app-shell__canvas app-shell__canvas--center">
