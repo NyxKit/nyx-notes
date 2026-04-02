@@ -15,8 +15,8 @@ importers:
         specifier: ^2
         version: 2.5.3
       nyx-kit:
-        specifier: ^2.0.11
-        version: 2.0.12(@floating-ui/dom@1.7.6)(@tiptap/extension-list@3.22.0(@tiptap/core@3.22.0(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0)(@vue/eslint-config-typescript@14.7.0(eslint-plugin-vue@9.33.0(eslint@9.39.4))(eslint@9.39.4)(typescript@5.6.3))(eslint-plugin-oxlint@0.15.15)(eslint-plugin-vue@9.33.0(eslint@9.39.4))(eslint@9.39.4)(typescript@5.6.3)(vue@3.5.31(typescript@5.6.3))
+        specifier: ^2.0.13
+        version: 2.0.13(@floating-ui/dom@1.7.6)(@tiptap/extension-list@3.22.0(@tiptap/core@3.22.0(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0)(@vue/eslint-config-typescript@14.7.0(eslint-plugin-vue@9.33.0(eslint@9.39.4))(eslint@9.39.4)(typescript@5.6.3))(eslint-plugin-oxlint@0.15.15)(eslint-plugin-vue@9.33.0(eslint@9.39.4))(eslint@9.39.4)(typescript@5.6.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.31)(pinia@3.0.4(typescript@5.6.3)(vue@3.5.31(typescript@5.6.3)))(vue@3.5.31(typescript@5.6.3)))(vue@3.5.31(typescript@5.6.3))
       ofetch:
         specifier: ^1.5.1
         version: 1.5.1
@@ -1601,8 +1601,8 @@ packages:
   nwsapi@2.2.23:
     resolution: {integrity: sha512-7wfH4sLbt4M0gCDzGE6vzQBo0bfTKjU7Sfpqy/7gs1qBfYz2vEJH6vXcBKpO3+6Yu1telwd0t9HpyOoLEQQbIQ==}
 
-  nyx-kit@2.0.12:
-    resolution: {integrity: sha512-JW2wp04kTE2gzO10Pr/uRgHnqyb5QNPEqYL+yK1rvPNk25EtozOTZzp2PrmV4PW1DNiUi/9NJLep1bG/O1DQQg==}
+  nyx-kit@2.0.13:
+    resolution: {integrity: sha512-yg575og7VJYoP3zXfNjfZctOtPJvBqmuZVlpM8DqO5+udUB+IguN8p7h/yNHMEfbxNz5/ULD0I47lo1RTGGzqw==}
     peerDependencies:
       '@vue/eslint-config-typescript': ^14.0.0
       eslint: ^9.0.0
@@ -1610,6 +1610,7 @@ packages:
       eslint-plugin-vue: ^9.0.0
       typescript: ^5.0.0
       vue: ^3.0.0
+      vue-router: ^4.0.0
     peerDependenciesMeta:
       '@vue/eslint-config-typescript':
         optional: true
@@ -1618,6 +1619,8 @@ packages:
       eslint-plugin-oxlint:
         optional: true
       eslint-plugin-vue:
+        optional: true
+      vue-router:
         optional: true
 
   ofetch@1.5.1:
@@ -3689,7 +3692,7 @@ snapshots:
 
   nwsapi@2.2.23: {}
 
-  nyx-kit@2.0.12(@floating-ui/dom@1.7.6)(@tiptap/extension-list@3.22.0(@tiptap/core@3.22.0(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0)(@vue/eslint-config-typescript@14.7.0(eslint-plugin-vue@9.33.0(eslint@9.39.4))(eslint@9.39.4)(typescript@5.6.3))(eslint-plugin-oxlint@0.15.15)(eslint-plugin-vue@9.33.0(eslint@9.39.4))(eslint@9.39.4)(typescript@5.6.3)(vue@3.5.31(typescript@5.6.3)):
+  nyx-kit@2.0.13(@floating-ui/dom@1.7.6)(@tiptap/extension-list@3.22.0(@tiptap/core@3.22.0(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0)(@vue/eslint-config-typescript@14.7.0(eslint-plugin-vue@9.33.0(eslint@9.39.4))(eslint@9.39.4)(typescript@5.6.3))(eslint-plugin-oxlint@0.15.15)(eslint-plugin-vue@9.33.0(eslint@9.39.4))(eslint@9.39.4)(typescript@5.6.3)(vue-router@5.0.4(@vue/compiler-sfc@3.5.31)(pinia@3.0.4(typescript@5.6.3)(vue@3.5.31(typescript@5.6.3)))(vue@3.5.31(typescript@5.6.3)))(vue@3.5.31(typescript@5.6.3)):
     dependencies:
       '@tiptap/core': 3.22.0(@tiptap/pm@3.22.0)
       '@tiptap/extension-task-item': 3.22.0(@tiptap/extension-list@3.22.0(@tiptap/core@3.22.0(@tiptap/pm@3.22.0))(@tiptap/pm@3.22.0))
@@ -3708,6 +3711,7 @@ snapshots:
       eslint: 9.39.4
       eslint-plugin-oxlint: 0.15.15
       eslint-plugin-vue: 9.33.0(eslint@9.39.4)
+      vue-router: 5.0.4(@vue/compiler-sfc@3.5.31)(pinia@3.0.4(typescript@5.6.3)(vue@3.5.31(typescript@5.6.3)))(vue@3.5.31(typescript@5.6.3))
     transitivePeerDependencies:
       - '@floating-ui/dom'
       - '@tiptap/extension-list'

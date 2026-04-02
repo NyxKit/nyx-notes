@@ -1,5 +1,9 @@
 import type { AuthMode } from './profile'
 
+// ─── Shared ───────────────────────────────────────────────────────────────────
+export * from './profile'
+export * from './router'
+
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 export interface AuthModeResponse {
@@ -204,5 +208,3 @@ export interface AddMemberRequest {
 export interface PatchMemberRequest {
   role: Exclude<TeamRole, 'owner'>
 }
-
-export * from './profile'

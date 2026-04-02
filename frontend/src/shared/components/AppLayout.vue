@@ -1,26 +1,23 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { NyxBreadcrumbs } from 'nyx-kit/components'
-import type { NyxBreadcrumb } from 'nyx-kit/types'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
 import { VaultSwitcher } from '@/vaults/components'
+import AppBreadcrumbs from './AppBreadcrumbs.vue'
 import SidebarNav from './SidebarNav.vue'
 import { NoteList } from '@/notes/components'
 import type { Vault } from '@/shared/types'
 
 const route = useRoute()
-const router = useRouter()
 const vaultStore = useVaultStore()
 const notesStore = useNotesStore()
 const { apiEpoch, isAuthenticated } = useAuth()
 const { activeProfile } = useWorkspaceProfiles()
 const { vaults } = storeToRefs(vaultStore)
-const { activeNote } = storeToRefs(notesStore)
 const { load } = vaultStore
 const { loadAll } = notesStore
 
@@ -41,52 +38,6 @@ watch([activeProfile, apiEpoch], async () => {
 }, {
   immediate: true,
 })
-
-const breadcrumbs = computed((): NyxBreadcrumb[] => {
-  const path = route.path
-
-  if (path === '/' || path === '/vaults') {
-    return []
-  }
-
-  const items: NyxBreadcrumb[] = [{ label: 'All notes', href: '/notes/search' }]
-
-  if (path.includes('/favorites')) {
-    items.push({ label: 'Favorites', href: '/notes/favorites' })
-  }
-
-  if (path.includes('/vaults/') && route.params.vault_id) {
-    const vaultId = route.params.vault_id as string
-    const vault = vaults.value.find(v => v.id === vaultId)
-    if (vault) {
-      items.push({ label: vault.name, href: `/vaults/${vault.id}` })
-    }
-  }
-
-  if (path.includes('/notes/') && route.params.id && activeNote.value) {
-    items.push({ label: activeNote.value.meta.title || 'Untitled' })
-  }
-
-  return items
-})
-
-function onBreadcrumbCapture(event: MouseEvent) {
-  const target = event.target
-  if (!(target instanceof Element)) return
-
-  const anchor = target.closest('a')
-  if (!(anchor instanceof HTMLAnchorElement)) return
-
-  const url = new URL(anchor.href, window.location.origin)
-  if (url.origin !== window.location.origin) return
-
-  event.preventDefault()
-
-  const nextPath = `${url.pathname}${url.search}${url.hash}`
-  if (nextPath === route.fullPath) return
-
-  void router.push(nextPath)
-}
 </script>
 
 <template>
@@ -103,9 +54,7 @@ function onBreadcrumbCapture(event: MouseEvent) {
 
     <!-- Global header -->
     <header id="header" class="app-shell__header">
-      <div @click.capture="onBreadcrumbCapture">
-        <NyxBreadcrumbs :items="breadcrumbs" />
-      </div>
+      <AppBreadcrumbs />
       <div id="layout-header-actions" class="app-shell__header-actions" />
     </header>
 
@@ -126,7 +75,6 @@ function onBreadcrumbCapture(event: MouseEvent) {
   color: var(--nyx-c-text-1);
 }
 
-/* ── Left sidebar — spans header + main rows ─────────────────── */
 .app-shell__sidebar {
   grid-column: 1;
   grid-row: 1 / -1;
@@ -149,7 +97,6 @@ function onBreadcrumbCapture(event: MouseEvent) {
   overflow: hidden;
 }
 
-/* ── Global header — fixed row height ────────────────────────── */
 .app-shell__header {
   grid-column: 2;
   grid-row: 1;
@@ -170,7 +117,6 @@ function onBreadcrumbCapture(event: MouseEvent) {
   flex-shrink: 0;
 }
 
-/* ── Main — fills remaining viewport; scrolls internally ─────── */
 .app-shell__body {
   grid-column: 2;
   grid-row: 2;
