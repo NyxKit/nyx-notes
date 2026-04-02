@@ -63,7 +63,8 @@ frontend/src/
       GlobalNoteBrowseView.vue # shared browse layout for global search and favorites
       NoteCard.vue           # single note card (title, origin context, distilled description, metadata, link)
       NoteEditor.vue         # thin wrapper around <NyxEditor> from nyx-kit
-      NoteList.vue           # sidebar: list of notes in the active vault + global search input
+      NoteList.vue           # sidebar: recent-notes feed across reachable profiles and vaults
+      NoteSearch.vue         # sidebar: global search input rendered below the vault switcher
       NoteToolbar.vue        # save, delete, tags, permission selector
       index.ts               # exports note components
     stores/
@@ -205,7 +206,7 @@ The frontend uses a shared browse-card family for browse-and-select surfaces onl
 - Center panel: `NoteEditor` — TipTap editor for the selected note (read-only if the user has `comment` access)
 - Right panel: `CommentSidebar` — comment threads, aligned to their annotated text
 - Toolbar: save button, delete button, tags input, category selector, permission selector (note author only)
-- Left sidebar (VaultSwitcher, SidebarNav, NoteList) is owned by `AppLayout`, not this view
+- Left sidebar (VaultSwitcher, NoteSearch, SidebarNav, NoteList) is owned by `AppLayout`, not this view
 
 ### `VaultSettingsView` (`/vaults/:vault_id/settings`)
 
@@ -257,8 +258,13 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
 - Each entry shows the note title, relative `updated_at`, and its source server/vault so cross-project and cross-vault notes remain identifiable
 - Shows a permission badge on each note: no badge for `restricted`, a comment icon for `comment`, a pencil icon for `edit`
 - Clicking a note navigates directly to that note, switching profile context first when needed
-- The sidebar search input is global rather than vault-scoped; it routes to `/notes/search` and updates the main window live while the user types
 - The note list no longer owns search results; it remains a recent-notes feed only
+
+## Note Search (`NoteSearch.vue`)
+
+- Renders directly below `VaultSwitcher` in `AppLayout`
+- Provides the global sidebar search input
+- Routes to `/search` and updates the main window live while the user types
 
 ## Sidebar Navigation (`SidebarNav.vue`)
 

@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useVaultStore } from '@/vaults/stores'
 import { NyxIcon } from 'nyx-kit/components'
+import { RouteName } from '@/shared/types'
 
 const route = useRoute()
 const { activeVault } = storeToRefs(useVaultStore())
@@ -11,10 +12,9 @@ const { activeVault } = storeToRefs(useVaultStore())
 const vaultId = computed(() => activeVault.value?.id ?? '')
 
 const section = computed(() => {
-  if (route.path === '/') return 'home'
-  if (route.path === '/notes/favorites') return 'favorites'
-  if (route.path.includes('/drafts')) return 'drafts'
-  if (vaultId.value && route.path === `/vaults/${vaultId.value}`) return 'vault'
+  if (route.name === RouteName.Home) return 'home'
+  if (route.name === RouteName.Favorites) return 'favorites'
+  if (route.name === RouteName.Vault && route.params.vault_id === vaultId.value) return 'vault'
   return 'notes'
 })
 </script>
@@ -26,7 +26,7 @@ const section = computed(() => {
     <div class="sidebar-nav__section-label">App</div>
 
     <RouterLink
-      to="/"
+      :to="{ name: RouteName.Home }"
       class="sidebar-nav__item"
       :class="{ 'sidebar-nav__item--active': section === 'home' }"
     >
@@ -35,9 +35,9 @@ const section = computed(() => {
     </RouterLink>
 
     <RouterLink
-      to="/servers"
+      :to="{ name: RouteName.Servers }"
       class="sidebar-nav__item"
-      :class="{ 'sidebar-nav__item--active': route.path === '/servers' }"
+      :class="{ 'sidebar-nav__item--active': route.name === RouteName.Servers }"
     >
       <NyxIcon name="server" :size="16" />
       Servers
@@ -48,7 +48,7 @@ const section = computed(() => {
 
     <RouterLink
       v-if="vaultId"
-      :to="`/vaults/${vaultId}`"
+      :to="{ name: RouteName.Vault, params: { vault_id: vaultId } }"
       class="sidebar-nav__item"
       :class="{ 'sidebar-nav__item--active': section === 'vault' }"
     >
@@ -57,22 +57,12 @@ const section = computed(() => {
     </RouterLink>
 
     <RouterLink
-      to="/notes/favorites"
+      :to="{ name: RouteName.Favorites }"
       class="sidebar-nav__item"
       :class="{ 'sidebar-nav__item--active': section === 'favorites' }"
     >
       <NyxIcon name="star" :size="16" />
       Favorites
-    </RouterLink>
-
-    <RouterLink
-      v-if="vaultId"
-      :to="`/vaults/${vaultId}/drafts`"
-      class="sidebar-nav__item"
-      :class="{ 'sidebar-nav__item--active': section === 'drafts' }"
-    >
-      <NyxIcon name="edit-3" :size="16" />
-      Drafts
     </RouterLink>
 
   </nav>

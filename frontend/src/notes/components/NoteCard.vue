@@ -3,6 +3,7 @@ import { RouterLink } from 'vue-router'
 import { NyxBadge, NyxCard } from 'nyx-kit/components'
 import { NyxTheme, NyxVariant } from 'nyx-kit/types'
 import type { BrowseNoteCardModel } from '@/shared/types'
+import { DEFAULT_NOTE_TITLE } from '..'
 
 defineProps<{
   note: BrowseNoteCardModel
@@ -13,12 +14,12 @@ defineProps<{
   <RouterLink
     class="note-card"
     :to="note.href"
-    :aria-label="`Open ${note.title || 'Untitled'} note`"
+    :aria-label="`Open ${note.title || DEFAULT_NOTE_TITLE} note`"
   >
     <NyxCard class="note-card__shell">
       <div class="note-card__content">
         <div class="note-card__text">
-          <h3 class="note-card__title">{{ note.title || 'Untitled' }}</h3>
+          <h3 class="note-card__title">{{ note.title || DEFAULT_NOTE_TITLE }}</h3>
           <p v-if="note.description" class="note-card__description">{{ note.description }}</p>
         </div>
 

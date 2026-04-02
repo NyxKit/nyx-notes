@@ -6,8 +6,8 @@ import { NyxBreadcrumbs } from 'nyx-kit/components'
 import type { NyxBreadcrumb } from 'nyx-kit/types'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
-import VaultIcon from '@/vaults/components/VaultIcon.vue'
 import { RouteName } from '@/shared/types'
+import { DEFAULT_NOTE_TITLE } from '@/notes'
 
 const route = useRoute()
 const { activeVault } = storeToRefs(useVaultStore())
@@ -21,7 +21,6 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
 
   const genericRoutes = [
     { name: RouteName.Favorites, label: 'Favorites' },
-    { name: RouteName.Drafts, label: 'Drafts' },
     { name: RouteName.Search, label: 'Search' },
   ]
 
@@ -34,43 +33,26 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
   }
 
   if ([RouteName.Vault, RouteName.Note].includes(route.name as RouteName)) {
+    const vaultId = String(route.params.vault_id ?? '')
     breadcrumbs.push({
       label: activeVault.value?.name ?? '',
-      route: { name: RouteName.Vault, params: { vault_id: activeVault.value?.id ?? '' } },
+      route: { name: RouteName.Vault, params: { vault_id: vaultId } },
     })
   }
 
   if (route.name === RouteName.Note) {
+    const vaultId = String(route.params.vault_id ?? '')
+    const noteId = String(route.params.id ?? '')
     breadcrumbs.push({
-      label: activeNote.value?.meta.title ?? '',
-      route: { name: RouteName.Note, params: { vault_id: activeVault.value?.id ?? '', id: activeNote.value?.meta.id ?? '' } },
+      label: activeNote.value?.meta.title || DEFAULT_NOTE_TITLE,
+      route: { name: RouteName.Note, params: { vault_id: vaultId, id: noteId } },
     })
   }
 
   return breadcrumbs
 })
-
-function isVaultBreadcrumb(item: NyxBreadcrumb) {
-  return typeof item.route === 'object' && item.route !== null && 'name' in item.route && item.route.name === RouteName.Vault
-}
-
-function vaultBreadcrumbIcon() {
-  return activeVault.value?.icon || 'folder'
-}
 </script>
 
 <template>
   <NyxBreadcrumbs :items="breadcrumbs" />
 </template>
-
-<style scoped>
-.layout-breadcrumbs__vault-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.layout-breadcrumbs__vault-icon {
-  opacity: 0.75;
-}
-</style>

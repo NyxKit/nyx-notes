@@ -8,6 +8,7 @@ import type { NyxSelectOptionGroup } from 'nyx-kit/types'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
 import { useTeams } from '@/teams/composables'
+import { RouteName } from '@/shared/types'
 import type { Vault } from '@/shared/types'
 
 const props = withDefaults(defineProps<{ dest?: 'notes' | 'vault' }>(), { dest: 'notes' })
@@ -67,8 +68,10 @@ const noteCountLabel = computed(() => {
 
 function select(vault: Vault) {
   setActive(vault)
-  const path = props.dest === 'vault' ? `/vaults/${vault.id}` : `/vaults/${vault.id}/notes`
-  router.push(path)
+  const target = props.dest === 'vault'
+    ? { name: RouteName.Vault, params: { vault_id: vault.id } }
+    : { name: RouteName.Note, params: { vault_id: vault.id } }
+  router.push(target)
 }
 </script>
 
@@ -88,7 +91,7 @@ function select(vault: Vault) {
 
     <RouterLink
       v-if="activeVault?.owner.type === 'team'"
-      :to="`/teams/${activeVault.owner.id}/settings`"
+      :to="{ name: RouteName.TeamSettings, params: { team_id: activeVault.owner.id } }"
       class="vault-switcher__team-link"
     >
       Team settings ›

@@ -31,7 +31,9 @@ const sortValue = computed({
 <template>
   <div class="browse-view">
     <Teleport to="#layout-header-actions" defer>
+      <!-- Temporary disabled, keep it like this for now -->
       <NyxSelect
+        v-if="false"
         v-model="sortValue"
         :options="sortOptions"
         class="browse-view__sort"

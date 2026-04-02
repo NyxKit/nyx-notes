@@ -4,9 +4,10 @@ import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { NyxButton, NyxGrid, NyxIcon } from 'nyx-kit/components'
 import { NyxGridMode } from 'nyx-kit/types'
-import { NoteCard } from '@/notes/components'
+import NoteCard from '@/notes/components/NoteCard.vue'
 import { useNoteBrowsingStore, useNotesStore } from '@/notes/stores'
 import { useWorkspaceProfiles } from '@/shared/composables'
+import { RouteName } from '@/shared/types'
 import type { BrowseNoteCardModel } from '@/shared/types'
 import { useVaultStore } from '@/vaults/stores'
 
@@ -49,7 +50,11 @@ const sortedNotes = computed<BrowseNoteCardModel[]>(() =>
       tags: note.tags,
       updated_at: note.updated_at,
       updated_label: formatDate(note.updated_at),
-      href: `/vaults/${note.vault_id}/notes/${note.id}?profile=${encodeURIComponent(activeProfile.value?.id ?? 'local')}`,
+      href: {
+        name: RouteName.Note,
+        params: { vault_id: note.vault_id, id: note.id },
+        query: { profile: activeProfile.value?.id ?? 'local' },
+      },
       server_label: activeProfile.value?.display_name ?? 'Local',
       server_id: activeProfile.value?.type === 'remote' ? activeProfile.value.server_id : undefined,
       vault_name: activeVault.value?.name ?? 'Vault',
@@ -73,7 +78,7 @@ function formatDate(iso: string) {
 
 async function createFirst() {
   const meta = await createNote(vaultId.value, { title: '', content: '' })
-  router.push(`/vaults/${vaultId.value}/notes/${meta.id}`)
+  router.push({ name: RouteName.Note, params: { vault_id: vaultId.value, id: meta.id } })
 }
 </script>
 

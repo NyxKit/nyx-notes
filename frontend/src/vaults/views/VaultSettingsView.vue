@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { NyxButton, NyxInput, NyxSelect, NyxTextarea } from 'nyx-kit/components'
 import { NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
+import { RouteName } from '@/shared/types'
 import { VaultIconPicker } from '@/vaults/components'
 import { useVaultStore } from '@/vaults/stores'
 import type { NotePermission } from '@/shared/types'
@@ -78,7 +79,7 @@ async function onDelete() {
   deleteError.value = null
   try {
     await remove(vaultId.value)
-    router.push('/')
+    router.push({ name: RouteName.Home })
   } catch (e) {
     deleteError.value = String(e)
     confirmDelete.value = false

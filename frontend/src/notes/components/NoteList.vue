@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, watch, onBeforeUnmount } from 'vue'
+import { computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useNoteBrowsingStore } from '@/notes/stores'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
-import { NyxInput } from 'nyx-kit/components'
-import { NyxInputType } from 'nyx-kit/types'
 
 const RECENT_LIMIT = 20
 
@@ -18,10 +16,6 @@ const noteBrowsingStore = useNoteBrowsingStore()
 const { recentResults } = storeToRefs(noteBrowsingStore)
 const { loadRecentNotes } = noteBrowsingStore
 
-const search = ref(String(route.query.q ?? ''))
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
-let syncingFromRoute = false
-
 const recentNotes = computed(() => {
   return recentResults.value.slice(0, RECENT_LIMIT)
 })
@@ -30,45 +24,10 @@ watch([apiEpoch, profiles, activeProfile], async () => {
   await loadRecentNotes()
 }, { immediate: true, deep: true })
 
-watch(() => [route.path, String(route.query.q ?? '')] as const, ([path, value]) => {
-  if (path !== '/notes/search') return
-  syncingFromRoute = true
-  search.value = value
-})
-
-watch(search, (value) => {
-  if (syncingFromRoute) {
-    syncingFromRoute = false
-    return
-  }
-
-  if (searchTimeout) clearTimeout(searchTimeout)
-
-  searchTimeout = setTimeout(() => {
-    router.replace({
-      path: '/notes/search',
-      query: value ? { q: value } : {},
-    })
-  }, 200)
-})
-
-onBeforeUnmount(() => {
-  if (searchTimeout) clearTimeout(searchTimeout)
-})
-
 </script>
 
 <template>
   <div class="note-list">
-
-    <!-- Search -->
-    <div class="note-list__search-wrap">
-      <NyxInput
-        v-model="search"
-        :type="NyxInputType.Search"
-        placeholder="Search notes…"
-      />
-    </div>
 
     <!-- Section label -->
     <div class="note-list__section-label">Recent Notes</div>
@@ -105,12 +64,6 @@ onBeforeUnmount(() => {
   flex: 1;
   overflow: hidden;
   min-height: 0;
-}
-
-/* Search */
-.note-list__search-wrap {
-  padding: 0.25rem 1rem 0.5rem;
-  flex-shrink: 0;
 }
 
 /* Section label */

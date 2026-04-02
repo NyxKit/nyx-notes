@@ -5,6 +5,7 @@ import { NyxButton, NyxIcon, NyxModal } from 'nyx-kit/components'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { RemoteProfileForm } from '@/auth'
+import { RouteName } from '@/shared/types'
 import type { RemoteProfileDraft } from '@/shared/types'
 
 const router = useRouter()
@@ -34,7 +35,7 @@ async function signOutActiveProfile() {
 async function addLocalProfile() {
   profilesStore.createLocalProfile()
   await auth.bootstrapActiveProfile()
-  await router.push('/')
+  await router.push({ name: RouteName.Home })
 }
 
 async function handleAddServer(draft: RemoteProfileDraft) {
@@ -89,7 +90,7 @@ async function handleEditServer(draft: RemoteProfileDraft) {
               </div>
             </div>
             <div class="profile-card__actions">
-              <NyxButton v-if="activeProfile.type === 'remote' && !auth.isAuthenticated.value" @click="router.push('/login')">
+              <NyxButton v-if="activeProfile.type === 'remote' && !auth.isAuthenticated.value" @click="router.push({ name: RouteName.Login })">
                 Sign In
               </NyxButton>
               <NyxButton v-if="activeProfile.type === 'remote' && auth.isAuthenticated.value" @click="signOutActiveProfile">

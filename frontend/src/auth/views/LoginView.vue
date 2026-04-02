@@ -6,6 +6,7 @@ import { InstallationModeStep, RemoteProfileForm, useAuth } from '@/auth'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import type { InstallationMode } from '@/auth/types/profileSetup'
 import type { ServerSetupChoice } from '@/auth/types/profileSetup'
+import { RouteName } from '@/shared/types'
 import type { RemoteProfileDraft } from '@/shared/types'
 
 const router = useRouter()
@@ -31,7 +32,7 @@ async function completeLocalSetup() {
   error.value = null
   workspaceProfiles.createLocalProfile()
   await auth.bootstrapActiveProfile()
-  await router.push('/')
+  await router.push({ name: RouteName.Home })
 }
 
 function chooseServerMode(choice: ServerSetupChoice) {

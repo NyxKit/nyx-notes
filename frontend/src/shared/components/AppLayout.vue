@@ -9,7 +9,7 @@ import { useNotesStore } from '@/notes/stores'
 import { VaultSwitcher } from '@/vaults/components'
 import AppBreadcrumbs from './AppBreadcrumbs.vue'
 import SidebarNav from './SidebarNav.vue'
-import { NoteList } from '@/notes/components'
+import { NoteList, NoteSearch } from '@/notes/components'
 import type { Vault } from '@/shared/types'
 
 const route = useRoute()
@@ -47,6 +47,7 @@ watch([activeProfile, apiEpoch], async () => {
     <aside id="sidebar" class="app-shell__sidebar app-shell__sidebar--open">
       <div class="app-shell__sidebar-inner">
         <VaultSwitcher />
+        <NoteSearch />
         <SidebarNav />
         <NoteList />
       </div>

@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { NyxButton, NyxCard, NyxForm, NyxFormField, NyxGrid, NyxInput, NyxTextarea } from 'nyx-kit/components'
 import { NyxGridMode } from 'nyx-kit/types'
+import { RouteName } from '@/shared/types'
 import { VaultCard, VaultIconPicker } from '@/vaults/components'
 import { useVaultStore } from '@/vaults/stores'
 
@@ -24,7 +25,7 @@ onMounted(async () => {
   await loadVaults()
   const isInitialLoad = !window.history.state?.back
   if (isInitialLoad && vaults.value.length === 1) {
-    router.replace(`/vaults/${vaults.value[0].id}`)
+    router.replace({ name: RouteName.Vault, params: { vault_id: vaults.value[0].id } })
   }
 })
 
@@ -39,7 +40,7 @@ async function submitCreate() {
       description: newDescription.value.trim() || undefined,
       icon: newIcon.value,
     })
-    router.push(`/vaults/${vault.id}`)
+    router.push({ name: RouteName.Vault, params: { vault_id: vault.id } })
   } finally {
     creating.value = false
   }

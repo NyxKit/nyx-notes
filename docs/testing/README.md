@@ -88,7 +88,7 @@ What to test:
 - First-run setup: connect to an existing remote `secret_key` server and enter the app with a saved remote profile
 - Profile switcher: switching between local and remote profiles loads the correct workspace and clears stale content from the previous profile
 - Login → note list loads → open note → edit → save persists
-- Sidebar search: typing in the sidebar search input routes to global search and updates results live without explicit submit
+- Sidebar search: typing in `NoteSearch` routes to global search and updates results live without explicit submit
 - Sidebar recent notes: the list shows the most recently updated notes across reachable/authenticated profiles and vaults, with source server/vault labels
 - Global search: the same query returns the same eligible cross-profile/cross-vault result set regardless of current vault page
 - Global favorites: favorites are shown from all reachable/authenticated profiles and vaults using the same browse layout as search

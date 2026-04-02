@@ -2,6 +2,7 @@ import { computed } from 'vue'
 import { ofetch } from 'ofetch'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
+import { RouteName } from '@/shared/types'
 import type {
   AnyWorkspaceProfile,
   BrowseNoteCardModel,
@@ -76,7 +77,11 @@ function makeProfileClient(profile: AnyWorkspaceProfile, token?: string): Profil
 }
 
 function makeHref(profileId: string, vaultId: string, noteId: string) {
-  return `/vaults/${vaultId}/notes/${noteId}?profile=${encodeURIComponent(profileId)}`
+  return {
+    name: RouteName.Note,
+    params: { vault_id: vaultId, id: noteId },
+    query: { profile: profileId },
+  }
 }
 
 function computeMatchScore(query: string, note: NoteMeta, content?: string) {

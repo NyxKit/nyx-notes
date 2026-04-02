@@ -11,6 +11,7 @@ import { NyxModal, NyxButton, NyxIcon } from 'nyx-kit/components'
 import { NyxTheme, NyxShape, NyxVariant } from 'nyx-kit/types'
 import { NoteEditor } from '@/notes/components'
 import { CommentSidebar } from '@/comments/components'
+import { RouteName } from '@/shared/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -49,7 +50,7 @@ async function confirmDelete() {
   if (!note) return
   await remove(note.meta.vault_id, note.meta.id)
   showDeleteConfirm.value = false
-  router.replace(`/vaults/${note.meta.vault_id}/notes`)
+  router.replace({ name: RouteName.Vault, params: { vault_id: note.meta.vault_id } })
 }
 
 const vaultStore = useVaultStore()
@@ -97,7 +98,7 @@ watch(
 
     if (!vaults.value.length) {
       localStorage.removeItem(LAST_NOTE_KEY)
-      router.replace('/')
+      router.replace({ name: RouteName.Home })
       return
     }
 

@@ -1,4 +1,5 @@
 import type { AuthMode } from './profile'
+import type { RouteLocationRaw } from 'vue-router'
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 export * from './profile'
@@ -96,7 +97,7 @@ export interface BrowseNoteCardModel {
   tags: string[]
   updated_at: string
   updated_label: string
-  href: string
+  href: RouteLocationRaw
   server_label: string
   server_id?: string
   vault_name: string

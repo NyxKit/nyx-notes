@@ -8,6 +8,7 @@ import type { NyxSelectOption } from 'nyx-kit/types'
 import { useAuth } from '@/auth/composables'
 import { useTeams } from '@/teams/composables'
 import { useVaultStore } from '@/vaults/stores'
+import { RouteName } from '@/shared/types'
 import type { TeamRole, NotePermission } from '@/shared/types'
 
 const route = useRoute()
@@ -109,7 +110,7 @@ async function onDeleteTeam() {
   deleteTeamError.value = null
   try {
     await removeTeam(teamId.value)
-    router.push('/')
+    router.push({ name: RouteName.Home })
   } catch (e) {
     deleteTeamError.value = String(e)
     confirmDeleteTeam.value = false
