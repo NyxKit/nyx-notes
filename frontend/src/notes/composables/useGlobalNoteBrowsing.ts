@@ -76,11 +76,10 @@ function makeProfileClient(profile: AnyWorkspaceProfile, token?: string): Profil
   }
 }
 
-function makeHref(profileId: string, vaultId: string, noteId: string) {
+function makeHref(_profileId: string, vaultId: string, noteId: string) {
   return {
     name: RouteName.Note,
     params: { vault_id: vaultId, id: noteId },
-    query: { profile: profileId },
   }
 }
 

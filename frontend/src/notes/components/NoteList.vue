@@ -41,7 +41,7 @@ watch([apiEpoch, profiles, activeProfile], async () => {
         v-for="note in recentNotes"
         :key="`${note.profile_id}:${note.vault_id}:${note.note_id}`"
         class="note-list__item"
-        :class="{ 'note-list__item--active': route.params.id === note.note_id && String(route.query.profile ?? activeProfile?.id ?? 'local') === note.profile_id }"
+        :class="{ 'note-list__item--active': route.params.vault_id === note.vault_id && route.params.id === note.note_id }"
         @click="router.push(note.href)"
       >
         <div class="note-list__title">

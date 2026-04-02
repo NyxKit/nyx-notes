@@ -38,6 +38,16 @@ watch([activeProfile, apiEpoch], async () => {
 }, {
   immediate: true,
 })
+
+watch(
+  [() => route.params.vault_id as string | undefined, vaults],
+  ([vaultId]) => {
+    if (!vaultId) return
+    const currentVault = vaults.value.find(v => v.id === vaultId) ?? null
+    vaultStore.setActive(currentVault as Vault | null)
+  },
+  { immediate: true }
+)
 </script>
 
 <template>

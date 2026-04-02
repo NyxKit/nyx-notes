@@ -110,6 +110,10 @@ export const useNotesStore = defineStore('notes', () => {
     return meta
   }
 
+  function clearActive() {
+    activeNote.value = null
+  }
+
   function $reset() {
     notesByVault.value = {}
     activeNote.value = null
@@ -134,6 +138,7 @@ export const useNotesStore = defineStore('notes', () => {
     save,
     remove,
     updatePermission,
+    clearActive,
     $reset,
   }
 })

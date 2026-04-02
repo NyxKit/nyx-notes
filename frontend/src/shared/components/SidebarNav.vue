@@ -7,9 +7,9 @@ import { NyxIcon } from 'nyx-kit/components'
 import { RouteName } from '@/shared/types'
 
 const route = useRoute()
-const { activeVault } = storeToRefs(useVaultStore())
+const { activeVault, vaults } = storeToRefs(useVaultStore())
 
-const vaultId = computed(() => activeVault.value?.id ?? '')
+const vaultId = computed(() => String(route.params.vault_id ?? activeVault.value?.id ?? vaults.value[0]?.id ?? ''))
 
 const section = computed(() => {
   if (route.name === RouteName.Home) return 'home'

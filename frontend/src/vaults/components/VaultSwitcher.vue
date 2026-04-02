@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { NyxSelect } from 'nyx-kit/components'
 import { NyxSize } from 'nyx-kit/types'
@@ -13,6 +13,7 @@ import type { Vault } from '@/shared/types'
 
 const props = withDefaults(defineProps<{ dest?: 'notes' | 'vault' }>(), { dest: 'notes' })
 
+const route = useRoute()
 const router = useRouter()
 const vaultStore = useVaultStore()
 const { vaults, activeVault } = storeToRefs(vaultStore)
@@ -54,7 +55,7 @@ const vaultSelectOptions = computed((): NyxSelectOptionGroup[] => {
 })
 
 const selectedVaultId = computed({
-  get: () => activeVault.value?.id ?? '',
+  get: () => String(route.params.vault_id ?? activeVault.value?.id ?? ''),
   set: (id: string) => {
     const vault = vaults.value.find(v => v.id === id)
     if (vault) select(vault)
@@ -80,6 +81,7 @@ function select(vault: Vault) {
     <div class="vault-switcher__card">
       <div class="vault-switcher__card-row">
         <NyxSelect
+          :key="selectedVaultId"
           v-model="selectedVaultId"
           :options="vaultSelectOptions"
           :size="NyxSize.Small"

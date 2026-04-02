@@ -53,7 +53,6 @@ const sortedNotes = computed<BrowseNoteCardModel[]>(() =>
       href: {
         name: RouteName.Note,
         params: { vault_id: note.vault_id, id: note.id },
-        query: { profile: activeProfile.value?.id ?? 'local' },
       },
       server_label: activeProfile.value?.display_name ?? 'Local',
       server_id: activeProfile.value?.type === 'remote' ? activeProfile.value.server_id : undefined,

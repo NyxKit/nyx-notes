@@ -15,7 +15,7 @@ const { activeNote } = storeToRefs(useNotesStore())
 
 const breadcrumbs = computed((): NyxBreadcrumb[] => {
   const breadcrumbs: NyxBreadcrumb[] = [{
-    label: 'Home',
+    label: 'Nyx',
     route: { name: RouteName.Home },
   }]
 

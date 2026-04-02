@@ -269,7 +269,7 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
 ## Sidebar Navigation (`SidebarNav.vue`)
 
 - Does not expose a context-free `New Note` action
-- Links `Favorites` to `/notes/favorites`
+- Links `Favorites` to `/favorites`
 - Leaves note creation to vault-specific surfaces such as `VaultView`
 
 ## Auth Flow
@@ -281,6 +281,8 @@ The frontend boots from the active workspace profile, not from one global server
 - If the remote server reports `secret_key`, the client shows the username/password form and stores the resulting token only for that profile
 - If the remote server reports `oidc`, the client keeps the profile saved but marks it unsupported for this feature's remote flow
 - Switching profiles clears in-memory auth, vault, note, comment, and team state before loading the newly selected profile
+- In-app navigation should not append `?profile=local` or other routine profile query params just to keep profile state in sync
+- Future direction: introduce a dedicated `profileStore` that owns `currentProfile`, switching, bootstrap, and last-route restoration internally; URL-level `?profile=` should remain only as an explicit deep-link override when needed
 
 ```ts
 // auth/composables/useAuth.ts

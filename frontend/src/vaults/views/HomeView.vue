@@ -11,7 +11,7 @@ import { useVaultStore } from '@/vaults/stores'
 const router = useRouter()
 const vaultStore = useVaultStore()
 const { vaults, loading } = storeToRefs(vaultStore)
-const { load: loadVaults, create: createVault, setActive } = vaultStore
+const { load: loadVaults, create: createVault } = vaultStore
 
 const showCreateForm = ref(false)
 const newSlug = ref('')
@@ -21,7 +21,6 @@ const newIcon = ref<string | undefined>(undefined)
 const creating = ref(false)
 
 onMounted(async () => {
-  setActive(null)
   await loadVaults()
   const isInitialLoad = !window.history.state?.back
   if (isInitialLoad && vaults.value.length === 1) {

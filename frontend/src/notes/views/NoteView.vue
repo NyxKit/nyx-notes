@@ -58,7 +58,7 @@ const { vaults } = storeToRefs(vaultStore)
 const { load: loadVaults, setActive } = vaultStore
 const notesStore = useNotesStore()
 const { activeNote } = storeToRefs(notesStore)
-const { loadNote, remove } = notesStore
+const { loadNote, remove, clearActive } = notesStore
 
 const LAST_NOTE_KEY = 'nyx_last_note'
 
@@ -92,7 +92,12 @@ watch(
     // When switching notes, prune the previous one if it was empty
     if (prev?.[1]) await pruneIfEmpty()
 
-    if (!vaultId || !noteId) return
+    if (!vaultId || !noteId) {
+      clearActive()
+      clearLoadedComments()
+      editorStore.reset()
+      return
+    }
 
     if (!vaults.value.length) await loadVaults()
 
@@ -105,10 +110,10 @@ watch(
     const vault = vaults.value.find(v => v.id === vaultId)
     if (vault) setActive(vault)
 
-    await loadNote(vaultId, noteId)
     clearLoadedComments()
-    await loadComments(vaultId, noteId)
     editorStore.reset()
+    await loadNote(vaultId, noteId)
+    await loadComments(vaultId, noteId)
 
     localStorage.setItem(LAST_NOTE_KEY, JSON.stringify({ vaultId, noteId }))
   },
@@ -173,6 +178,7 @@ watch(
         <template v-if="section === 'notes'">
           <NoteEditor
             v-if="activeNote"
+            :key="activeNote.meta.id"
             :note="activeNote"
             :annotations="annotations"
             @comment="onCreateComment"
