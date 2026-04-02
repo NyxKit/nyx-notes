@@ -55,7 +55,7 @@ const vaultSelectOptions = computed((): NyxSelectOptionGroup[] => {
 })
 
 const selectedVaultId = computed({
-  get: () => String(route.params.vault_id ?? activeVault.value?.id ?? ''),
+  get: () => String(route.params.vault_id ?? ''),
   set: (id: string) => {
     const vault = vaults.value.find(v => v.id === id)
     if (vault) select(vault)
@@ -81,7 +81,6 @@ function select(vault: Vault) {
     <div class="vault-switcher__card">
       <div class="vault-switcher__card-row">
         <NyxSelect
-          :key="selectedVaultId"
           v-model="selectedVaultId"
           :options="vaultSelectOptions"
           :size="NyxSize.Small"
