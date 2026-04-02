@@ -36,7 +36,8 @@ export const useNotesStore = defineStore('notes', () => {
 
   async function loadList(vaultId: string) {
     const requestEpoch = getApiRequestEpoch()
-    listLoading.value = true
+    const hasCachedList = Object.prototype.hasOwnProperty.call(notesByVault.value, vaultId)
+    listLoading.value = !hasCachedList
     error.value = null
     try {
       const notes = await fetchNotes(vaultId)

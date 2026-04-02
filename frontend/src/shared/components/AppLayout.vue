@@ -8,18 +8,15 @@ import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
-import { useTeams } from '@/teams/composables'
-import { useComments } from '@/comments/composables'
 import { VaultSwitcher } from '@/vaults/components'
 import SidebarNav from './SidebarNav.vue'
 import { NoteList } from '@/notes/components'
+import type { Vault } from '@/shared/types'
 
 const route = useRoute()
 const router = useRouter()
 const vaultStore = useVaultStore()
 const notesStore = useNotesStore()
-const teams = useTeams()
-const comments = useComments()
 const { apiEpoch, isAuthenticated } = useAuth()
 const { activeProfile } = useWorkspaceProfiles()
 const { vaults } = storeToRefs(vaultStore)
@@ -28,15 +25,15 @@ const { load } = vaultStore
 const { loadAll } = notesStore
 
 async function refreshWorkspace() {
-  vaultStore.$reset()
-  notesStore.$reset()
-  teams.clear()
-  comments.clearLoadedComments()
-
   if (!isAuthenticated.value) return
 
   await load()
   await loadAll(vaults.value.map(v => v.id))
+
+  if (route.params.vault_id) {
+    const currentVault = vaults.value.find(v => v.id === route.params.vault_id) ?? null
+    vaultStore.setActive(currentVault as Vault | null)
+  }
 }
 
 watch([activeProfile, apiEpoch], async () => {
@@ -73,8 +70,22 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
   return items
 })
 
-function onBreadcrumbClick(item: NyxBreadcrumb) {
-  if (item.href) router.push(item.href)
+function onBreadcrumbCapture(event: MouseEvent) {
+  const target = event.target
+  if (!(target instanceof Element)) return
+
+  const anchor = target.closest('a')
+  if (!(anchor instanceof HTMLAnchorElement)) return
+
+  const url = new URL(anchor.href, window.location.origin)
+  if (url.origin !== window.location.origin) return
+
+  event.preventDefault()
+
+  const nextPath = `${url.pathname}${url.search}${url.hash}`
+  if (nextPath === route.fullPath) return
+
+  void router.push(nextPath)
 }
 </script>
 
@@ -92,7 +103,9 @@ function onBreadcrumbClick(item: NyxBreadcrumb) {
 
     <!-- Global header -->
     <header id="header" class="app-shell__header">
-      <NyxBreadcrumbs :items="breadcrumbs" @click="onBreadcrumbClick" />
+      <div @click.capture="onBreadcrumbCapture">
+        <NyxBreadcrumbs :items="breadcrumbs" />
+      </div>
       <div id="layout-header-actions" class="app-shell__header-actions" />
     </header>
 
