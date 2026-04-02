@@ -115,25 +115,25 @@ cargo run -p notes-cli -- vault new --slug journal --name Journal
 ```sh
 # (after sourcing .env)
 cargo run -p notes-server-axum
-# Listening on http://localhost:4200
+# Listening on http://localhost:8080
 ```
 
 ```sh
 # Auth mode discovery
-curl http://localhost:4200/api/auth/mode
+curl http://localhost:${PORT:-8080}/api/auth/mode
 
 # Create a vault
-curl -s -X POST http://localhost:4200/api/vaults \
+curl -s -X POST http://localhost:${PORT:-8080}/api/vaults \
   -H 'Content-Type: application/json' \
   -d '{"slug":"home","name":"Home"}'
 
 # Create a note (use the vault id from above)
-curl -s -X POST "http://localhost:4200/api/vaults/<vault-id>/notes" \
+curl -s -X POST "http://localhost:${PORT:-8080}/api/vaults/<vault-id>/notes" \
   -H 'Content-Type: application/json' \
   -d '{"title":"Hello","content":"My first note","tags":["test"]}'
 
 # List notes
-curl "http://localhost:4200/api/vaults/<vault-id>/notes"
+curl "http://localhost:${PORT:-8080}/api/vaults/<vault-id>/notes"
 ```
 
 ### Configuration
@@ -144,7 +144,9 @@ curl "http://localhost:4200/api/vaults/<vault-id>/notes"
 | User ID | `NOTES_USER_ID` | `"local"` | `user_id` |
 | Active vault | `NOTES_VAULT` | `"home"` | `vault` |
 | Editor | `EDITOR` | `vi` | — |
-| Server port | `PORT` | `4200` | — |
+| Server port | `PORT` | `8080` | — |
+
+For local frontend development, Vite proxies `/api` to `http://localhost:$PORT` by default. Override that with `VITE_API_PROXY_TARGET` when your backend runs elsewhere.
 
 > **Note:** `NOTES_USER_ID` must match between the CLI and the server. Both read from `users/<NOTES_USER_ID>/` on disk — if they differ you will see different vaults.
 

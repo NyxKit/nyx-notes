@@ -14,7 +14,7 @@ use notes_storage_fs::FsStorage;
 async fn main() {
     let _ = dotenvy::dotenv();
     let notes_root_raw = std::env::var("NOTES_ROOT").unwrap_or_else(|_| "./notes".into());
-    let port = std::env::var("PORT").unwrap_or_else(|_| "4200".into());
+    let port = std::env::var("PORT").unwrap_or_else(|_| "8080".into());
     let auth_mode = std::env::var("AUTH_MODE").unwrap_or_else(|_| "local".into());
 
     // Expand a leading `~/` so that .env files can use tilde paths portably.

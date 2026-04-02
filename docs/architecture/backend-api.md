@@ -356,7 +356,7 @@ This allows a single binary deployment where the Rust server handles both API an
 | Env var | Default | Description |
 |---|---|---|
 | `NOTES_ROOT` | `./notes` | Passed to `FsStorage` |
-| `PORT` | `4200` | Listening port |
+| `PORT` | `8080` | Listening port |
 | `FRONTEND_DIST` | `./dist` | Path to compiled frontend (optional) |
 
 ## Dependencies
