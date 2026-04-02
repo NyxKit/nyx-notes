@@ -56,7 +56,7 @@ function cancelCreate() {
 
 <template>
   <div class="home-view">
-    <Teleport to="#layout-header-actions">
+    <Teleport to="#layout-header-actions" defer>
       <NyxButton :gradient="true" @click="showCreateForm = true">New Vault</NyxButton>
     </Teleport>
 

@@ -22,7 +22,7 @@ The simplest mode. Everything runs on your machine. No account, no internet, no 
 ```
 $NOTES_ROOT = ~/notes       # or wherever you want
 AUTH_MODE   = local
-PORT        = 8080          # or any free port
+PORT        = 4200          # or any free port
 ```
 
 **How it runs:** The Tauri native app embeds the Axum server as a background thread and opens a webview pointed at `localhost:{port}`. Alternatively, run the server binary manually and open a browser.
@@ -44,7 +44,7 @@ The NAS runs the server binary (or Docker image). You access it from a browser o
 ```
 NOTES_ROOT  = /data/notes
 AUTH_MODE   = secret_key    # or oidc if you run Authentik/Authelia
-PORT        = 8080
+PORT        = 4200
 ```
 
 **`secret_key` auth:** The server generates a signing key on first run and stores it locally. You log in with a username and password; the server issues its own JWTs. No internet dependency. No Google account.
@@ -57,7 +57,7 @@ PORT        = 8080
 - Systemd service on the NAS
 
 **Remote access options:**
-- Expose port 8080 directly (behind a reverse proxy with TLS)
+- Expose port 4200 directly (behind a reverse proxy with TLS)
 - Tailscale / Headscale (no port forwarding, end-to-end encrypted tunnel)
 - Cloudflare Tunnel
 
@@ -72,7 +72,7 @@ NOTES_ROOT      = /data/notes   # mounted volume
 AUTH_MODE       = oidc
 OIDC_ISSUER_URL = https://auth.example.com
 OIDC_CLIENT_ID  = nyx-notes
-PORT            = 8080
+PORT            = 4200
 ```
 
 **`oidc` auth:** Use any OIDC provider — self-hosted (Authentik, Keycloak, Authelia) or managed (Firebase Auth, Auth0). Full control over identity with no proprietary SDK required.
@@ -123,7 +123,7 @@ All configuration is via environment variables (or `~/.config/nyx-notes/config.t
 |---|---|---|
 | `NOTES_ROOT` | `~/notes` | All |
 | `AUTH_MODE` | `local` | All |
-| `PORT` | `8080` | Server modes |
+| `PORT` | `4200` | Server modes |
 | `FRONTEND_DIST` | `./dist` | Server modes |
 | `NOTES_SECRET_KEY_PATH` | `~/.config/nyx-notes/secret.key` | `secret_key` |
 | `NOTES_SECRET_KEY` | — | `secret_key` (alternative to file) |

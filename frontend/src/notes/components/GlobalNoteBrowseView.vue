@@ -3,11 +3,11 @@ import { computed } from 'vue'
 import { NyxGrid, NyxIcon, NyxSelect } from 'nyx-kit/components'
 import { NyxGridMode } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
-import { NoteCard } from '@/notes/components'
+import NoteCard from './NoteCard.vue'
 import type { BrowseNoteCardModel } from '@/shared/types'
 
 const props = defineProps<{
-  title: string
+  title?: string
   notes: BrowseNoteCardModel[]
   loading: boolean
   emptyTitle: string
@@ -30,14 +30,13 @@ const sortValue = computed({
 
 <template>
   <div class="browse-view">
-    <header class="browse-view__header">
-      <span class="browse-view__title">{{ title }}</span>
+    <Teleport to="#layout-header-actions" defer>
       <NyxSelect
         v-model="sortValue"
         :options="sortOptions"
         class="browse-view__sort"
       />
-    </header>
+    </Teleport>
 
     <div v-if="excludedProfilesCount > 0" class="browse-view__notice">
       {{ excludedProfilesCount }} profile<span v-if="excludedProfilesCount !== 1">s</span> excluded.

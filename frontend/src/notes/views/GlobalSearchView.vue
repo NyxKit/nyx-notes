@@ -43,7 +43,6 @@ watch(favoriteRefs, async () => {
 
 <template>
   <GlobalNoteBrowseView
-    title="Search"
     :notes="searchResults"
     :loading="searchLoading"
     :error="searchError"

@@ -37,7 +37,7 @@ defineProps<{
         <footer class="note-card__meta">
           <span class="note-card__meta-origin">
             <span class="note-card__meta-origin-label">{{ note.server_label }}</span>
-            <span class="note-card__meta-origin-separator">/</span>
+            <span class="note-card__meta-origin-separator"> / </span>
             <span class="note-card__meta-origin-label">{{ note.vault_name }}</span>
           </span>
           <span class="note-card__meta-time">{{ note.updated_label }}</span>

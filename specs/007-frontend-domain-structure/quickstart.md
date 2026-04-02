@@ -63,10 +63,10 @@ No alias changes were made to `vite.config.ts`.
 
 ```bash
 cd frontend
-pnpm dev      # starts Vite dev server on :1420, proxies /api to :8080
+pnpm dev      # starts Vite dev server on :1420, proxies /api to :4200
 ```
 
-The backend must be running on `:8080` for API calls to work.
+The backend must be running on `:4200` for API calls to work.
 
 ## Verifying the Refactor
 

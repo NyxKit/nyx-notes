@@ -11,7 +11,7 @@ import { useNotesStore } from '@/notes/stores'
 import { useTeams } from '@/teams/composables'
 import { useComments } from '@/comments/composables'
 import { VaultSwitcher } from '@/vaults/components'
-import { SidebarNav } from '@/shared/components'
+import SidebarNav from './SidebarNav.vue'
 import { NoteList } from '@/notes/components'
 
 const route = useRoute()
@@ -82,7 +82,7 @@ function onBreadcrumbClick(item: NyxBreadcrumb) {
   <div class="app-shell">
 
     <!-- Left sidebar — persistent across all authenticated views -->
-    <aside class="app-shell__sidebar app-shell__sidebar--open">
+    <aside id="sidebar" class="app-shell__sidebar app-shell__sidebar--open">
       <div class="app-shell__sidebar-inner">
         <VaultSwitcher />
         <SidebarNav />
@@ -91,9 +91,8 @@ function onBreadcrumbClick(item: NyxBreadcrumb) {
     </aside>
 
     <!-- Global header -->
-    <header class="app-shell__header">
+    <header id="header" class="app-shell__header">
       <NyxBreadcrumbs :items="breadcrumbs" @click="onBreadcrumbClick" />
-      <!-- Nested routes cannot fill parent slots; views Teleport to #layout-header-actions. -->
       <div id="layout-header-actions" class="app-shell__header-actions" />
     </header>
 

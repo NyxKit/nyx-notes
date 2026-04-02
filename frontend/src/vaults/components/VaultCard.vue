@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import { NyxCard, NyxBadge } from 'nyx-kit/components'
-import { VaultIcon } from '@/vaults/components'
+import VaultIcon from './VaultIcon.vue'
 import type { Vault } from '@/shared/types'
 
 const model = defineModel<Vault>({ required: true })

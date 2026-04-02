@@ -79,7 +79,7 @@ async function createFirst() {
 
 <template>
   <div class="vault-view">
-    <Teleport to="#layout-header-actions">
+    <Teleport to="#layout-header-actions" defer>
       <NyxButton
         v-if="sortedNotes.length > 0 && !listLoading"
         :gradient="true"

@@ -13,7 +13,7 @@ import {
 import { useAuth } from '@/auth/composables'
 import { useNotesStore } from '@/notes/stores'
 import { useEditorStore } from '@/notes/stores'
-import { NoteToolbar } from '@/notes/components'
+import NoteToolbar from './NoteToolbar.vue'
 import type { Note, NotePermission } from '@/shared/types'
 
 const props = defineProps<{

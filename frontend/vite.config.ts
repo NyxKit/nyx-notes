@@ -33,7 +33,7 @@ export default defineConfig(async () => ({
       ignored: ['**/native/**'],
     },
     proxy: {
-      '/api': 'http://localhost:8080',
+      '/api': 'http://localhost:4200',
     },
   },
 }))

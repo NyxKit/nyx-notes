@@ -129,7 +129,7 @@ watch(
 
 <template>
   <div class="note-view">
-    <Teleport to="#layout-header-actions">
+    <Teleport to="#layout-header-actions" defer>
       <NyxButton
         :shape="NyxShape.Square"
         title="Toggle source view"
