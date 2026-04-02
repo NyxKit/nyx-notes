@@ -13,7 +13,8 @@ export const useVaultStore = defineStore('vaults', () => {
 
   async function load() {
     const requestEpoch = getApiRequestEpoch()
-    loading.value = true
+    const hasCachedVaults = vaults.value.length > 0
+    loading.value = !hasCachedVaults
     error.value = null
     try {
       const nextVaults = await fetchVaults()

@@ -36,7 +36,8 @@ export const useNotesStore = defineStore('notes', () => {
 
   async function loadList(vaultId: string) {
     const requestEpoch = getApiRequestEpoch()
-    listLoading.value = true
+    const hasCachedList = Object.prototype.hasOwnProperty.call(notesByVault.value, vaultId)
+    listLoading.value = !hasCachedList
     error.value = null
     try {
       const notes = await fetchNotes(vaultId)
@@ -109,6 +110,10 @@ export const useNotesStore = defineStore('notes', () => {
     return meta
   }
 
+  function clearActive() {
+    activeNote.value = null
+  }
+
   function $reset() {
     notesByVault.value = {}
     activeNote.value = null
@@ -133,6 +138,7 @@ export const useNotesStore = defineStore('notes', () => {
     save,
     remove,
     updatePermission,
+    clearActive,
     $reset,
   }
 })

@@ -4,13 +4,14 @@ import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { NyxButton, NyxCard, NyxForm, NyxFormField, NyxGrid, NyxInput, NyxTextarea } from 'nyx-kit/components'
 import { NyxGridMode } from 'nyx-kit/types'
+import { RouteName } from '@/shared/types'
 import { VaultCard, VaultIconPicker } from '@/vaults/components'
 import { useVaultStore } from '@/vaults/stores'
 
 const router = useRouter()
 const vaultStore = useVaultStore()
 const { vaults, loading } = storeToRefs(vaultStore)
-const { load: loadVaults, create: createVault, setActive } = vaultStore
+const { load: loadVaults, create: createVault } = vaultStore
 
 const showCreateForm = ref(false)
 const newSlug = ref('')
@@ -20,11 +21,10 @@ const newIcon = ref<string | undefined>(undefined)
 const creating = ref(false)
 
 onMounted(async () => {
-  setActive(null)
   await loadVaults()
   const isInitialLoad = !window.history.state?.back
   if (isInitialLoad && vaults.value.length === 1) {
-    router.replace(`/vaults/${vaults.value[0].id}`)
+    router.replace({ name: RouteName.Vault, params: { vault_id: vaults.value[0].id } })
   }
 })
 
@@ -39,7 +39,7 @@ async function submitCreate() {
       description: newDescription.value.trim() || undefined,
       icon: newIcon.value,
     })
-    router.push(`/vaults/${vault.id}`)
+    router.push({ name: RouteName.Vault, params: { vault_id: vault.id } })
   } finally {
     creating.value = false
   }
@@ -55,24 +55,19 @@ function cancelCreate() {
 </script>
 
 <template>
-  <div class="app-shell__main">
-    <header class="app-shell__header">
-      <div class="app-shell__header-left">
-        <span class="app-shell__title">Vaults</span>
-      </div>
-      <div class="app-shell__header-right">
-        <NyxButton :gradient="true" @click="showCreateForm = true">New Vault</NyxButton>
-      </div>
-    </header>
+  <div class="home-view">
+    <Teleport to="#layout-header-actions" defer>
+      <NyxButton :gradient="true" @click="showCreateForm = true">New Vault</NyxButton>
+    </Teleport>
 
-    <main class="app-shell__body">
-      <div v-if="loading" class="app-shell__canvas app-shell__canvas--center">
-        <div class="home__skeleton-grid">
-          <div v-for="n in 4" :key="n" class="home__skeleton-card" />
+    <main class="home-view__body">
+      <div v-if="loading" class="home-view__canvas home-view__canvas--center">
+        <div class="home-view__skeleton-grid">
+          <div v-for="n in 4" :key="n" class="home-view__skeleton-card" />
         </div>
       </div>
 
-      <div v-else class="app-shell__canvas app-shell__canvas--overview">
+      <div v-else class="home-view__canvas home-view__canvas--overview">
         <NyxGrid title="Your Vaults" :mode="NyxGridMode.Grid" :columns="5">
           <VaultCard
             v-for="vault in vaults"
@@ -80,13 +75,13 @@ function cancelCreate() {
             :model-value="vault"
           />
 
-          <NyxCard v-if="showCreateForm">
-            <div class="home__create-copy">
-              <h3 class="home__create-title">New vault</h3>
-              <p class="home__create-supporting">Choose a name, slug, description, and icon.</p>
+          <NyxCard v-if="showCreateForm" class="home-view__create-card">
+            <div class="home-view__create-copy">
+              <h3 class="home-view__create-title">New vault</h3>
+              <p class="home-view__create-supporting">Choose a name, slug, description, and icon.</p>
             </div>
 
-            <NyxForm class="home__create-form" @submit="submitCreate">
+            <NyxForm class="home-view__create-form" @submit="submitCreate">
               <NyxFormField label="Vault name">
                 <template #default="{ id }">
                   <NyxInput :id="id" v-model="newName" placeholder="Vault name" autofocus />
@@ -111,7 +106,7 @@ function cancelCreate() {
                 </template>
               </NyxFormField>
 
-              <div class="home__form-actions">
+              <div class="home-view__form-actions">
                 <NyxButton :gradient="true" type="submit" :disabled="creating">
                   {{ creating ? 'Creating…' : 'Create' }}
                 </NyxButton>
@@ -123,14 +118,14 @@ function cancelCreate() {
       </div>
     </main>
 
-    <footer class="app-shell__footer">
-      <span class="app-shell__footer-text">Nyx Notes — Silent Atelier</span>
+    <footer class="home-view__footer">
+      <span class="home-view__footer-text">Nyx Notes — Silent Atelier</span>
     </footer>
   </div>
 </template>
 
 <style scoped>
-.app-shell__main {
+.home-view {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -138,54 +133,30 @@ function cancelCreate() {
   min-width: 0;
 }
 
-.app-shell__header {
-  height: 64px;
-  flex-shrink: 0;
-  background: var(--nyx-c-bg);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1.5rem;
-  box-shadow: 0 1px 0 0 var(--nyx-c-divider);
-}
-
-.app-shell__header-left,
-.app-shell__header-right {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.app-shell__title {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--nyx-c-text-2);
-}
-
-.app-shell__body {
+.home-view__body {
   flex: 1;
   overflow: hidden;
   display: flex;
 }
 
-.app-shell__canvas {
+.home-view__canvas {
   flex: 1;
   overflow: auto;
   padding: 2rem 1.5rem;
 }
 
-.app-shell__canvas--center {
+.home-view__canvas--center {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.app-shell__canvas--overview {
+.home-view__canvas--overview {
   display: flex;
   flex-direction: column;
 }
 
-.app-shell__footer {
+.home-view__footer {
   height: 40px;
   flex-shrink: 0;
   display: flex;
@@ -194,21 +165,21 @@ function cancelCreate() {
   box-shadow: 0 -1px 0 0 var(--nyx-c-divider);
 }
 
-.app-shell__footer-text {
+.home-view__footer-text {
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--nyx-c-text-3);
 }
 
-.home__create-copy {
+.home-view__create-copy {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   margin-bottom: 1rem;
 }
 
-.home__create-title {
+.home-view__create-title {
   margin: 0;
   font-family: 'Manrope', sans-serif;
   font-size: 0.9375rem;
@@ -217,7 +188,7 @@ function cancelCreate() {
   color: var(--nyx-browse-card-text);
 }
 
-.home__create-supporting {
+.home-view__create-supporting {
   margin: 0;
   font-family: 'Inter', sans-serif;
   font-size: 0.75rem;
@@ -225,13 +196,13 @@ function cancelCreate() {
   color: var(--nyx-c-text-2);
 }
 
-.home__create-form {
+.home-view__create-form {
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
 }
 
-.home__form-actions {
+.home-view__form-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -239,13 +210,13 @@ function cancelCreate() {
   margin-top: 0.25rem;
 }
 
-.home__create-card :deep(.nyx-card__body) {
+.home-view__create-card :deep(.nyx-card__body) {
   display: flex;
   flex-direction: column;
   padding: 1.25rem;
 }
 
-.home__skeleton-grid {
+.home-view__skeleton-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
@@ -253,14 +224,14 @@ function cancelCreate() {
   max-width: 900px;
 }
 
-.home__skeleton-card {
+.home-view__skeleton-card {
   aspect-ratio: 1 / 1;
   background: var(--nyx-c-bg-soft);
   border-radius: var(--nyx-radius-xl);
-  animation: home-pulse 1.4s ease-in-out infinite;
+  animation: home-view-pulse 1.4s ease-in-out infinite;
 }
 
-@keyframes home-pulse {
+@keyframes home-view-pulse {
   0%, 100% { opacity: 1 }
   50% { opacity: 0.4 }
 }

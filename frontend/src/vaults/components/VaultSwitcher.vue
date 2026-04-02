@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { NyxSelect } from 'nyx-kit/components'
 import { NyxSize } from 'nyx-kit/types'
@@ -8,10 +8,12 @@ import type { NyxSelectOptionGroup } from 'nyx-kit/types'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
 import { useTeams } from '@/teams/composables'
+import { RouteName } from '@/shared/types'
 import type { Vault } from '@/shared/types'
 
 const props = withDefaults(defineProps<{ dest?: 'notes' | 'vault' }>(), { dest: 'notes' })
 
+const route = useRoute()
 const router = useRouter()
 const vaultStore = useVaultStore()
 const { vaults, activeVault } = storeToRefs(vaultStore)
@@ -53,7 +55,7 @@ const vaultSelectOptions = computed((): NyxSelectOptionGroup[] => {
 })
 
 const selectedVaultId = computed({
-  get: () => activeVault.value?.id ?? '',
+  get: () => String(route.params.vault_id ?? ''),
   set: (id: string) => {
     const vault = vaults.value.find(v => v.id === id)
     if (vault) select(vault)
@@ -67,8 +69,10 @@ const noteCountLabel = computed(() => {
 
 function select(vault: Vault) {
   setActive(vault)
-  const path = props.dest === 'vault' ? `/vaults/${vault.id}` : `/vaults/${vault.id}/notes`
-  router.push(path)
+  const target = props.dest === 'vault'
+    ? { name: RouteName.Vault, params: { vault_id: vault.id } }
+    : { name: RouteName.Note, params: { vault_id: vault.id } }
+  router.push(target)
 }
 </script>
 
@@ -88,7 +92,7 @@ function select(vault: Vault) {
 
     <RouterLink
       v-if="activeVault?.owner.type === 'team'"
-      :to="`/teams/${activeVault.owner.id}/settings`"
+      :to="{ name: RouteName.TeamSettings, params: { team_id: activeVault.owner.id } }"
       class="vault-switcher__team-link"
     >
       Team settings ›

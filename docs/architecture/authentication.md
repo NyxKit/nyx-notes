@@ -128,6 +128,7 @@ The client may hold one local workspace profile and multiple remote server profi
 - Every remote profile keeps its own auth mode discovery result, credentials, and signed-in state
 - Signing out of or failing authentication for one remote profile must not affect any other saved profile
 - For this feature, remote profiles support username/password login only; remote `oidc` flows remain unsupported in the multi-profile client flow
+- The long-term client model should keep profile context in a dedicated frontend store rather than encoding routine active-profile state in route query params. Query-driven profile selection may still exist as an explicit deep-link override, but normal in-app navigation should be store-driven.
 
 `Set up a new server` remains a guided onboarding branch for server managers, but server provisioning itself is outside the client-auth contract.
 

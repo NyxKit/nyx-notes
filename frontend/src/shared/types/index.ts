@@ -1,4 +1,9 @@
 import type { AuthMode } from './profile'
+import type { RouteLocationRaw } from 'vue-router'
+
+// ─── Shared ───────────────────────────────────────────────────────────────────
+export * from './profile'
+export * from './router'
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
@@ -63,6 +68,42 @@ export interface NoteMeta {
 export interface Note {
   meta: NoteMeta
   content: string
+}
+
+export type GlobalBrowseSortMode = 'best_match' | 'recent' | 'grouped'
+
+export interface NoteOriginContext {
+  profile_id: string
+  server_label: string
+  server_id?: string
+  vault_id: string
+  vault_name: string
+  vault_slug: string
+}
+
+export interface FavoriteNoteRef {
+  profile_id: string
+  vault_id: string
+  note_id: string
+  created_at: string
+}
+
+export interface BrowseNoteCardModel {
+  note_id: string
+  vault_id: string
+  profile_id: string
+  title: string
+  description?: string
+  tags: string[]
+  updated_at: string
+  updated_label: string
+  href: RouteLocationRaw
+  server_label: string
+  server_id?: string
+  vault_name: string
+  vault_slug: string
+  is_favorite: boolean
+  match_score?: number
 }
 
 // ─── Teams ───────────────────────────────────────────────────────────────────
@@ -168,5 +209,3 @@ export interface AddMemberRequest {
 export interface PatchMemberRequest {
   role: Exclude<TeamRole, 'owner'>
 }
-
-export * from './profile'

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { NyxButton, NyxCard } from 'nyx-kit/components'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
+import { RouteName } from '@/shared/types'
 
 const router = useRouter()
 const auth = useAuth()
@@ -30,7 +31,7 @@ async function removeActiveProfile() {
   await auth.bootstrapActiveProfile()
 
   if (!profilesStore.activeProfile.value) {
-    await router.push('/login')
+    await router.push({ name: RouteName.Login })
     return
   }
 
@@ -39,13 +40,13 @@ async function removeActiveProfile() {
 
 async function signOutActiveProfile() {
   auth.logout()
-  await router.push('/login')
+  await router.push({ name: RouteName.Login })
 }
 
 async function addLocalProfile() {
   profilesStore.createLocalProfile()
   await auth.bootstrapActiveProfile()
-  await router.push('/')
+  await router.push({ name: RouteName.Home })
 }
 </script>
 
@@ -67,9 +68,9 @@ async function addLocalProfile() {
     </div>
 
     <div class="profile-switcher__actions">
-      <NyxButton @click="router.push('/login?add=remote')">Add Server</NyxButton>
+      <NyxButton @click="router.push({ name: RouteName.Login, query: { add: 'remote' } })">Add Server</NyxButton>
       <NyxButton v-if="canAddLocal" @click="addLocalProfile">Add Local</NyxButton>
-      <NyxButton v-if="activeProfile?.type === 'remote'" @click="router.push('/login?manage=active')">Edit Active Server</NyxButton>
+      <NyxButton v-if="activeProfile?.type === 'remote'" @click="router.push({ name: RouteName.Login, query: { manage: 'active' } })">Edit Active Server</NyxButton>
       <NyxButton v-if="activeProfile?.type === 'remote'" @click="signOutActiveProfile">Sign Out</NyxButton>
       <NyxButton v-if="activeProfile?.type === 'remote'" @click="removeActiveProfile">Remove Active Server</NyxButton>
     </div>

@@ -4,19 +4,23 @@ import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { NyxButton, NyxGrid, NyxIcon } from 'nyx-kit/components'
 import { NyxGridMode } from 'nyx-kit/types'
-import { NoteCard } from '@/notes/components'
-import { useNotesStore } from '@/notes/stores'
-import { VaultIcon } from '@/vaults/components'
+import NoteCard from '@/notes/components/NoteCard.vue'
+import { useNoteBrowsingStore, useNotesStore } from '@/notes/stores'
+import { useWorkspaceProfiles } from '@/shared/composables'
+import { RouteName } from '@/shared/types'
+import type { BrowseNoteCardModel } from '@/shared/types'
 import { useVaultStore } from '@/vaults/stores'
 
 const route = useRoute()
 const router = useRouter()
 const vaultId = computed(() => route.params.vault_id as string)
+const { activeProfile } = useWorkspaceProfiles()
 
 const vaultStore = useVaultStore()
 const { vaults, activeVault } = storeToRefs(vaultStore)
 const { load: loadVaults, setActive } = vaultStore
 const notesStore = useNotesStore()
+const noteBrowsingStore = useNoteBrowsingStore()
 const { listLoading } = storeToRefs(notesStore)
 const { notesFor, loadList, create: createNote } = notesStore
 
@@ -27,8 +31,35 @@ onMounted(async () => {
   await loadList(vaultId.value)
 })
 
-const sortedNotes = computed(() =>
-  notesFor(vaultId.value).slice().sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+const sortedNotes = computed<BrowseNoteCardModel[]>(() =>
+  notesFor(vaultId.value)
+    .slice()
+    .sort((a, b) => {
+      const favorite = Number(noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', b.vault_id, b.id))
+        - Number(noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', a.vault_id, a.id))
+      if (favorite !== 0) return favorite
+
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+    })
+    .map(note => ({
+      note_id: note.id,
+      vault_id: note.vault_id,
+      profile_id: activeProfile.value?.id ?? 'local',
+      title: note.title || 'Untitled',
+      description: note.description,
+      tags: note.tags,
+      updated_at: note.updated_at,
+      updated_label: formatDate(note.updated_at),
+      href: {
+        name: RouteName.Note,
+        params: { vault_id: note.vault_id, id: note.id },
+      },
+      server_label: activeProfile.value?.display_name ?? 'Local',
+      server_id: activeProfile.value?.type === 'remote' ? activeProfile.value.server_id : undefined,
+      vault_name: activeVault.value?.name ?? 'Vault',
+      vault_slug: activeVault.value?.slug ?? '',
+      is_favorite: noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', note.vault_id, note.id),
+    }))
 )
 
 function formatDate(iso: string) {
@@ -46,67 +77,59 @@ function formatDate(iso: string) {
 
 async function createFirst() {
   const meta = await createNote(vaultId.value, { title: '', content: '' })
-  router.push(`/vaults/${vaultId.value}/notes/${meta.id}`)
+  router.push({ name: RouteName.Note, params: { vault_id: vaultId.value, id: meta.id } })
 }
 </script>
 
 <template>
-  <div class="app-shell__main">
-    <header class="app-shell__header">
-      <div class="app-shell__header-left">
-        <VaultIcon :slug="activeVault?.icon" :size="18" />
-        <span class="app-shell__title">{{ activeVault?.name ?? 'Vault' }}</span>
-      </div>
-      <div class="app-shell__header-right">
-        <NyxButton
-          v-if="sortedNotes.length > 0 && !listLoading"
-          :gradient="true"
-          @click="createFirst"
-        >
-          New Note
-        </NyxButton>
-      </div>
-    </header>
+  <div class="vault-view">
+    <Teleport to="#layout-header-actions" defer>
+      <NyxButton
+        v-if="sortedNotes.length > 0 && !listLoading"
+        :gradient="true"
+        @click="createFirst"
+      >
+        New Note
+      </NyxButton>
+    </Teleport>
 
-    <main class="app-shell__body">
-      <div v-if="listLoading" class="app-shell__canvas app-shell__canvas--center">
-        <div class="vault__skeleton-grid">
-          <div v-for="n in 6" :key="n" class="vault__skeleton-card" />
+    <main class="vault-view__body">
+      <div v-if="listLoading" class="vault-view__canvas vault-view__canvas--center">
+        <div class="vault-view__skeleton-grid">
+          <div v-for="n in 6" :key="n" class="vault-view__skeleton-card" />
         </div>
       </div>
 
-      <div v-else-if="sortedNotes.length > 0" class="app-shell__canvas app-shell__canvas--overview">
+      <div v-else-if="sortedNotes.length > 0" class="vault-view__canvas vault-view__canvas--overview">
         <NyxGrid title="Notes" :mode="NyxGridMode.Masonry" :columns="5">
           <NoteCard
             v-for="note in sortedNotes"
-            :key="note.id"
+            :key="note.note_id"
             :note="note"
-            :vault-id="vaultId"
-            :updated-label="formatDate(note.updated_at)"
           />
         </NyxGrid>
       </div>
 
-      <div v-else class="app-shell__canvas app-shell__canvas--center">
-        <div class="vault__welcome-card">
-          <div class="vault__welcome-icon">
+      <div v-else class="vault-view__canvas vault-view__canvas--center">
+        <div class="vault-view__welcome-card">
+          <div class="vault-view__welcome-icon">
             <NyxIcon name="file-text" :size="32" />
           </div>
-          <h1 class="vault__heading">This vault is empty.</h1>
-          <p class="vault__desc">Start writing your first note. It will appear here once saved.</p>
+          <h1 class="vault-view__heading">This vault is empty.</h1>
+          <p class="vault-view__desc">Start writing your first note. It will appear here once saved.</p>
           <NyxButton :gradient="true" @click="createFirst">New Note</NyxButton>
         </div>
       </div>
     </main>
 
-    <footer class="app-shell__footer">
-      <span class="app-shell__footer-text">{{ activeVault?.name ?? 'Vault' }}</span>
+    <footer class="vault-view__footer">
+      <span class="vault-view__footer-text">{{ activeVault?.name ?? 'Vault' }}</span>
     </footer>
   </div>
 </template>
 
 <style scoped>
-.app-shell__main {
+.vault-view {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -114,54 +137,30 @@ async function createFirst() {
   min-width: 0;
 }
 
-.app-shell__header {
-  height: 64px;
-  flex-shrink: 0;
-  background: var(--nyx-c-bg);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 1.5rem;
-  box-shadow: 0 1px 0 0 var(--nyx-c-divider);
-}
-
-.app-shell__header-left,
-.app-shell__header-right {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.app-shell__title {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--nyx-c-text-2);
-}
-
-.app-shell__body {
+.vault-view__body {
   flex: 1;
   overflow: hidden;
   display: flex;
 }
 
-.app-shell__canvas {
+.vault-view__canvas {
   flex: 1;
   overflow: auto;
   padding: 2rem 1.5rem;
 }
 
-.app-shell__canvas--center {
+.vault-view__canvas--center {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.app-shell__canvas--overview {
+.vault-view__canvas--overview {
   display: flex;
   flex-direction: column;
 }
 
-.app-shell__footer {
+.vault-view__footer {
   height: 40px;
   flex-shrink: 0;
   display: flex;
@@ -171,14 +170,14 @@ async function createFirst() {
   box-shadow: 0 -1px 0 0 var(--nyx-c-divider);
 }
 
-.app-shell__footer-text {
+.vault-view__footer-text {
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--nyx-c-text-3);
 }
 
-.vault__skeleton-grid {
+.vault-view__skeleton-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
@@ -186,19 +185,19 @@ async function createFirst() {
   max-width: 900px;
 }
 
-.vault__skeleton-card {
+.vault-view__skeleton-card {
   height: 120px;
   background: var(--nyx-c-bg-soft);
   border-radius: var(--nyx-radius-xl);
-  animation: vault-pulse 1.4s ease-in-out infinite;
+  animation: vault-view-pulse 1.4s ease-in-out infinite;
 }
 
-@keyframes vault-pulse {
+@keyframes vault-view-pulse {
   0%, 100% { opacity: 1 }
   50% { opacity: 0.4 }
 }
 
-.vault__welcome-card {
+.vault-view__welcome-card {
   background: var(--nyx-c-bg-soft);
   border-radius: var(--nyx-radius-xl);
   padding: 2.5rem 2rem;
@@ -210,13 +209,13 @@ async function createFirst() {
   width: 100%;
 }
 
-.vault__welcome-icon {
+.vault-view__welcome-icon {
   color: var(--nyx-c-primary);
   opacity: 0.7;
   line-height: 0;
 }
 
-.vault__heading {
+.vault-view__heading {
   font-family: 'Manrope', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
@@ -225,7 +224,7 @@ async function createFirst() {
   margin: 0;
 }
 
-.vault__desc {
+.vault-view__desc {
   font-size: 0.875rem;
   line-height: 1.6;
   color: var(--nyx-c-text-2);

@@ -57,7 +57,7 @@ PORT        = 8080
 - Systemd service on the NAS
 
 **Remote access options:**
-- Expose port 8080 directly (behind a reverse proxy with TLS)
+- Expose whatever `PORT` you configure (8080 shown here) behind a reverse proxy with TLS
 - Tailscale / Headscale (no port forwarding, end-to-end encrypted tunnel)
 - Cloudflare Tunnel
 

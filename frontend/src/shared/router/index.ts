@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
+import { RouteName } from '@/shared/types/router'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -12,55 +13,73 @@ const router = createRouter({
       children: [
         {
           path: '',
+          name: RouteName.Home,
           component: () => import('@/vaults/views').then(({ HomeView }) => HomeView),
         },
         {
+          path: 'search',
+          name: RouteName.Search,
+          component: () => import('@/notes/views').then(({ GlobalSearchView }) => GlobalSearchView),
+        },
+        {
+          path: 'favorites',
+          name: RouteName.Favorites,
+          component: () => import('@/notes/views').then(({ FavoritesView }) => FavoritesView),
+        },
+        {
           path: 'vaults/:vault_id',
+          name: RouteName.Vault,
           component: () => import('@/vaults/views').then(({ VaultView }) => VaultView),
         },
         {
           path: 'vaults/:vault_id/notes/:id?',
-          component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
-        },
-        {
-          path: 'vaults/:vault_id/favorites',
-          component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
-        },
-        {
-          path: 'vaults/:vault_id/drafts',
+          name: RouteName.Note,
           component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
         },
         {
           path: 'vaults/:vault_id/settings',
+          name: RouteName.VaultSettings,
           component: () => import('@/vaults/views').then(({ VaultSettingsView }) => VaultSettingsView),
         },
         {
           path: 'servers',
+          name: RouteName.Servers,
           component: () => import('@/servers/views').then(({ ServersView }) => ServersView),
         },
         {
           path: 'teams/:team_id/settings',
+          name: RouteName.TeamSettings,
           component: () => import('@/teams/views').then(({ TeamSettingsView }) => TeamSettingsView),
         },
       ],
     },
     {
       path: '/login',
+      name: RouteName.Login,
       component: () => import('@/auth/views').then(({ LoginView }) => LoginView),
     },
   ],
 })
 
 router.beforeEach(async (to) => {
-  const { activeProfile } = useWorkspaceProfiles()
+  const { activeProfile, setActiveProfile } = useWorkspaceProfiles()
   const { authMode, isAuthenticated, bootstrapActiveProfile } = useAuth()
+  let switchedProfile = false
+
+  if (typeof to.query.profile === 'string' && to.query.profile !== activeProfile.value?.id) {
+    const nextProfile = setActiveProfile(to.query.profile)
+    if (!nextProfile) {
+      return { path: '/' }
+    }
+    switchedProfile = true
+  }
 
   if (!activeProfile.value) {
     if (to.path === '/login') return true
     return { path: '/login', query: { redirect: to.fullPath } }
   }
 
-  if (authMode.value === null) {
+  if (switchedProfile || authMode.value === null) {
     await bootstrapActiveProfile()
   }
 

@@ -1,4 +1,6 @@
+export { default as GlobalNoteBrowseView } from './GlobalNoteBrowseView.vue'
 export { default as NoteCard } from './NoteCard.vue'
 export { default as NoteEditor } from './NoteEditor.vue'
 export { default as NoteList } from './NoteList.vue'
+export { default as NoteSearch } from './NoteSearch.vue'
 export { default as NoteToolbar } from './NoteToolbar.vue'

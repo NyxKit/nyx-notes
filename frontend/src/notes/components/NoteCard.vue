@@ -2,25 +2,24 @@
 import { RouterLink } from 'vue-router'
 import { NyxBadge, NyxCard } from 'nyx-kit/components'
 import { NyxTheme, NyxVariant } from 'nyx-kit/types'
-import type { NoteMeta } from '@/shared/types'
+import type { BrowseNoteCardModel } from '@/shared/types'
+import { DEFAULT_NOTE_TITLE } from '..'
 
 defineProps<{
-  note: NoteMeta
-  vaultId: string
-  updatedLabel: string
+  note: BrowseNoteCardModel
 }>()
 </script>
 
 <template>
   <RouterLink
     class="note-card"
-    :to="`/vaults/${vaultId}/notes/${note.id}`"
-    :aria-label="`Open ${note.title || 'Untitled'} note`"
+    :to="note.href"
+    :aria-label="`Open ${note.title || DEFAULT_NOTE_TITLE} note`"
   >
     <NyxCard class="note-card__shell">
       <div class="note-card__content">
         <div class="note-card__text">
-          <h3 class="note-card__title">{{ note.title || 'Untitled' }}</h3>
+          <h3 class="note-card__title">{{ note.title || DEFAULT_NOTE_TITLE }}</h3>
           <p v-if="note.description" class="note-card__description">{{ note.description }}</p>
         </div>
 
@@ -35,7 +34,15 @@ defineProps<{
           </NyxBadge>
         </div>
 
-        <p class="note-card__date">{{ updatedLabel }}</p>
+
+        <footer class="note-card__meta">
+          <span class="note-card__meta-origin">
+            <span class="note-card__meta-origin-label">{{ note.server_label }}</span>
+            <span class="note-card__meta-origin-separator"> / </span>
+            <span class="note-card__meta-origin-label">{{ note.vault_name }}</span>
+          </span>
+          <span class="note-card__meta-time">{{ note.updated_label }}</span>
+        </footer>
       </div>
     </NyxCard>
   </RouterLink>
@@ -70,6 +77,30 @@ defineProps<{
   flex-direction: column;
   gap: 0.625rem;
   min-height: 100%;
+  width: 100%;
+}
+
+.note-card__meta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--nyx-browse-card-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.note-card__meta-origin {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-card__origin-separator {
+  opacity: 0.7;
 }
 
 .note-card__text {

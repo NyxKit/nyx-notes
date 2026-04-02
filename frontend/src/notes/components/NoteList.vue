@@ -1,81 +1,55 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useVaultStore } from '@/vaults/stores'
-import { useNotesStore } from '@/notes/stores'
+import { useNoteBrowsingStore } from '@/notes/stores'
 import { useAuth } from '@/auth/composables'
-import { getRelativeTime } from '@/shared/utils'
-import { NyxInput } from 'nyx-kit/components'
-import { NyxInputType } from 'nyx-kit/types'
+import { useWorkspaceProfiles } from '@/shared/composables'
 
 const RECENT_LIMIT = 20
 
 const router = useRouter()
 const route = useRoute()
-const { activeVault } = storeToRefs(useVaultStore())
-const { notesFor } = useNotesStore()
-const { currentUser } = useAuth()
+const { apiEpoch } = useAuth()
+const { activeProfile, profiles } = useWorkspaceProfiles()
+const noteBrowsingStore = useNoteBrowsingStore()
+const { recentResults } = storeToRefs(noteBrowsingStore)
+const { loadRecentNotes } = noteBrowsingStore
 
-const search = ref('')
-
-const filtered = computed(() => {
-  if (!activeVault.value) return []
-  const q = search.value.toLowerCase()
-  let all = notesFor(activeVault.value.id)
-  if (q) all = all.filter(n =>
-    n.title.toLowerCase().includes(q) ||
-    n.tags.some(t => t.toLowerCase().includes(q))
-  )
-  return all
-    .slice()
-    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    .slice(0, RECENT_LIMIT)
+const recentNotes = computed(() => {
+  return recentResults.value.slice(0, RECENT_LIMIT)
 })
 
-function permissionIcon(permission: string): string {
-  if (permission === 'comment') return '💬'
-  if (permission === 'edit') return '✏️'
-  return ''
-}
+watch([apiEpoch, profiles, activeProfile], async () => {
+  await loadRecentNotes()
+}, { immediate: true, deep: true })
+
 </script>
 
 <template>
   <div class="note-list">
 
-    <!-- Search -->
-    <div class="note-list__search-wrap">
-      <NyxInput
-        v-model="search"
-        :type="NyxInputType.Search"
-        placeholder="Search notes…"
-      />
-    </div>
-
     <!-- Section label -->
     <div class="note-list__section-label">Recent Notes</div>
 
-    <div v-if="filtered.length === 0" class="note-list__empty">
-      {{ search ? 'No results' : 'No notes yet' }}
+    <div v-if="recentNotes.length === 0" class="note-list__empty">
+      No notes yet
     </div>
 
     <ul v-else class="note-list__items">
       <li
-        v-for="note in filtered"
-        :key="note.id"
+        v-for="note in recentNotes"
+        :key="`${note.profile_id}:${note.vault_id}:${note.note_id}`"
         class="note-list__item"
-        :class="{ 'note-list__item--active': route.params.id === note.id }"
-        @click="router.push(`/vaults/${note.vault_id}/notes/${note.id}`)"
+        :class="{ 'note-list__item--active': route.params.vault_id === note.vault_id && route.params.id === note.note_id }"
+        @click="router.push(note.href)"
       >
         <div class="note-list__title">
           {{ note.title || 'Untitled' }}
-          <span v-if="note.author_id !== currentUser?.id" class="note-list__permission">
-            {{ permissionIcon(note.permission) }}
-          </span>
         </div>
         <div class="note-list__meta">
-          <span class="note-list__time">{{ getRelativeTime(note.updated_at) }}</span>
-          <span v-if="note.category" class="note-list__category">{{ note.category }}</span>
+          <span class="note-list__origin">{{ note.server_label }} / {{ note.vault_name }}</span>
+          <span class="note-list__time">{{ note.updated_label }}</span>
         </div>
       </li>
     </ul>
@@ -90,12 +64,6 @@ function permissionIcon(permission: string): string {
   flex: 1;
   overflow: hidden;
   min-height: 0;
-}
-
-/* Search */
-.note-list__search-wrap {
-  padding: 0.25rem 1rem 0.5rem;
-  flex-shrink: 0;
 }
 
 /* Section label */
@@ -160,13 +128,23 @@ function permissionIcon(permission: string): string {
 
 .note-list__meta {
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   font-size: 0.6875rem;
   color: var(--nyx-c-text-3);
   margin-top: 0.125rem;
 }
 
-.note-list__permission {
+.note-list__origin {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.note-list__time {
   flex-shrink: 0;
 }
 </style>

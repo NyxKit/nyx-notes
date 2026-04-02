@@ -1,5 +1,11 @@
 # AGENTS.md — Working Guide for AI Agents
 
+## Commits and Pushes
+
+**Never auto-commit or auto-push.** Commits and pushes will be explicitly prompted by the user. Wait for explicit instruction before committing or pushing changes.
+
+---
+
 ## The Docs Are the Source of Truth
 
 The `docs/` folder is the **authoritative specification** for this project. It is a living document.
