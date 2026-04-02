@@ -76,7 +76,7 @@ The filesystem is the source of truth for content. Auth is pluggable via `AUTH_M
 ## How to Navigate This Repo
 
 ```
-nyx-notes-core/
+nyx-notes/
   README.md           # high-level summary (keep in sync with docs/)
   AGENTS.md           # this file
   CLAUDE.md           # Claude Code behaviour settings
@@ -162,7 +162,7 @@ When asked to perform an audit, create a new file in `docs/audits/` named `YYYYM
 
 ### Audit standard
 
-Every audit of nyx-notes-core must be performed as a **senior-level codebase review** — not a shallow summary. Treat this as production infrastructure: the backend runs on personal servers, stores private notes, and must be correct, secure, and maintainable.
+Every audit of nyx-notes must be performed as a **senior-level codebase review** — not a shallow summary. Treat this as production infrastructure: the backend runs on personal servers, stores private notes, and must be correct, secure, and maintainable.
 
 **Role:** Act as a principal engineer / systems architect. Be highly critical, practical, and specific. Reference actual files, crates, modules, and patterns. Do not praise unnecessarily.
 

@@ -2,7 +2,7 @@
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-03-26
-**Feature**: [/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/008-adopt-nyxcard-cards/spec.md](/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/008-adopt-nyxcard-cards/spec.md)
+**Feature**: [/home/arnedecant/Projects/nyxkit/nyx-notes/specs/008-adopt-nyxcard-cards/spec.md](/home/arnedecant/Projects/nyxkit/nyx-notes/specs/008-adopt-nyxcard-cards/spec.md)
 
 ## Content Quality
 

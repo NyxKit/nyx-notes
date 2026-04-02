@@ -2,7 +2,7 @@
 
 ## Decision 1: Limit the shared card family to the clarified in-scope surfaces
 
-**Decision**: The shared card family applies only to `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/components/VaultCard.vue`, the inline create-vault card in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/views/HomeView.vue`, and note cards in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/views/VaultView.vue`.
+**Decision**: The shared card family applies only to `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/VaultCard.vue`, the inline create-vault card in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/HomeView.vue`, and note cards in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/VaultView.vue`.
 
 **Rationale**: These three surfaces were explicitly clarified in the spec, are browse-and-select peers, and can share one card family without flattening distinct interface patterns.
 
@@ -27,7 +27,7 @@
 
 ## Decision 3: Resolve the prior NyxButton-vs-NyxCard precedent by separating surface from activation
 
-**Decision**: The earlier decision in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/002-nyx-kit-primitives/research.md` remains valid for semantics, but this feature supersedes it for presentation. The implementation should preserve accessible activation semantics while moving the visual surface onto `NyxCard`.
+**Decision**: The earlier decision in `/home/arnedecant/Projects/nyxkit/nyx-notes/specs/002-nyx-kit-primitives/research.md` remains valid for semantics, but this feature supersedes it for presentation. The implementation should preserve accessible activation semantics while moving the visual surface onto `NyxCard`.
 
 **Rationale**: The repo already documented a concern that browse cards are navigation actions first. That concern remains true, so the safe path is to separate visual card framing from activation behavior instead of treating this feature as permission to make presentational containers carry all interaction semantics.
 
@@ -39,7 +39,7 @@
 
 ## Decision 4: Keep card components standalone within their domains
 
-**Decision**: `VaultCard` remains in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/components/`, and a dedicated `NoteCard` should live in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/components/`.
+**Decision**: `VaultCard` remains in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/`, and a dedicated `NoteCard` should live in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/`.
 
 **Rationale**: The user explicitly does not want a shared `BrowseCardSurface` abstraction. Keeping each card component in its own domain preserves domain boundaries while still allowing both to follow the same documented design language.
 
@@ -51,7 +51,7 @@
 
 ## Decision 5: Update docs and design guidance before code changes
 
-**Decision**: Implementation begins with docs updates in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/docs/interface/frontend.md` and, if needed for reusable visual rules, `/home/arnedecant/Projects/nyxkit/nyx-notes-core/DESIGN.md`.
+**Decision**: Implementation begins with docs updates in `/home/arnedecant/Projects/nyxkit/nyx-notes/docs/interface/frontend.md` and, if needed for reusable visual rules, `/home/arnedecant/Projects/nyxkit/nyx-notes/DESIGN.md`.
 
 **Rationale**: The constitution and `AGENTS.md` make docs the authoritative source of truth. This feature changes a frontend design decision and shared UI behavior, so code must not move ahead of the docs.
 

@@ -4,9 +4,9 @@
 
 Update these docs before code changes:
 
-- `/home/arnedecant/Projects/nyxkit/nyx-notes-core/docs/interface/frontend.md`
-- `/home/arnedecant/Projects/nyxkit/nyx-notes-core/docs/testing/README.md`
-- `/home/arnedecant/Projects/nyxkit/nyx-notes-core/README.md` if user-facing navigation behavior changes are summarized there
+- `/home/arnedecant/Projects/nyxkit/nyx-notes/docs/interface/frontend.md`
+- `/home/arnedecant/Projects/nyxkit/nyx-notes/docs/testing/README.md`
+- `/home/arnedecant/Projects/nyxkit/nyx-notes/README.md` if user-facing navigation behavior changes are summarized there
 
 Document these changes:
 
@@ -43,8 +43,8 @@ Document these changes:
 
 Run frontend checks after implementation:
 
-- `pnpm --dir /home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend test`
-- `pnpm --dir /home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend lint`
+- `pnpm --dir /home/arnedecant/Projects/nyxkit/nyx-notes/frontend test`
+- `pnpm --dir /home/arnedecant/Projects/nyxkit/nyx-notes/frontend lint`
 
 Manual verification focus:
 

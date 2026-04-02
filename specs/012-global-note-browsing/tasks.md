@@ -23,9 +23,9 @@
 
 **Purpose**: Align repo docs with the approved feature behavior before code changes
 
-- [x] T001 Update global browse behavior, routes, and sidebar navigation docs in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/docs/interface/frontend.md`
-- [x] T002 [P] Update frontend unit and E2E expectations for global search and favorites in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/docs/testing/README.md`
-- [x] T003 [P] Update the user-facing feature summary for global browse/navigation changes in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/README.md`
+- [x] T001 Update global browse behavior, routes, and sidebar navigation docs in `/home/arnedecant/Projects/nyxkit/nyx-notes/docs/interface/frontend.md`
+- [x] T002 [P] Update frontend unit and E2E expectations for global search and favorites in `/home/arnedecant/Projects/nyxkit/nyx-notes/docs/testing/README.md`
+- [x] T003 [P] Update the user-facing feature summary for global browse/navigation changes in `/home/arnedecant/Projects/nyxkit/nyx-notes/README.md`
 
 ---
 
@@ -35,13 +35,13 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [x] T004 Add frontend browse model types for origin context and favorite references in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/shared/types/index.ts`
-- [x] T005 [P] Create profile-scoped global browse loading composable in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/composables/useGlobalNoteBrowsing.ts`
-- [x] T006 Update composable barrel exports in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/composables/index.ts`
-- [x] T007 [P] Create the global notes browsing store scaffold in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/stores/noteBrowsing.ts`
-- [x] T008 Update store barrel exports for the browsing store in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/stores/index.ts`
-- [x] T009 [P] Add shared browse surface and placeholder view exports in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/components/index.ts` and `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/views/index.ts`
-- [x] T010 Add route entries for `/notes/search`, `/notes/favorites`, and the legacy favorites redirect in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/shared/router/index.ts`
+- [x] T004 Add frontend browse model types for origin context and favorite references in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/types/index.ts`
+- [x] T005 [P] Create profile-scoped global browse loading composable in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/composables/useGlobalNoteBrowsing.ts`
+- [x] T006 Update composable barrel exports in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/composables/index.ts`
+- [x] T007 [P] Create the global notes browsing store scaffold in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/stores/noteBrowsing.ts`
+- [x] T008 Update store barrel exports for the browsing store in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/stores/index.ts`
+- [x] T009 [P] Add shared browse surface and placeholder view exports in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/index.ts` and `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/views/index.ts`
+- [x] T010 Add route entries for `/notes/search`, `/notes/favorites`, and the legacy favorites redirect in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/router/index.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -55,19 +55,19 @@
 
 ### Tests for User Story 1
 
-- [x] T011 [P] [US1] Add Vitest coverage for profile-scoped global browse loading in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/composables/useGlobalNoteBrowsing.spec.ts`
-- [x] T012 [P] [US1] Add Vitest coverage for global search aggregation, live query updates, and shared sort state in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/stores/noteBrowsing.spec.ts`
-- [x] T013 [P] [US1] Add Vitest coverage for the shared browse surface states and search sorting controls in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/components/GlobalNoteBrowseView.spec.ts`
-- [x] T014 [P] [US1] Add Playwright coverage for cross-context live global search in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/tests/e2e/global-search.spec.ts`
+- [x] T011 [P] [US1] Add Vitest coverage for profile-scoped global browse loading in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/composables/useGlobalNoteBrowsing.spec.ts`
+- [x] T012 [P] [US1] Add Vitest coverage for global search aggregation, live query updates, and shared sort state in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/stores/noteBrowsing.spec.ts`
+- [x] T013 [P] [US1] Add Vitest coverage for the shared browse surface states and search sorting controls in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/GlobalNoteBrowseView.spec.ts`
+- [x] T014 [P] [US1] Add Playwright coverage for cross-context live global search in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/tests/e2e/global-search.spec.ts`
 
 ### Implementation for User Story 1
 
-- [x] T015 [US1] Implement profile-scoped global browse loading in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/composables/useGlobalNoteBrowsing.ts`
-- [x] T016 [US1] Implement derived browse state, live query updates, shared sort behavior, and empty-state handling in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/stores/noteBrowsing.ts`
-- [x] T017 [P] [US1] Create the shared global browse surface layout, sort controls, and excluded-profile notice in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/components/GlobalNoteBrowseView.vue`
-- [x] T018 [US1] Wire the global search route and view export in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/shared/router/index.ts` and `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/views/index.ts`
-- [x] T019 [US1] Route sidebar search input into live debounced global search updates from `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/components/NoteList.vue`
-- [x] T020 [US1] Connect the search route to the shared browse surface in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/views/GlobalSearchView.vue`
+- [x] T015 [US1] Implement profile-scoped global browse loading in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/composables/useGlobalNoteBrowsing.ts`
+- [x] T016 [US1] Implement derived browse state, live query updates, shared sort behavior, and empty-state handling in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/stores/noteBrowsing.ts`
+- [x] T017 [P] [US1] Create the shared global browse surface layout, sort controls, and excluded-profile notice in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/GlobalNoteBrowseView.vue`
+- [x] T018 [US1] Wire the global search route and view export in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/router/index.ts` and `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/views/index.ts`
+- [x] T019 [US1] Route sidebar search input into live debounced global search updates from `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/NoteList.vue`
+- [x] T020 [US1] Connect the search route to the shared browse surface in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/views/GlobalSearchView.vue`
 
 **Checkpoint**: User Story 1 should now be fully functional and independently testable as the MVP
 
@@ -81,17 +81,17 @@
 
 ### Tests for User Story 2
 
-- [x] T021 [P] [US2] Add Vitest coverage for compound favorite reference persistence and aggregation in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/stores/noteBrowsing.spec.ts`
-- [x] T022 [P] [US2] Add Vitest coverage for the favorites view using the shared browse surface in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/views/FavoritesView.spec.ts`
-- [x] T023 [P] [US2] Add Playwright coverage for global favorites navigation, shared sorting controls, and rendering in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/tests/e2e/global-favorites.spec.ts`
+- [x] T021 [P] [US2] Add Vitest coverage for compound favorite reference persistence and aggregation in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/stores/noteBrowsing.spec.ts`
+- [x] T022 [P] [US2] Add Vitest coverage for the favorites view using the shared browse surface in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/views/FavoritesView.spec.ts`
+- [x] T023 [P] [US2] Add Playwright coverage for global favorites navigation, shared sorting controls, and rendering in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/tests/e2e/global-favorites.spec.ts`
 
 ### Implementation for User Story 2
 
-- [x] T024 [US2] Replace bare note-ID favorites with compound favorite references in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/stores/noteBrowsing.ts`
-- [x] T025 [US2] Update note favorite toggling to use the shared browsing store in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/views/NoteView.vue`
-- [x] T026 [P] [US2] Connect the favorites route to the shared browse surface in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/views/FavoritesView.vue`
-- [x] T027 [US2] Wire the favorites route, legacy redirect behavior, and view export in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/shared/router/index.ts` and `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/views/index.ts`
-- [x] T028 [US2] Point sidebar favorites navigation at the global route in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/shared/components/SidebarNav.vue`
+- [x] T024 [US2] Replace bare note-ID favorites with compound favorite references in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/stores/noteBrowsing.ts`
+- [x] T025 [US2] Update note favorite toggling to use the shared browsing store in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/views/NoteView.vue`
+- [x] T026 [P] [US2] Connect the favorites route to the shared browse surface in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/views/FavoritesView.vue`
+- [x] T027 [US2] Wire the favorites route, legacy redirect behavior, and view export in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/router/index.ts` and `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/views/index.ts`
+- [x] T028 [US2] Point sidebar favorites navigation at the global route in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/components/SidebarNav.vue`
 
 **Checkpoint**: User Stories 1 and 2 should both work independently, with favorites no longer scoped to the active vault
 
@@ -105,16 +105,16 @@
 
 ### Tests for User Story 3
 
-- [x] T029 [P] [US3] Add Vitest coverage for note-card origin labels and link targets in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/components/NoteCard.spec.ts`
-- [x] T030 [P] [US3] Extend note-grid coverage for origin-aware card reuse in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/views/VaultView.note-cards.spec.ts`
-- [x] T031 [P] [US3] Add Playwright coverage for origin labels and sidebar CTA removal in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/tests/e2e/note-origin-context.spec.ts`
+- [x] T029 [P] [US3] Add Vitest coverage for note-card origin labels and link targets in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/NoteCard.spec.ts`
+- [x] T030 [P] [US3] Extend note-grid coverage for origin-aware card reuse in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/VaultView.note-cards.spec.ts`
+- [x] T031 [P] [US3] Add Playwright coverage for origin labels and sidebar CTA removal in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/tests/e2e/note-origin-context.spec.ts`
 
 ### Implementation for User Story 3
 
-- [x] T032 [US3] Refactor `NoteCard` to render server and vault origin labels from the browse-card model in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/components/NoteCard.vue`
-- [x] T033 [US3] Update the single-vault note grid to supply origin-aware card data in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/views/VaultView.vue`
-- [x] T034 [US3] Remove the obsolete sidebar-wide `New Note` CTA and keep only context-aware navigation in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/shared/components/SidebarNav.vue`
-- [x] T035 [US3] Ensure both global browse views render the shared origin-aware note card consistently through `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/components/GlobalNoteBrowseView.vue`, `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/views/GlobalSearchView.vue`, and `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/views/FavoritesView.vue`
+- [x] T032 [US3] Refactor `NoteCard` to render server and vault origin labels from the browse-card model in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/NoteCard.vue`
+- [x] T033 [US3] Update the single-vault note grid to supply origin-aware card data in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/VaultView.vue`
+- [x] T034 [US3] Remove the obsolete sidebar-wide `New Note` CTA and keep only context-aware navigation in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/components/SidebarNav.vue`
+- [x] T035 [US3] Ensure both global browse views render the shared origin-aware note card consistently through `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/GlobalNoteBrowseView.vue`, `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/views/GlobalSearchView.vue`, and `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/views/FavoritesView.vue`
 
 **Checkpoint**: Search, favorites, and single-vault browsing should now share the same origin-aware note card behavior
 
@@ -124,9 +124,9 @@
 
 **Purpose**: Final verification and cleanup across all user stories
 
-- [x] T036 Run and fix Vitest coverage for the feature with `pnpm --dir /home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend test`
-- [x] T037 Run and fix linting for the feature with `pnpm --dir /home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend lint`
-- [x] T038 Validate the quickstart scenarios against `/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/012-global-note-browsing/quickstart.md`
+- [x] T036 Run and fix Vitest coverage for the feature with `pnpm --dir /home/arnedecant/Projects/nyxkit/nyx-notes/frontend test`
+- [x] T037 Run and fix linting for the feature with `pnpm --dir /home/arnedecant/Projects/nyxkit/nyx-notes/frontend lint`
+- [x] T038 Validate the quickstart scenarios against `/home/arnedecant/Projects/nyxkit/nyx-notes/specs/012-global-note-browsing/quickstart.md`
 
 ---
 

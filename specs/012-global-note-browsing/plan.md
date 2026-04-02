@@ -1,6 +1,6 @@
 # Implementation Plan: Global Note Browsing
 
-**Branch**: `012-global-note-browsing` | **Date**: 2026-04-01 | **Spec**: [/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/012-global-note-browsing/spec.md](/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/012-global-note-browsing/spec.md)
+**Branch**: `012-global-note-browsing` | **Date**: 2026-04-01 | **Spec**: [/home/arnedecant/Projects/nyxkit/nyx-notes/specs/012-global-note-browsing/spec.md](/home/arnedecant/Projects/nyxkit/nyx-notes/specs/012-global-note-browsing/spec.md)
 **Input**: Feature specification from `/specs/012-global-note-browsing/spec.md`
 
 ## Summary

@@ -2,17 +2,17 @@
 
 ## 1. Update docs first
 
-- Update `/home/arnedecant/Projects/nyxkit/nyx-notes-core/docs/interface/frontend.md` to define the shared browse-card family and name the in-scope surfaces.
-- If reusable visual rules are introduced beyond what `DESIGN.md` already states, update `/home/arnedecant/Projects/nyxkit/nyx-notes-core/DESIGN.md` in the same pass.
+- Update `/home/arnedecant/Projects/nyxkit/nyx-notes/docs/interface/frontend.md` to define the shared browse-card family and name the in-scope surfaces.
+- If reusable visual rules are introduced beyond what `DESIGN.md` already states, update `/home/arnedecant/Projects/nyxkit/nyx-notes/DESIGN.md` in the same pass.
 - If either doc conflicts with current implementation assumptions, record the divergence before editing code.
 
 ## 2. Implement shared browse-card presentation
 
-- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/components/VaultCard.vue` so it uses `NyxCard`, wraps internally in a `RouterLink`, and renders title, slug, description, and oversized bottom-right icon.
-- Add `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/components/NoteCard.vue` as a dedicated note-card component that uses `NyxCard`, wraps internally in a `RouterLink`, and renders title, distilled description, and metadata.
-- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/views/HomeView.vue` so the inline create-vault surface uses the same card family and supports editing the vault description.
-- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/views/VaultView.vue` so it uses `NoteCard` instead of inline note-card markup.
-- Do not restyle `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/components/VaultSwitcher.vue`, empty-state cards, comment threads, settings/modals, or navigation chrome as part of this feature.
+- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/VaultCard.vue` so it uses `NyxCard`, wraps internally in a `RouterLink`, and renders title, slug, description, and oversized bottom-right icon.
+- Add `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/NoteCard.vue` as a dedicated note-card component that uses `NyxCard`, wraps internally in a `RouterLink`, and renders title, distilled description, and metadata.
+- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/HomeView.vue` so the inline create-vault surface uses the same card family and supports editing the vault description.
+- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/VaultView.vue` so it uses `NoteCard` instead of inline note-card markup.
+- Do not restyle `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/VaultSwitcher.vue`, empty-state cards, comment threads, settings/modals, or navigation chrome as part of this feature.
 
 ## 3. Preserve interaction semantics
 
@@ -29,7 +29,7 @@
 
 ## 5. Run validation
 
-From `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend`:
+From `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend`:
 
 ```sh
 npm run lint

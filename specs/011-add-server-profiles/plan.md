@@ -1,6 +1,6 @@
 # Implementation Plan: Multi-Instance Access Profiles
 
-**Branch**: `011-add-server-profiles` | **Date**: 2026-03-30 | **Spec**: [/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/011-add-server-profiles/spec.md](/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/011-add-server-profiles/spec.md)
+**Branch**: `011-add-server-profiles` | **Date**: 2026-03-30 | **Spec**: [/home/arnedecant/Projects/nyxkit/nyx-notes/specs/011-add-server-profiles/spec.md](/home/arnedecant/Projects/nyxkit/nyx-notes/specs/011-add-server-profiles/spec.md)
 **Input**: Feature specification from `/specs/011-add-server-profiles/spec.md`
 
 ## Summary

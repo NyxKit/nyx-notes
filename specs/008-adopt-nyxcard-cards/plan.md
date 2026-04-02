@@ -1,7 +1,7 @@
 # Implementation Plan: Unify Card Surfaces
 
-**Branch**: `[008-adopt-nyxcard-cards]` | **Date**: 2026-03-26 | **Spec**: `/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/008-adopt-nyxcard-cards/spec.md`
-**Input**: Feature specification from `/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/008-adopt-nyxcard-cards/spec.md`
+**Branch**: `[008-adopt-nyxcard-cards]` | **Date**: 2026-03-26 | **Spec**: `/home/arnedecant/Projects/nyxkit/nyx-notes/specs/008-adopt-nyxcard-cards/spec.md`
+**Input**: Feature specification from `/home/arnedecant/Projects/nyxkit/nyx-notes/specs/008-adopt-nyxcard-cards/spec.md`
 
 ## Summary
 
@@ -23,7 +23,7 @@ Unify the browse-card family across the frontend by moving the in-scope surfaces
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- **Docs are source of truth**: PASS. Implementation begins with updates to `/home/arnedecant/Projects/nyxkit/nyx-notes-core/docs/interface/frontend.md` and, if needed, `/home/arnedecant/Projects/nyxkit/nyx-notes-core/DESIGN.md` to reflect the clarified in-scope and out-of-scope card family rules.
+- **Docs are source of truth**: PASS. Implementation begins with updates to `/home/arnedecant/Projects/nyxkit/nyx-notes/docs/interface/frontend.md` and, if needed, `/home/arnedecant/Projects/nyxkit/nyx-notes/DESIGN.md` to reflect the clarified in-scope and out-of-scope card family rules.
 - **Strict layer boundaries**: PASS. This is a frontend-only presentation change; no backend, storage, or API layer boundaries move.
 - **Filesystem is source of truth**: PASS. No on-disk content, frontmatter, or storage semantics change.
 - **Test coverage per layer**: PASS WITH EXECUTION REQUIREMENT. Frontend work must include automated coverage for explicit activation behavior plus browser verification for the affected browse flows.
@@ -43,7 +43,7 @@ Unify the browse-card family across the frontend by moving the in-scope surfaces
 ### Documentation (this feature)
 
 ```text
-/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/008-adopt-nyxcard-cards/
+/home/arnedecant/Projects/nyxkit/nyx-notes/specs/008-adopt-nyxcard-cards/
 ├── plan.md
 ├── research.md
 ├── data-model.md
@@ -56,7 +56,7 @@ Unify the browse-card family across the frontend by moving the in-scope surfaces
 ### Source Code (repository root)
 
 ```text
-/home/arnedecant/Projects/nyxkit/nyx-notes-core/
+/home/arnedecant/Projects/nyxkit/nyx-notes/
 ├── DESIGN.md
 ├── docs/
 │   └── interface/
@@ -85,7 +85,7 @@ Unify the browse-card family across the frontend by moving the in-scope surfaces
                 └── theme.css
 ```
 
-**Structure Decision**: Treat this as a frontend feature inside the existing domain-based Vue app. `VaultCard` remains in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/components/`, `NoteCard` lives in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/notes/components/`, shared theme tokens stay in `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/shared/assets/theme.css`, and out-of-scope surfaces such as `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/vaults/components/VaultSwitcher.vue` and `/home/arnedecant/Projects/nyxkit/nyx-notes-core/frontend/src/comments/components/CommentThread.vue` are referenced only to document non-target areas.
+**Structure Decision**: Treat this as a frontend feature inside the existing domain-based Vue app. `VaultCard` remains in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/`, `NoteCard` lives in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/`, shared theme tokens stay in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/assets/theme.css`, and out-of-scope surfaces such as `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/VaultSwitcher.vue` and `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/comments/components/CommentThread.vue` are referenced only to document non-target areas.
 
 ## Complexity Tracking
 

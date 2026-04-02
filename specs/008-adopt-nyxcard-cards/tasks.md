@@ -1,6 +1,6 @@
 # Tasks: Unify Card Surfaces
 
-**Input**: Design documents from `/home/arnedecant/Projects/nyxkit/nyx-notes-core/specs/008-adopt-nyxcard-cards/`
+**Input**: Design documents from `/home/arnedecant/Projects/nyxkit/nyx-notes/specs/008-adopt-nyxcard-cards/`
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/browse-card-surfaces.md`, `quickstart.md`
 
 **Tests**: Include automated frontend coverage because the plan and quickstart explicitly require interaction coverage and browser verification for the affected browse-card surfaces.
