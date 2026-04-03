@@ -46,7 +46,7 @@ async function signOutActiveProfile() {
 async function addLocalProfile() {
   profilesStore.createLocalProfile()
   await auth.bootstrapActiveProfile()
-  await router.push({ name: RouteName.Home })
+  await router.push(auth.personalOverviewRoute.value)
 }
 </script>
 
@@ -69,7 +69,7 @@ async function addLocalProfile() {
 
     <div class="profile-switcher__actions">
       <NyxButton @click="router.push({ name: RouteName.Login, query: { add: 'remote' } })">Add Server</NyxButton>
-      <NyxButton v-if="canAddLocal" @click="addLocalProfile">Add Local</NyxButton>
+      <NyxButton v-if="canAddLocal" @click="addLocalProfile">Add This Server</NyxButton>
       <NyxButton v-if="activeProfile?.type === 'remote'" @click="router.push({ name: RouteName.Login, query: { manage: 'active' } })">Edit Active Server</NyxButton>
       <NyxButton v-if="activeProfile?.type === 'remote'" @click="signOutActiveProfile">Sign Out</NyxButton>
       <NyxButton v-if="activeProfile?.type === 'remote'" @click="removeActiveProfile">Remove Active Server</NyxButton>

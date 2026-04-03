@@ -2,105 +2,136 @@
 
 ## Purpose
 
-An Axum HTTP server that exposes note CRUD operations over a REST API. It wraps a `StorageBackend` (concretely `FsStorage`) and delegates authentication to whichever `AuthStore` implementation is configured by `AUTH_MODE`.
+An Axum HTTP server that exposes note CRUD operations over a REST API. It wraps a `StorageBackend`, delegates authentication to the configured `AuthStore`, and enforces permissions in the API layer.
 
-## Responsibilities
+## Route Model
 
-- HTTP routing and JSON serialization/deserialization
-- Token verification via the active `AuthStore` (mode-agnostic)
-- Map `StorageError` / `AuthError` to appropriate HTTP status codes
-- Expose auth mode discovery endpoint so the frontend knows how to authenticate
-- Optionally serve the built frontend SPA as static files
+- Vault route identifiers are vault slugs in the MVP
+- Note route identifiers remain stable note IDs in the MVP
+- Stable vault IDs may still appear in metadata and response bodies, but they are not the canonical route keys
+- Team routes are removed from the active MVP contract
 
-## API Routes
-
-All routes under `/api/` (except `/api/auth/*`) require an `Authorization: Bearer <token>` header. What constitutes a valid token depends on `AUTH_MODE` — see [authentication.md](./authentication.md).
-
-For the full vault and team model including permission matrices, see [vaults-and-teams.md](./vaults-and-teams.md).
-
-### Auth Routes (unauthenticated)
+## Auth Routes
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/auth/mode` | Returns the server's auth mode — called by the frontend when bootstrapping the active profile |
-| `POST` | `/api/auth/login` | `secret_key` mode only — accepts credentials, returns a signed JWT |
+| `GET` | `/api/auth/mode` | Returns the active auth mode and optional server metadata |
+| `POST` | `/api/auth/login` | `secret_key` mode only — accepts credentials and returns a signed JWT |
 
-#### `GET /api/auth/mode`
+## Server Routes
 
-```json
-{ "mode": "local" }
-{ "mode": "secret_key", "api_version": "0.1.0" }
-{ "mode": "oidc", "issuer": "https://auth.example.com", "client_id": "nyx-notes", "api_version": "0.1.0" }
-```
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/server` | Returns active server metadata and the caller's server role |
+| `GET` | `/api/server/vaults` | List shared server vaults only |
+| `POST` | `/api/server/vaults` | Create a shared server vault (`admin` only) |
+| `DELETE` | `/api/server/vaults/:vault_id` | Delete a shared server vault (`admin` only; must be empty) |
 
-Optional additive fields may include `server_id`, `server_name`, and `api_version`. The frontend calls this when bootstrapping the active profile to decide which login UI to render (or to skip login entirely in `local` mode).
+## Vault Routes
 
-For the multi-profile client flow in this feature, only remote `secret_key` servers continue to the username/password login screen. Remote `oidc` servers are reported as unsupported in the client flow and remain saved but unauthenticated.
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/vaults` | List all vaults accessible to the caller (personal home + shared server vaults) |
+| `GET` | `/api/vaults/personal` | List only personal vaults in the caller's home |
+| `POST` | `/api/vaults` | Create a personal vault in the caller's home |
+| `PATCH` | `/api/vaults/:vault_id` | Update vault name, description, and/or icon |
+| `DELETE` | `/api/vaults/:vault_id` | Delete a personal vault owned by the caller (must be empty) |
 
-### Note Routes (vault-scoped)
+## Note Routes
 
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/vaults/:vault_id/notes` | List notes in a vault |
 | `GET` | `/api/vaults/:vault_id/notes/:id` | Fetch a single note |
-| `POST` | `/api/vaults/:vault_id/notes` | Create a note |
+| `POST` | `/api/vaults/:vault_id/notes` | Create a note using a stable note ID |
 | `PUT` | `/api/vaults/:vault_id/notes/:id` | Update a note |
-| `DELETE` | `/api/vaults/:vault_id/notes/:id` | Delete a note (note author or vault owner only) |
-| `PATCH` | `/api/vaults/:vault_id/notes/:id/permission` | Change note-level permission (note author only) |
+| `DELETE` | `/api/vaults/:vault_id/notes/:id` | Delete a note |
+| `PATCH` | `/api/vaults/:vault_id/notes/:id/permission` | Change note-level permission |
 
-### Comment Routes (vault-scoped)
+## Comment Routes
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/vaults/:vault_id/notes/:id/comments` | List visible line-based comment threads for a note |
+| `GET` | `/api/vaults/:vault_id/notes/:id/comments` | List visible comment threads for a note |
 | `POST` | `/api/vaults/:vault_id/notes/:id/comments` | Create a line-based comment thread |
-| `PATCH` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id` | Resolve or reopen a thread (note author only) |
-| `DELETE` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id` | Delete a thread (thread author or note author) |
-| `POST` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies` | Add a reply to a visible thread |
-| `DELETE` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies/:reply_id` | Delete a reply (reply author or note author) |
+| `PATCH` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id` | Resolve or reopen a thread |
+| `DELETE` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id` | Delete a thread |
+| `POST` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies` | Add a reply |
+| `DELETE` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies/:reply_id` | Delete a reply |
 
-### Vault Routes
+## Permission Rules
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/vaults` | List all vaults accessible to the user |
-| `POST` | `/api/vaults` | Create a personal vault |
-| `DELETE` | `/api/vaults/:vault_id` | Delete a personal vault (must be empty) |
-| `PATCH` | `/api/vaults/:vault_id` | Update vault name, description, and/or icon — personal: owner only; team: owner or admin |
-| `PATCH` | `/api/teams/:team_id/vaults/:vault_id/permission` | Change a team vault's permission (team owner or admin) |
+### Personal vaults
 
-### Team Routes
+- Caller must own the home namespace to update or delete the vault
+- Notes remain owner-scoped unless note-level permission allows broader access
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/teams` | List teams the user belongs to |
-| `POST` | `/api/teams` | Create a team |
-| `GET` | `/api/teams/:team_id` | Get team details and member list |
-| `DELETE` | `/api/teams/:team_id` | Delete a team (team owner only) |
-| `POST` | `/api/teams/:team_id/members` | Add a member |
-| `PATCH` | `/api/teams/:team_id/members/:user_id` | Change a member's role |
-| `DELETE` | `/api/teams/:team_id/members/:user_id` | Remove a member |
-| `POST` | `/api/teams/:team_id/vaults` | Create a team vault |
-| `DELETE` | `/api/teams/:team_id/vaults/:vault_id` | Delete a team vault (must be empty; owner or admin) |
+### Shared server vaults
 
-### `GET /api/vaults/:vault_id/notes`
+- `admin` can create/delete shared server vaults and update their metadata
+- `user` can use existing shared server vaults but cannot create or delete them
+- Shared server vaults default to `permission: edit` for newly created notes in the MVP
 
-Returns `Vec<NoteMeta>` for all notes in the vault the user has access to.
+### Notes and comments
 
-Permission check: resolved from the vault's permission and the user's team role (if a team vault). See [vaults-and-teams.md](./vaults-and-teams.md) for the matrix.
+- Restricted notes are visible only to the author
+- `comment` notes allow reads and comments, but not edits
+- `edit` notes allow reads, comments, and edits
+- Note author or owning home/admin may delete a note
 
-Response: `200 OK`.
+## `GET /api/server`
 
-### `GET /api/vaults/:vault_id/notes/:id`
+Response:
 
-Response: `200 OK` with full `Note` (meta + content). `404` if not found. `403` if the user lacks view access.
-
-### `POST /api/vaults/:vault_id/notes`
-
-Request body:
 ```json
 {
-  "title": "My Note",
+  "id": "server-main-server",
+  "slug": "main-server",
+  "name": "Main Server",
+  "role": "admin",
+  "root_path": "/home/arnedecant/.local/share/nyx-notes"
+}
+```
+
+The frontend should use `name` as the active built-in server label instead of showing a generic `Local` label.
+
+## `POST /api/vaults`
+
+Request:
+
+```json
+{
+  "slug": "journal",
+  "name": "Journal",
+  "description": "Private daily writing.",
+  "icon": "book"
+}
+```
+
+Response: `201 Created` with the created `Vault`.
+
+## `POST /api/server/vaults`
+
+Request:
+
+```json
+{
+  "slug": "handbook",
+  "name": "Handbook",
+  "description": "Shared server documentation.",
+  "icon": "briefcase"
+}
+```
+
+Response: `201 Created` with the created `Vault`.
+
+## `POST /api/vaults/:vault_id/notes`
+
+Request:
+
+```json
+{
+  "title": "Project Plan",
   "content": "# Hello\n\nMarkdown body.",
   "tags": ["rust"],
   "category": "work",
@@ -108,262 +139,24 @@ Request body:
 }
 ```
 
-`permission` defaults to the vault's permission level if omitted.
+Behavior:
+
+- The note ID is generated as a stable opaque identifier at creation time
+- Note titles do not rename note files or route IDs
+- `vault_id` in returned note metadata is derived from the containing vault directory on the server side
+- `permission` defaults to the vault's default note permission when omitted
 
 Response: `201 Created` with the created `NoteMeta`.
 
-### `PUT /api/vaults/:vault_id/notes/:id`
-
-Request body: same shape as `POST` (excluding `permission`).
-
-`description` in the returned `NoteMeta` is recomputed on every save from the first actual Markdown paragraph in `content`. Headings, lists, and other non-paragraph blocks do not qualify.
-
-Response: `200 OK` with updated `NoteMeta`. `403` if the user cannot edit. `404` if not found.
-
-### `DELETE /api/vaults/:vault_id/notes/:id`
-
-Only the note's `author_id` or the vault/team owner may delete.
-
-Response: `204 No Content`. `403` otherwise. `404` if not found.
-
-### `PATCH /api/vaults/:vault_id/notes/:id/permission`
-
-Only the note's `author_id` may change note-level permission.
-
-Request body: `{ "permission": "comment" }`. Valid values: `"restricted"`, `"comment"`, `"edit"`.
-
-Response: `200 OK` with updated `NoteMeta`.
-
-### `GET /api/vaults/:vault_id/notes/:id/comments`
-
-Returns visible open and resolved comment threads for the note.
-
-- Hidden legacy comments without a reliable line anchor are retained in sidecar storage but are not included in this default response
-- Detached visible comments still include their saved `line_preview`
-
-Response: `200 OK` with `Vec<Comment>`.
-
-### `POST /api/vaults/:vault_id/notes/:id/comments`
-
-Request body:
-
-```json
-{
-  "body": "Please expand this thought.",
-  "anchor": {
-    "text": "selected phrase",
-    "prefix": "Text before ",
-    "suffix": " text after",
-    "range_from": 128,
-    "range_to": 143,
-    "line_preview": "A selected line of note text"
-  }
-}
-```
-
-Rules:
-
-- Caller must be the note author or have comment/edit access under the note permission model
-- `anchor.text` must be non-empty
-- `anchor.range_from` must be less than or equal to `anchor.range_to`
-
-Response: `201 Created` with the created `Comment`.
-
-### `PATCH /api/vaults/:vault_id/notes/:id/comments/:comment_id`
-
-Request body: `{ "resolved": true }`.
-
-Only the note author may resolve or reopen a thread.
-
-Response: `200 OK` with the updated `Comment`.
-
-### `DELETE /api/vaults/:vault_id/notes/:id/comments/:comment_id`
-
-Only the thread author or the note author may delete a thread.
-
-Response: `204 No Content`.
-
-### `POST /api/vaults/:vault_id/notes/:id/comments/:comment_id/replies`
-
-Request body: `{ "body": "I can take this update." }`.
-
-Only the note author or a user with comment/edit access may add a reply.
-
-Response: `201 Created` with the created `CommentReply`.
-
-### `DELETE /api/vaults/:vault_id/notes/:id/comments/:comment_id/replies/:reply_id`
-
-Only the reply author or the note author may delete a reply.
-
-Response: `204 No Content`.
-
-### `GET /api/vaults`
-
-Returns all vaults accessible to the user:
-- All personal vaults owned by the user
-- All team vaults for teams the user is a member of
-
-Response: `200 OK` with `Vec<Vault>`.
-
-### `POST /api/vaults`
-
-Creates a personal vault. Request body: `{ "slug": "journal", "name": "Journal", "description": "Private daily writing." }`.
-
-`slug` must be unique among the user's personal vaults.
-
-Response: `201 Created` with the created `Vault`.
-
-### `PATCH /api/vaults/:vault_id`
-
-Updates personal or team vault metadata.
-
-Request body may include any subset of:
-
-```json
-{
-  "name": "Research",
-  "description": "Source material and working drafts.",
-  "icon": "briefcase"
-}
-```
-
-Response: `200 OK` with the updated `Vault`.
-
-### `POST /api/teams`
-
-Creates a team. The calling user becomes the team owner. A default `home` vault is created automatically.
-
-Request body: `{ "name": "Engineering" }`.
-
-Response: `201 Created` with the created `Team`.
-
-### `POST /api/teams/:team_id/members`
-
-Request body: `{ "user_id": "uid", "role": "member" }`.
-
-Valid roles: `"admin"`, `"member"`. (Only one owner is allowed; ownership is transferred separately.)
-
-Response: `200 OK` with updated `Team`.
-
-## App State
-
-```rust
-#[derive(Clone)]
-pub struct AppState {
-    pub storage: AsyncStorageAdapter,
-    pub auth: Arc<dyn AuthStore>,
-}
-```
-
-`AsyncStorageAdapter` is a thin newtype over `Arc<dyn StorageBackend>` that exposes async versions of every storage method via `tokio::task::spawn_blocking`. Handlers call `state.storage.list_notes(vault_id).await` and never touch the sync trait directly.
-
-```rust
-#[derive(Clone)]
-pub struct AsyncStorageAdapter(Arc<dyn StorageBackend>);
-
-impl AsyncStorageAdapter {
-    pub fn new(storage: Arc<dyn StorageBackend>) -> Self {
-        Self(storage)
-    }
-
-    pub async fn list_notes(&self, vault_id: String) -> Result<Vec<NoteMeta>, StorageError> {
-        let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.list_notes(&vault_id))
-            .await
-            .map_err(|e| StorageError::IoError(std::io::Error::other(e)))?
-    }
-
-    // … one method per StorageBackend method
-}
-```
-
-**Why not `async fn` on the trait itself?** `StorageBackend` uses `dyn Trait` dispatch (`Arc<dyn StorageBackend>`). Rust's native AFIT is not yet object-safe with `dyn`. The `async-trait` crate would work but introduces a dependency into `notes-core` — the pure domain crate. `spawn_blocking` in a dedicated adapter keeps `notes-core` dependency-free and makes the CLI usable without a Tokio runtime.
-
-## Permission Enforcement
-
-Permission checks happen in the route handlers **after** authentication, not in the storage layer. The pattern is:
-
-```rust
-async fn get_note(
-    State(state): State<AppState>,
-    AuthenticatedUser(user): AuthenticatedUser,
-    Path((vault_id, id)): Path<(String, String)>,
-) -> Result<Json<Note>, AppError> {
-    let note = state.storage.load_note(vault_id, id).await?;
-
-    if note.meta.author_id != user.id {
-        match note.meta.permission {
-            NotePermission::Restricted => return Err(AppError::Forbidden),
-            NotePermission::Comment | NotePermission::Edit => {} // allowed
-        }
-    }
-
-    Ok(Json(note))
-}
-```
-
-The `StorageBackend` trait has no knowledge of permissions — it is the caller's responsibility to enforce them before calling into storage.
-
-## Auth Middleware
-
-All `/api/*` routes run through an Axum extractor that:
-
-1. Reads the `Authorization: Bearer <token>` header
-2. Calls `auth.verify_token(token)` to get a `User`
-3. Injects the `User` into the request extensions
-4. Returns `401 Unauthorized` if the token is missing or invalid
-
-```rust
-pub struct AuthenticatedUser(pub User);
-
-#[async_trait]
-impl<S> FromRequestParts<S> for AuthenticatedUser
-where
-    S: Send + Sync,
-{
-    type Rejection = (StatusCode, &'static str);
-
-    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
-        // extract Bearer token, verify with auth store
-    }
-}
-```
-
-## Error Handling
-
-| Error | HTTP Status |
-|---|---|
-| `StorageError::NotFound` | `404 Not Found` |
-| `StorageError::PermissionDenied` | `403 Forbidden` |
-| `StorageError::IoError` | `500 Internal Server Error` |
-| `AuthError::InvalidToken` | `401 Unauthorized` |
-| `AuthError::UserNotFound` | `401 Unauthorized` |
-
-## Static File Serving (optional)
-
-The server can serve the compiled frontend SPA:
-
-```rust
-Router::new()
-    .nest("/api", api_router)
-    .fallback_service(ServeDir::new("dist").append_index_html_on_directories(true))
-```
-
-This allows a single binary deployment where the Rust server handles both API and frontend.
-
-## Configuration
-
-| Env var | Default | Description |
-|---|---|---|
-| `NOTES_ROOT` | `./notes` | Passed to `FsStorage` |
-| `PORT` | `8080` | Listening port |
-| `FRONTEND_DIST` | `./dist` | Path to compiled frontend (optional) |
-
-## Dependencies
-
-- `axum` — HTTP framework
-- `tokio` — async runtime
-- `serde` / `serde_json` — JSON
-- `tower-http` — `ServeDir`, CORS, tracing middleware
-- `notes-core`, `notes-storage-fs` — storage
-- `notes-auth-local`, `notes-auth-oidc` — auth implementations (see [authentication.md](./authentication.md))
+## Removed MVP Routes
+
+- `GET /api/teams`
+- `POST /api/teams`
+- `GET /api/teams/:team_id`
+- `DELETE /api/teams/:team_id`
+- `POST /api/teams/:team_id/members`
+- `PATCH /api/teams/:team_id/members/:user_id`
+- `DELETE /api/teams/:team_id/members/:user_id`
+- `POST /api/teams/:team_id/vaults`
+- `DELETE /api/teams/:team_id/vaults/:vault_id`
+- `PATCH /api/teams/:team_id/vaults/:vault_id/permission`

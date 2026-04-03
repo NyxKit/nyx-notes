@@ -16,6 +16,7 @@ A self-hosted, Markdown-first notes app.
 ## Goals
 
 - **Filesystem-native** — all content is plain Markdown: editable by any text editor, git-friendly, easy to back up
+- **Server-first storage layout** — content lives under one server namespace with per-user homes and shared server vaults; `local/` stays reserved for later sync/local work
 - **Portable** — single binary that runs on Linux servers, NAS devices, and desktops
 - **Layered** — core logic in a reusable crate; storage and auth are pluggable via traits
 - **Privacy-first** — design keeps the door open for E2EE; AI features are explicitly opt-in
@@ -64,7 +65,7 @@ Copy `.env.example` to `.env` and adjust to your machine, then source it before 
 
 ```sh
 cp .env.example .env
-# edit .env — set NOTES_ROOT and NOTES_USER_ID
+# edit .env — set NOTES_ROOT, NOTES_USER_ID, and SERVER_NAME
 
 # bash / zsh
 source .env && export $(cut -d= -f1 .env)
@@ -73,7 +74,7 @@ source .env && export $(cut -d= -f1 .env)
 export (grep -v '^#' .env | xargs -L1)
 ```
 
-> **Note:** `NOTES_USER_ID` must match between the CLI and the server (see [Configuration](#configuration)).
+> **Note:** In the MVP, `NOTES_USER_ID` is both the authenticated user ID and the home lookup key used by the CLI and server. The active server slug is derived from `SERVER_NAME` at startup.
 
 ### Build
 
@@ -86,8 +87,11 @@ cargo build
 ```sh
 # (after sourcing .env)
 
-# Create your home vault
-cargo run -p notes-cli -- vault new --slug home --name Home
+# The server namespace is derived from SERVER_NAME.
+# Personal vaults live under <server-slug>/homes/<NOTES_USER_ID>/.
+
+# Create a personal vault in your home namespace
+cargo run -p notes-cli -- vault new --slug journal --name Journal
 
 # Create a note
 cargo run -p notes-cli -- new --title "Hello world" --tags "test"
@@ -122,10 +126,10 @@ cargo run -p notes-server-axum
 # Auth mode discovery
 curl http://localhost:${PORT:-8080}/api/auth/mode
 
-# Create a vault
+# Create a personal vault in the caller's home namespace
 curl -s -X POST http://localhost:${PORT:-8080}/api/vaults \
   -H 'Content-Type: application/json' \
-  -d '{"slug":"home","name":"Home"}'
+  -d '{"slug":"journal","name":"Journal"}'
 
 # Create a note (use the vault id from above)
 curl -s -X POST "http://localhost:${PORT:-8080}/api/vaults/<vault-id>/notes" \
@@ -142,19 +146,21 @@ curl "http://localhost:${PORT:-8080}/api/vaults/<vault-id>/notes"
 |---|---|---|---|
 | Notes root | `NOTES_ROOT` | `~/notes` | `notes_root` |
 | User ID | `NOTES_USER_ID` | `"local"` | `user_id` |
+| Server name | `SERVER_NAME` | `"Main Server"` | `server_name` |
 | Active vault | `NOTES_VAULT` | `"home"` | `vault` |
 | Editor | `EDITOR` | `vi` | — |
 | Server port | `PORT` | `8080` | — |
 
 For local frontend development, Vite proxies `/api` to `http://localhost:$PORT` by default. Override that with `VITE_API_PROXY_TARGET` when your backend runs elsewhere.
 
-> **Note:** `NOTES_USER_ID` must match between the CLI and the server. Both read from `users/<NOTES_USER_ID>/` on disk — if they differ you will see different vaults.
+> **Note:** `NOTES_USER_ID` must match between the CLI and the server. In the MVP, both resolve the caller's personal home under `<server-slug>/homes/<NOTES_USER_ID>/`, where `<server-slug>` is derived from `SERVER_NAME`.
 
 CLI config file: `~/.config/nyx-notes/config.toml`
 
 ```toml
 notes_root = "/mnt/data/notes"
 user_id = "alice"
+server_name = "Main Server"
 vault = "home"
 ```
 

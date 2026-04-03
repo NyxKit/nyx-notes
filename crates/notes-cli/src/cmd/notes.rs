@@ -60,7 +60,7 @@ pub fn new(
     let note = Note {
         meta: NoteMeta {
             id: Uuid::new_v4().to_string(),
-            vault_id: vault.id.clone(),
+            vault_id: vault.slug.clone(),
             title,
             description: None,
             author_id: user_id.to_string(),
@@ -78,7 +78,7 @@ pub fn new(
     println!("Created: {}", note.meta.id);
 
     if do_edit {
-        edit(storage, &vault.id, &note.meta.id, editor)?;
+        edit(storage, &vault.slug, &note.meta.id, editor)?;
     }
 
     Ok(())

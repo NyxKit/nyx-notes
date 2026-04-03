@@ -3,13 +3,13 @@ use axum::{
     http::StatusCode,
     Json,
 };
-use notes_core::{NotePermission, Vault, VaultIconUpdate, VaultOwner, VaultUpdate};
+use notes_core::{NotePermission, ServerRole, Vault, VaultIconUpdate, VaultOwner, VaultUpdate, slugify};
 use uuid::Uuid;
 
 use crate::{
     auth_extractor::AuthenticatedUser,
     error::AppError,
-    types::{CreateVaultRequest, PatchPermissionRequest, PatchVaultRequest},
+    types::{CreateVaultRequest, PatchVaultRequest},
     AppState,
 };
 
@@ -20,24 +20,59 @@ const VALID_ICONS: &[&str] = &[
     "flask", "graduation-cap", "chart", "leaf", "diamond",
 ];
 
-/// List all vaults accessible to the user: personal vaults + all team vaults.
+fn current_server_slug() -> String {
+    slugify(&std::env::var("SERVER_NAME").unwrap_or_else(|_| "Main Server".into()))
+}
+
+/// List all vaults accessible to the user: personal vaults + shared server vaults.
 pub async fn list_vaults(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser,
 ) -> Result<Json<Vec<Vault>>, AppError> {
     let mut vaults = state
         .storage
-        .list_vaults(VaultOwner::User(user.id.clone()))
+        .list_vaults(VaultOwner::Home {
+            server_slug: current_server_slug(),
+            home_slug: user.id.clone(),
+        })
         .await?;
 
-    let teams = state.storage.list_teams_for_user(user.id).await?;
-    for team in teams {
-        let team_vaults = state
-            .storage
-            .list_vaults(VaultOwner::Team(team.id))
-            .await?;
-        vaults.extend(team_vaults);
-    }
+    let shared_vaults = state
+        .storage
+        .list_vaults(VaultOwner::Server {
+            server_slug: current_server_slug(),
+        })
+        .await?;
+    vaults.extend(shared_vaults);
+
+    Ok(Json(vaults))
+}
+
+pub async fn list_personal_vaults(
+    State(state): State<AppState>,
+    AuthenticatedUser(user): AuthenticatedUser,
+) -> Result<Json<Vec<Vault>>, AppError> {
+    let vaults = state
+        .storage
+        .list_vaults(VaultOwner::Home {
+            server_slug: current_server_slug(),
+            home_slug: user.id,
+        })
+        .await?;
+
+    Ok(Json(vaults))
+}
+
+pub async fn list_server_vaults(
+    State(state): State<AppState>,
+    _user: AuthenticatedUser,
+) -> Result<Json<Vec<Vault>>, AppError> {
+    let vaults = state
+        .storage
+        .list_vaults(VaultOwner::Server {
+            server_slug: current_server_slug(),
+        })
+        .await?;
 
     Ok(Json(vaults))
 }
@@ -57,7 +92,10 @@ pub async fn create_vault(
         slug: body.slug,
         name: body.name,
         description: body.description,
-        owner: VaultOwner::User(user.id),
+        owner: VaultOwner::Home {
+            server_slug: current_server_slug(),
+            home_slug: user.id,
+        },
         permission: NotePermission::Restricted,
         icon: body.icon,
     };
@@ -83,19 +121,10 @@ pub async fn patch_vault(
     let vault = state.storage.load_vault(vault_id.clone()).await?;
 
     match &vault.owner {
-        VaultOwner::User(uid) if uid == &user.id => {}
-        VaultOwner::Team(team_id) => {
-            let team = state.storage.load_team(team_id.clone()).await?;
-            let role = team
-                .members
-                .iter()
-                .find(|m| m.user_id == user.id)
-                .map(|m| &m.role)
-                .ok_or(AppError::Forbidden)?;
-            use notes_core::TeamRole;
-            match role {
-                TeamRole::Owner | TeamRole::Admin => {}
-                TeamRole::Member => return Err(AppError::Forbidden),
+        VaultOwner::Home { home_slug, .. } if home_slug == &user.id => {}
+        VaultOwner::Server { .. } => {
+            if !matches!(user.role, ServerRole::Admin) {
+                return Err(AppError::Forbidden);
             }
         }
         _ => return Err(AppError::Forbidden),
@@ -122,7 +151,7 @@ pub async fn delete_vault(
     let vault = state.storage.load_vault(vault_id.clone()).await?;
 
     match &vault.owner {
-        VaultOwner::User(uid) if uid == &user.id => {}
+        VaultOwner::Home { home_slug, .. } if home_slug == &user.id => {}
         _ => return Err(AppError::Forbidden),
     }
 
@@ -130,31 +159,45 @@ pub async fn delete_vault(
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// Change a team vault's permission. Only the team owner or admin may do this.
-pub async fn patch_vault_permission(
+pub async fn create_server_vault(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser,
-    Path((team_id, vault_id)): Path<(String, String)>,
-    Json(body): Json<PatchPermissionRequest>,
-) -> Result<StatusCode, AppError> {
-    let team = state.storage.load_team(team_id).await?;
-
-    let role = team
-        .members
-        .iter()
-        .find(|m| m.user_id == user.id)
-        .map(|m| &m.role)
-        .ok_or(AppError::Forbidden)?;
-
-    use notes_core::TeamRole;
-    match role {
-        TeamRole::Owner | TeamRole::Admin => {}
-        TeamRole::Member => return Err(AppError::Forbidden),
+    Json(body): Json<CreateVaultRequest>,
+) -> Result<(StatusCode, Json<Vault>), AppError> {
+    if !matches!(user.role, ServerRole::Admin) {
+        return Err(AppError::Forbidden);
     }
 
-    state
-        .storage
-        .update_vault_permission(vault_id, body.permission)
-        .await?;
+    let vault = Vault {
+        id: Uuid::new_v4().to_string(),
+        slug: body.slug,
+        name: body.name,
+        description: body.description,
+        owner: VaultOwner::Server {
+            server_slug: current_server_slug(),
+        },
+        permission: NotePermission::Edit,
+        icon: body.icon,
+    };
+
+    state.storage.create_vault(vault.clone()).await?;
+    Ok((StatusCode::CREATED, Json(vault)))
+}
+
+pub async fn delete_server_vault(
+    State(state): State<AppState>,
+    AuthenticatedUser(user): AuthenticatedUser,
+    Path(vault_id): Path<String>,
+) -> Result<StatusCode, AppError> {
+    if !matches!(user.role, ServerRole::Admin) {
+        return Err(AppError::Forbidden);
+    }
+
+    let vault = state.storage.load_vault(vault_id.clone()).await?;
+    if !matches!(vault.owner, VaultOwner::Server { .. }) {
+        return Err(AppError::Forbidden);
+    }
+
+    state.storage.delete_vault(vault_id).await?;
     Ok(StatusCode::NO_CONTENT)
 }

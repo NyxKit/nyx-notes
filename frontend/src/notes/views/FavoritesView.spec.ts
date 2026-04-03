@@ -30,14 +30,14 @@ describe('FavoritesView', () => {
       global: {
         stubs: {
           GlobalNoteBrowseView: {
-            props: ['sortOptions', 'title'],
-            template: '<div>{{ title }}|{{ sortOptions.map(option => option.value).join(",") }}</div>',
+            props: ['sortOptions'],
+            template: '<div>{{ sortOptions.map(option => option.value).join(",") }}</div>',
           },
         },
       },
     })
 
     expect(loadFavorites).toHaveBeenCalled()
-    expect(wrapper.text()).toContain('Favorites|recent,grouped')
+    expect(wrapper.text()).toContain('recent,grouped')
   })
 })

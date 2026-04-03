@@ -1,11 +1,14 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use crate::domain::ServerRole;
+
 #[derive(Debug, Clone)]
 pub struct User {
     pub id: String,
     pub email: String,
     pub display_name: String,
+    pub role: ServerRole,
 }
 
 /// Returned by `AuthStore::login` on success.

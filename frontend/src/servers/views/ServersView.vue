@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { NyxButton, NyxIcon, NyxModal } from 'nyx-kit/components'
+import { NyxButton, NyxFormField, NyxIcon, NyxInput, NyxModal } from 'nyx-kit/components'
+import { fetchAuthMode } from '@/auth/api'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
+import { api } from '@/shared/api'
 import { RemoteProfileForm } from '@/auth'
 import { RouteName } from '@/shared/types'
-import type { RemoteProfileDraft } from '@/shared/types'
+import type { RemoteProfileDraft, ServerMetadata } from '@/shared/types'
 
 const router = useRouter()
 const auth = useAuth()
@@ -20,6 +22,21 @@ const showAddServerModal = ref(false)
 const showEditServerModal = ref(false)
 const editingProfile = ref<{ id: string; display_name: string; server_url: string } | null>(null)
 const connecting = ref(false)
+const serverMetadata = ref<ServerMetadata | null>(null)
+const authModeLabel = ref<string>('local')
+
+void (async () => {
+  try {
+    const [server, authMode] = await Promise.all([
+      api<ServerMetadata>('/api/server'),
+      fetchAuthMode(),
+    ])
+    serverMetadata.value = server
+    authModeLabel.value = authMode.mode
+  } catch {
+    serverMetadata.value = null
+  }
+})()
 
 async function activateProfile(profileId: string) {
   const result = profilesStore.setActiveProfile(profileId)
@@ -35,7 +52,7 @@ async function signOutActiveProfile() {
 async function addLocalProfile() {
   profilesStore.createLocalProfile()
   await auth.bootstrapActiveProfile()
-  await router.push({ name: RouteName.Home })
+  await router.push(auth.personalOverviewRoute.value)
 }
 
 async function handleAddServer(draft: RemoteProfileDraft) {
@@ -65,10 +82,44 @@ async function handleEditServer(draft: RemoteProfileDraft) {
   <div class="servers-page">
     <div class="servers-page__inner">
       <header class="servers-page__header">
-        <h1 class="servers-page__title">Servers</h1>
+        <h1 class="servers-page__title">Settings</h1>
       </header>
 
       <div class="servers-page__content">
+        <section class="servers-section">
+          <div class="servers-section__header">
+            <h2>Server Settings</h2>
+          </div>
+
+          <div class="servers-section__settings">
+            <NyxFormField label="Server Name">
+              <template #default="{ id }">
+                <NyxInput :id="id" :model-value="serverMetadata?.name ?? activeProfile?.display_name ?? 'Main Server'" disabled />
+              </template>
+            </NyxFormField>
+
+            <NyxFormField label="Root Path">
+              <template #default="{ id }">
+                <NyxInput :id="id" :model-value="serverMetadata?.root_path ?? ''" disabled />
+              </template>
+            </NyxFormField>
+
+            <NyxFormField label="Server Slug">
+              <template #default="{ id }">
+                <NyxInput :id="id" :model-value="serverMetadata?.slug ?? ''" disabled />
+              </template>
+            </NyxFormField>
+
+            <NyxFormField label="Auth Mode">
+              <template #default="{ id }">
+                <NyxInput :id="id" :model-value="authModeLabel" disabled />
+              </template>
+            </NyxFormField>
+          </div>
+        </section>
+
+        <div class="servers-page__separator" />
+
         <section class="servers-section">
           <div class="servers-section__header">
             <h2>Active Profile</h2>
@@ -82,7 +133,7 @@ async function handleEditServer(draft: RemoteProfileDraft) {
               <div class="profile-card__info">
                 <span class="profile-card__name">{{ activeProfile.display_name }}</span>
                 <span v-if="activeProfile.type === 'remote'" class="profile-card__detail">{{ activeProfile.server_url }}</span>
-                <span v-if="activeProfile.type === 'local'" class="profile-card__detail">Local workspace</span>
+                <span v-if="activeProfile.type === 'local'" class="profile-card__detail">Built-in server</span>
               </div>
               <div class="profile-card__status">
                 <span v-if="auth.isAuthenticated.value" class="profile-card__badge profile-card__badge--success">Signed in</span>
@@ -104,7 +155,7 @@ async function handleEditServer(draft: RemoteProfileDraft) {
           <div class="servers-section__header">
             <h2>All Profiles</h2>
             <div class="servers-section__actions">
-              <NyxButton v-if="canAddLocal" @click="addLocalProfile">Add Local</NyxButton>
+              <NyxButton v-if="canAddLocal" @click="addLocalProfile">Add This Server</NyxButton>
               <NyxButton @click="showAddServerModal = true">Add Server</NyxButton>
             </div>
           </div>
@@ -128,7 +179,7 @@ async function handleEditServer(draft: RemoteProfileDraft) {
                 <div class="profile-card__info">
                   <span class="profile-card__name">{{ profile.display_name }}</span>
                   <span v-if="profile.type === 'remote'" class="profile-card__detail">{{ profile.server_url }}</span>
-                  <span v-else class="profile-card__detail">Local workspace</span>
+                    <span v-else class="profile-card__detail">Built-in server</span>
                 </div>
                 <div v-if="profile.id === activeProfile?.id" class="profile-card__indicator">
                   <NyxIcon name="check" :size="16" />
@@ -191,10 +242,20 @@ async function handleEditServer(draft: RemoteProfileDraft) {
   gap: 1.5rem;
 }
 
+.servers-page__separator {
+  height: 1px;
+  background: var(--nyx-c-border, rgba(255, 255, 255, 0.08));
+}
+
 .servers-section {
   background: var(--nyx-c-bg-soft);
   border-radius: var(--nyx-radius-lg);
   padding: 1.25rem;
+}
+
+.servers-section__settings {
+  display: grid;
+  gap: 1rem;
 }
 
 .servers-section__header {

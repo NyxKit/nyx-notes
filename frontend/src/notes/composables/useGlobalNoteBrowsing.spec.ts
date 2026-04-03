@@ -37,17 +37,17 @@ vi.mock('ofetch', () => ({
               id: 'vault-1',
               slug: 'writing',
               name: 'Writing',
-              owner: { type: 'user', id: 'user-1' },
+              owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
               permission: 'edit',
             },
           ]
         }
 
-        if (path === '/api/vaults/vault-1/notes') {
+        if (path === '/api/vaults/writing/notes') {
           return [
             {
               id: 'note-1',
-              vault_id: 'vault-1',
+              vault_id: 'writing',
               title: 'Project plan',
               description: 'Roadmap',
               author_id: 'user-1',
@@ -61,11 +61,11 @@ vi.mock('ofetch', () => ({
           ]
         }
 
-        if (path === '/api/vaults/vault-1/notes/note-1') {
+        if (path === '/api/vaults/writing/notes/note-1') {
           return {
             meta: {
               id: 'note-1',
-              vault_id: 'vault-1',
+              vault_id: 'writing',
               title: 'Project plan',
               description: 'Roadmap',
               author_id: 'user-1',

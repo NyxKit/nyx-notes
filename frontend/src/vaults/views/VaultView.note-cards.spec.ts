@@ -12,7 +12,7 @@ vi.mock('vue-router', async () => {
   return {
     ...actual,
     useRouter: () => ({ push }),
-    useRoute: () => ({ params: { vault_id: 'vault-1' } }),
+    useRoute: () => ({ params: { vault_id: 'writing' } }),
   }
 })
 
@@ -46,7 +46,7 @@ describe('VaultView note cards', () => {
         slug: 'writing',
         name: 'Writing',
         description: 'Long-form drafts and essays.',
-        owner: { type: 'user', id: 'user-1' },
+        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
         permission: 'edit',
         icon: 'folder',
       },
@@ -55,7 +55,7 @@ describe('VaultView note cards', () => {
     vi.mocked(fetchNotes).mockResolvedValue([
       {
         id: 'note-1',
-        vault_id: 'vault-1',
+        vault_id: 'writing',
         title: '',
         description: 'The first actual paragraph becomes the card summary.',
         author_id: 'user-1',
@@ -70,7 +70,7 @@ describe('VaultView note cards', () => {
 
     vi.mocked(createNote).mockResolvedValue({
       id: 'note-2',
-      vault_id: 'vault-1',
+      vault_id: 'writing',
       title: '',
       description: undefined,
       author_id: 'user-1',
@@ -94,7 +94,7 @@ describe('VaultView note cards', () => {
           VaultIcon: true,
           RouterLink: {
             props: ['to'],
-            template: '<a :href="to" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
+            template: '<a :href="`/${to.params.server_slug}/homes/${to.params.home_slug}/vaults/${to.params.vault_id}/${to.params.id}?profile=local`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
           },
         },
       },
@@ -103,7 +103,7 @@ describe('VaultView note cards', () => {
     await flushPromises()
 
     expect(wrapper.text()).toContain('Untitled')
-    expect(wrapper.text()).toContain('Local')
+    expect(wrapper.text()).toContain('Main Server')
     expect(wrapper.text()).toContain('Writing')
     expect(wrapper.text()).toContain('The first actual paragraph becomes the card summary.')
     expect(wrapper.text()).toContain('focus')
@@ -118,7 +118,7 @@ describe('VaultView note cards', () => {
           VaultIcon: true,
           RouterLink: {
             props: ['to'],
-            template: '<a :href="to" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
+            template: '<a :href="`/${to.params.server_slug}/homes/${to.params.home_slug}/vaults/${to.params.vault_id}/${to.params.id}?profile=local`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
           },
         },
       },
@@ -127,6 +127,6 @@ describe('VaultView note cards', () => {
     await flushPromises()
 
     const link = wrapper.get('a[aria-label="Open Untitled note"]')
-    expect(link.attributes('href')).toBe('/vaults/vault-1/notes/note-1?profile=local')
+    expect(link.attributes('href')).toBe('/main-server/homes/user-1/vaults/writing/note-1?profile=local')
   })
 })

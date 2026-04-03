@@ -1,131 +1,51 @@
 # Deployment Modes
 
-Nyx Notes is designed to run in multiple configurations without code changes — only environment variables differ.
-
----
-
-## Mode Overview
-
-| Mode | Who runs the server | Auth | Notes storage | Frontend |
-|---|---|---|---|---|
-| [Local](#local) | Your machine (background process) | `local` | Local disk | Native app (Tauri) or `localhost` |
-| [Self-hosted](#self-hosted-nas--home-server) | Your NAS or home server | `secret_key` or `oidc` | NAS disk | Browser or native app |
-| [Cloud](#cloud) | VPS / container / managed hosting | `oidc` | Mounted volume | Browser or native app |
-| [Native app](#native-app-tauri) | Embedded in the app itself | `local` | Local disk | Tauri webview |
-
----
+Nyx Notes supports multiple deployment shapes while keeping the same filesystem-first storage model.
 
 ## Local
 
-The simplest mode. Everything runs on your machine. No account, no internet, no configuration.
+Everything runs on one machine.
 
-```
-$NOTES_ROOT = ~/notes       # or wherever you want
-AUTH_MODE   = local
-PORT        = 8080          # or any free port
-```
-
-**How it runs:** The Tauri native app embeds the Axum server as a background thread and opens a webview pointed at `localhost:{port}`. Alternatively, run the server binary manually and open a browser.
-
-**What you get:**
-- No login screen
-- Single user
-- Notes are plain `.md` files on your disk
-- CLI works against the same folder with no extra config
-
-**What you don't get:** Multi-user, teams, sharing, remote access.
-
----
-
-## Self-hosted (NAS / Home Server)
-
-The NAS runs the server binary (or Docker image). You access it from a browser or native app on any device on your network (or via VPN/Tailscale for remote access).
-
-```
-NOTES_ROOT  = /data/notes
-AUTH_MODE   = secret_key    # or oidc if you run Authentik/Authelia
-PORT        = 8080
+```text
+NOTES_ROOT=/path/to/notes
+SERVER_NAME="Main Server"
+NOTES_USER_ID=local
+AUTH_MODE=local
+PORT=8080
 ```
 
-**`secret_key` auth:** The server generates a signing key on first run and stores it locally. You log in with a username and password; the server issues its own JWTs. No internet dependency. No Google account.
+- The active server slug is derived from `SERVER_NAME`
+- Personal vaults resolve under `<server-slug>/homes/<NOTES_USER_ID>/`
+- The local user is treated as `admin`
 
-**`oidc` auth:** If you already run an identity provider (Authentik, Keycloak, Authelia), point `OIDC_ISSUER_URL` at it and use it for login. Enables SSO across your self-hosted services.
+## Self-hosted
 
-**Deployment options:**
-- Bare binary: `./notes-server`
-- Docker: `docker run -v /data/notes:/notes -e AUTH_MODE=secret_key nyx-notes`
-- Systemd service on the NAS
+Run the Rust server on a NAS, home server, or VPS.
 
-**Remote access options:**
-- Expose whatever `PORT` you configure (8080 shown here) behind a reverse proxy with TLS
-- Tailscale / Headscale (no port forwarding, end-to-end encrypted tunnel)
-- Cloudflare Tunnel
-
----
-
-## Cloud
-
-Run on a VPS, container platform, or managed hosting. Multiple users, public internet access.
-
-```
-NOTES_ROOT      = /data/notes   # mounted volume
-AUTH_MODE       = oidc
-OIDC_ISSUER_URL = https://auth.example.com
-OIDC_CLIENT_ID  = nyx-notes
-PORT            = 8080
+```text
+NOTES_ROOT=/data/notes
+SERVER_NAME="Home Server"
+AUTH_MODE=secret_key
+PORT=8080
 ```
 
-**`oidc` auth:** Use any OIDC provider — self-hosted (Authentik, Keycloak, Authelia) or managed (Firebase Auth, Auth0). Full control over identity with no proprietary SDK required.
+- Shared server vaults resolve under `<server-slug>/vaults/`
+- Users authenticate with username/password in `secret_key` mode
+- Server-vault administration is role-gated (`admin` vs `user`)
 
-**Frontend deployment options:**
-- Served by the Rust server at `/` (single binary, zero extra infra)
-- Deployed separately to Netlify / Cloudflare Pages with `/api/*` proxied to the server
+## Native App
 
----
+The Tauri app embeds the Axum server and uses the same HTTP contract.
 
-## Native App (Tauri)
-
-The Tauri app bundles the Axum server and the Vue frontend into a single installable application. No separate server process, no browser required.
-
-```
-AUTH_MODE = local   (hardcoded in the Tauri build; not user-configurable)
-```
-
-See [docs/interface/native-app.md](../interface/native-app.md) for full details.
-
-**The native app can also connect to remote servers.** The client may keep one local workspace profile plus multiple remote server profiles, then switch between them. Each remote profile stores its own server URL, username, and authenticated session independently from every other profile. This enables a "desktop client for your self-hosted instance" mode without giving up local-only use.
-
-For this feature, connecting to an existing remote server uses username/password login only. A separate `Set up a new server` branch may guide server managers through deployment choices, but does not provision the server directly.
-
----
-
-## GitHub as a Notes Sync Target
-
-Notes are plain `.md` files. The `$NOTES_ROOT` directory can be a git repository synced to GitHub (or any git host). This requires no code changes and works with any deployment mode.
-
-```bash
-cd ~/notes
-git init && git remote add origin git@github.com:you/notes.git
-git push
-```
-
-This gives you: version history, diffs, backup, and access from any device that can run git.
-
-A `GitStorageBackend` (notes stored directly in a git repo, commits on save) is a possible future extension but is not planned for v1.
-
----
+- `AUTH_MODE=local`
+- `local/` remains reserved in the filesystem contract, but active runtime support for local-only synced vaults is deferred in the MVP
 
 ## Configuration Reference
 
-All configuration is via environment variables (or `~/.config/nyx-notes/config.toml` for CLI):
-
-| Env var | Default | Relevant modes |
+| Env var | Default | Purpose |
 |---|---|---|
-| `NOTES_ROOT` | `~/notes` | All |
-| `AUTH_MODE` | `local` | All |
-| `PORT` | `8080` | Server modes |
-| `FRONTEND_DIST` | `./dist` | Server modes |
-| `NOTES_SECRET_KEY_PATH` | `~/.config/nyx-notes/secret.key` | `secret_key` |
-| `NOTES_SECRET_KEY` | — | `secret_key` (alternative to file) |
-| `OIDC_ISSUER_URL` | — | `oidc` |
-| `OIDC_CLIENT_ID` | — | `oidc` |
+| `NOTES_ROOT` | `~/notes` | Root directory for storage |
+| `SERVER_NAME` | `Main Server` | Human-facing name used to derive `<server-slug>` |
+| `NOTES_USER_ID` | `local` | User ID and home lookup key in the MVP |
+| `AUTH_MODE` | `local` | Auth implementation |
+| `PORT` | `8080` | Server port |

@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use notes_core::{
-    Comment, Note, NoteMeta, NotePermission, StorageBackend, StorageError, Team, Vault, VaultOwner,
+    Comment, Note, NoteMeta, NotePermission, StorageBackend, StorageError, Vault, VaultOwner,
     VaultUpdate,
 };
 
@@ -71,36 +71,6 @@ impl AsyncStorageAdapter {
             .map_err(Self::wrap_join_err)?
     }
 
-    // --- Teams ---
-
-    pub async fn load_team(&self, team_id: String) -> Result<Team, StorageError> {
-        let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.load_team(&team_id))
-            .await
-            .map_err(Self::wrap_join_err)?
-    }
-
-    pub async fn save_team(&self, team: Team) -> Result<(), StorageError> {
-        let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.save_team(&team))
-            .await
-            .map_err(Self::wrap_join_err)?
-    }
-
-    pub async fn list_teams_for_user(&self, user_id: String) -> Result<Vec<Team>, StorageError> {
-        let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.list_teams_for_user(&user_id))
-            .await
-            .map_err(Self::wrap_join_err)?
-    }
-
-    pub async fn delete_team(&self, team_id: String) -> Result<(), StorageError> {
-        let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.delete_team(&team_id))
-            .await
-            .map_err(Self::wrap_join_err)?
-    }
-
     // --- Notes ---
 
     pub async fn list_notes(&self, vault_id: String) -> Result<Vec<NoteMeta>, StorageError> {
@@ -120,6 +90,18 @@ impl AsyncStorageAdapter {
     pub async fn save_note(&self, note: Note) -> Result<(), StorageError> {
         let s = Arc::clone(&self.0);
         tokio::task::spawn_blocking(move || s.save_note(&note))
+            .await
+            .map_err(Self::wrap_join_err)?
+    }
+
+    pub async fn rename_note(
+        &self,
+        vault_id: String,
+        old_id: String,
+        new_id: String,
+    ) -> Result<(), StorageError> {
+        let s = Arc::clone(&self.0);
+        tokio::task::spawn_blocking(move || s.rename_note(&vault_id, &old_id, &new_id))
             .await
             .map_err(Self::wrap_join_err)?
     }

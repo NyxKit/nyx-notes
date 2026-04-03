@@ -1,20 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { storeToRefs } from 'pinia'
-import { useVaultStore } from '@/vaults/stores'
-import { NyxIcon } from 'nyx-kit/components'
+import { useAuth } from '@/auth/composables'
+import { useWorkspaceProfiles } from '@/shared/composables'
 import { RouteName } from '@/shared/types'
+import SidebarNavItem from './SidebarNavItem.vue'
 
 const route = useRoute()
-const { activeVault, vaults } = storeToRefs(useVaultStore())
+const { personalOverviewRoute, serverVaultsRoute } = useAuth()
+const { activeProfile } = useWorkspaceProfiles()
 
-const vaultId = computed(() => String(route.params.vault_id ?? activeVault.value?.id ?? vaults.value[0]?.id ?? ''))
+const serverLabel = computed(() => activeProfile.value?.display_name ?? 'Main Server')
 
 const section = computed(() => {
-  if (route.name === RouteName.Home) return 'home'
+  if (route.name === RouteName.UserRoot) return 'personal'
+  if (route.name === RouteName.ServerRoot) return 'server'
   if (route.name === RouteName.Favorites) return 'favorites'
-  if (route.name === RouteName.Vault && route.params.vault_id === vaultId.value) return 'vault'
   return 'notes'
 })
 </script>
@@ -23,47 +24,31 @@ const section = computed(() => {
   <nav class="sidebar-nav">
 
     <!-- App section -->
-    <div class="sidebar-nav__section-label">App</div>
+    <span class="sidebar-nav__section-label">Workspace</span>
 
-    <RouterLink
-      :to="{ name: RouteName.Home }"
-      class="sidebar-nav__item"
-      :class="{ 'sidebar-nav__item--active': section === 'home' }"
+    <SidebarNavItem
+      :to="personalOverviewRoute"
+      icon="layout-grid"
+      :active="section === 'personal'"
     >
-      <NyxIcon name="layout-grid" :size="16" />
-      Vaults
-    </RouterLink>
+      Personal
+    </SidebarNavItem>
 
-    <RouterLink
-      :to="{ name: RouteName.Servers }"
-      class="sidebar-nav__item"
-      :class="{ 'sidebar-nav__item--active': route.name === RouteName.Servers }"
+    <SidebarNavItem
+      :to="serverVaultsRoute"
+      icon="server"
+      :active="section === 'server'"
     >
-      <NyxIcon name="server" :size="16" />
-      Servers
-    </RouterLink>
+      {{ serverLabel }}
+    </SidebarNavItem>
 
-    <!-- Workspace section -->
-    <div class="sidebar-nav__section-label">Workspace</div>
-
-    <RouterLink
-      v-if="vaultId"
-      :to="{ name: RouteName.Vault, params: { vault_id: vaultId } }"
-      class="sidebar-nav__item"
-      :class="{ 'sidebar-nav__item--active': section === 'vault' }"
-    >
-      <NyxIcon name="file-text" :size="16" />
-      All Notes
-    </RouterLink>
-
-    <RouterLink
+    <SidebarNavItem
       :to="{ name: RouteName.Favorites }"
-      class="sidebar-nav__item"
-      :class="{ 'sidebar-nav__item--active': section === 'favorites' }"
+      icon="star"
+      :active="section === 'favorites'"
     >
-      <NyxIcon name="star" :size="16" />
       Favorites
-    </RouterLink>
+    </SidebarNavItem>
 
   </nav>
 </template>
@@ -84,27 +69,4 @@ const section = computed(() => {
   color: var(--nyx-c-text-3);
 }
 
-/* Nav items */
-.sidebar-nav__item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--nyx-radius-md);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--nyx-c-text-2);
-  text-decoration: none;
-  transition: background 0.2s, color 0.2s;
-}
-
-.sidebar-nav__item:hover {
-  background: #25252b;
-  color: var(--nyx-c-text-1);
-}
-
-.sidebar-nav__item--active {
-  background: #49435f;
-  color: var(--nyx-c-text-1);
-}
 </style>

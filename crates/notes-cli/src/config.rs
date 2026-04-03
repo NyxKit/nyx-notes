@@ -7,7 +7,8 @@ use serde::Deserialize;
 pub struct CliConfig {
     pub notes_root: String,
     pub user_id: String,
-    /// Default vault slug (or `team:<id>/<slug>` for team vaults).
+    pub server_name: String,
+    /// Default personal vault slug or `server:<slug>` for a shared server vault.
     pub vault: String,
     pub editor: String,
 }
@@ -17,6 +18,7 @@ impl Default for CliConfig {
         Self {
             notes_root: default_notes_root(),
             user_id: "default".into(),
+            server_name: "Main Server".into(),
             vault: "home".into(),
             editor: "vi".into(),
         }
@@ -33,6 +35,9 @@ impl CliConfig {
         }
         if let Ok(v) = std::env::var("NOTES_USER_ID") {
             cfg.user_id = v;
+        }
+        if let Ok(v) = std::env::var("SERVER_NAME") {
+            cfg.server_name = v;
         }
         if let Ok(v) = std::env::var("NOTES_VAULT") {
             cfg.vault = v;

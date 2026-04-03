@@ -4,11 +4,13 @@ import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
+import { RouteName } from '@/shared/types'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
 import { VaultSwitcher } from '@/vaults/components'
 import AppBreadcrumbs from './AppBreadcrumbs.vue'
 import SidebarNav from './SidebarNav.vue'
+import SidebarNavItem from './SidebarNavItem.vue'
 import { NoteList, NoteSearch } from '@/notes/components'
 import type { Vault } from '@/shared/types'
 
@@ -25,11 +27,13 @@ async function refreshWorkspace() {
   if (!isAuthenticated.value) return
 
   await load()
-  await loadAll(vaults.value.map(v => v.id))
+  await loadAll(vaults.value.map(v => v.slug))
 
   if (route.params.vault_id) {
-    const currentVault = vaults.value.find(v => v.id === route.params.vault_id) ?? null
-    vaultStore.setActive(currentVault as Vault | null)
+    const currentVault = vaults.value.find(v => v.slug === route.params.vault_id) ?? null
+    if (currentVault) {
+      vaultStore.setActive(currentVault as Vault)
+    }
   }
 }
 
@@ -43,12 +47,13 @@ watch(
   [() => route.params.vault_id as string | undefined, vaults],
   ([vaultId]) => {
     if (!vaultId) {
-      vaultStore.setActive(null)
       return
     }
 
-    const currentVault = vaults.value.find(v => v.id === vaultId) ?? null
-    vaultStore.setActive(currentVault as Vault | null)
+    const currentVault = vaults.value.find(v => v.slug === vaultId) ?? null
+    if (currentVault) {
+      vaultStore.setActive(currentVault as Vault)
+    }
   },
   { immediate: true }
 )
@@ -64,6 +69,14 @@ watch(
         <NoteSearch />
         <SidebarNav />
         <NoteList />
+        <SidebarNavItem
+          :to="{ name: RouteName.Settings }"
+          icon="settings"
+          class="app-shell__settings-link"
+          :active="route.name === RouteName.Settings"
+        >
+          Settings
+        </SidebarNavItem>
       </div>
     </aside>
 
@@ -78,6 +91,12 @@ watch(
 </template>
 
 <style scoped>
+.app-shell__settings-link {
+  margin: 0 0.75rem 0.75rem;
+  border-top: 1px solid var(--nyx-c-divider);
+  flex-shrink: 0;
+}
+
 .app-shell {
   --app-shell-header-height: 3.25rem;
 
@@ -93,14 +112,10 @@ watch(
 .app-shell__sidebar {
   grid-column: 1;
   grid-row: 1 / -1;
-  width: 0;
-  overflow: hidden;
+  width: max(288px, 20dvw);
   min-width: 0;
+  max-height: 100dvh;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.app-shell__sidebar--open {
-  width: 288px;
 }
 
 .app-shell__sidebar-inner {

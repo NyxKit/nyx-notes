@@ -2,6 +2,8 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useAuth } from '@/auth/composables'
+import { vaultRoute } from '@/shared/utils'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore, useNoteBrowsingStore } from '@/notes/stores'
@@ -11,10 +13,10 @@ import { NyxModal, NyxButton, NyxIcon } from 'nyx-kit/components'
 import { NyxTheme, NyxShape, NyxVariant } from 'nyx-kit/types'
 import { NoteEditor } from '@/notes/components'
 import { CommentSidebar } from '@/comments/components'
-import { RouteName } from '@/shared/types'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuth()
 const isCommentsOpen = ref(false)
 const showDeleteConfirm = ref(false)
 const editorStore = useEditorStore()
@@ -50,7 +52,8 @@ async function confirmDelete() {
   if (!note) return
   await remove(note.meta.vault_id, note.meta.id)
   showDeleteConfirm.value = false
-  router.replace({ name: RouteName.Vault, params: { vault_id: note.meta.vault_id } })
+  const currentVault = vaultStore.activeVault ?? vaults.value.find(v => v.slug === note.meta.vault_id)
+  if (currentVault) router.replace(vaultRoute(currentVault))
 }
 
 const vaultStore = useVaultStore()
@@ -103,16 +106,16 @@ watch(
 
     if (!vaults.value.length) {
       localStorage.removeItem(LAST_NOTE_KEY)
-      router.replace({ name: RouteName.Home })
+      router.replace(auth.personalOverviewRoute.value)
       return
     }
-
-    const vault = vaults.value.find(v => v.id === vaultId)
-    if (vault) setActive(vault)
 
     clearLoadedComments()
     editorStore.reset()
     await loadNote(vaultId, noteId)
+    const resolvedVaultId = activeNote.value?.meta.vault_id ?? vaultId
+    const currentVault = vaults.value.find(v => v.slug === resolvedVaultId) ?? null
+    if (currentVault) setActive(currentVault)
     await loadComments(vaultId, noteId)
 
     localStorage.setItem(LAST_NOTE_KEY, JSON.stringify({ vaultId, noteId }))
@@ -126,7 +129,7 @@ watch(
   async (vaultId) => {
     if (!vaultId || route.params.id) return
     if (!vaults.value.length) await loadVaults()
-    const vault = vaults.value.find(v => v.id === vaultId)
+    const vault = vaults.value.find(v => v.slug === vaultId)
     if (vault) setActive(vault)
   },
   { immediate: true }

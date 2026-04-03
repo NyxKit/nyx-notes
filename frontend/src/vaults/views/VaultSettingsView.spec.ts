@@ -12,7 +12,7 @@ vi.mock('vue-router', async () => {
   return {
     ...actual,
     useRouter: () => ({ push, back }),
-    useRoute: () => ({ params: { vault_id: 'vault-1' } }),
+    useRoute: () => ({ params: { vault_id: 'writing' } }),
   }
 })
 
@@ -36,7 +36,7 @@ describe('VaultSettingsView', () => {
         slug: 'writing',
         name: 'Writing',
         description: 'Original description.',
-        owner: { type: 'user', id: 'user-1' },
+        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
         permission: 'edit',
         icon: 'folder',
       },
@@ -47,7 +47,7 @@ describe('VaultSettingsView', () => {
       slug: 'writing',
       name: 'Writing',
       description: 'Updated description.',
-      owner: { type: 'user', id: 'user-1' },
+      owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
       permission: 'edit',
       icon: 'folder',
     })
@@ -69,7 +69,7 @@ describe('VaultSettingsView', () => {
     await wrapper.get('button.gradient-primary').trigger('click')
     await flushPromises()
 
-    expect(updateVault).toHaveBeenCalledWith('vault-1', {
+    expect(updateVault).toHaveBeenCalledWith('writing', {
       name: 'Writing',
       description: 'Updated description.',
     })

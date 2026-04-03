@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import { ofetch } from 'ofetch'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
-import { RouteName } from '@/shared/types'
+import { noteRoute } from '@/shared/utils'
 import type {
   AnyWorkspaceProfile,
   BrowseNoteCardModel,
@@ -60,7 +60,7 @@ export function getServerLabel(profile: AnyWorkspaceProfile) {
     return profile.server_label || profile.display_name || profile.server_url
   }
 
-  return profile.display_name || 'Local'
+  return profile.display_name || 'Main Server'
 }
 
 function makeProfileClient(profile: AnyWorkspaceProfile, token?: string): ProfileBrowseClient {
@@ -73,13 +73,6 @@ function makeProfileClient(profile: AnyWorkspaceProfile, token?: string): Profil
     fetchVaults: () => client<Vault[]>('/api/vaults'),
     fetchNotes: (vaultId: string) => client<NoteMeta[]>(`/api/vaults/${vaultId}/notes`),
     fetchNote: (vaultId: string, noteId: string) => client<Note>(`/api/vaults/${vaultId}/notes/${noteId}`),
-  }
-}
-
-function makeHref(_profileId: string, vaultId: string, noteId: string) {
-  return {
-    name: RouteName.Note,
-    params: { vault_id: vaultId, id: noteId },
   }
 }
 
@@ -115,7 +108,7 @@ function buildBrowseNote(
     tags: note.tags,
     updated_at: note.updated_at,
     updated_label: formatUpdatedLabel(note.updated_at),
-    href: makeHref(profile.id, note.vault_id, note.id),
+    href: noteRoute(vault, note.id),
     server_label: getServerLabel(profile),
     server_id: profile.type === 'remote' ? profile.server_id : undefined,
     vault_name: vault.name,
@@ -169,11 +162,11 @@ export function useGlobalNoteBrowsing() {
       try {
         const vaults = await client.fetchVaults()
         for (const vault of vaults) {
-          const notes = await client.fetchNotes(vault.id)
+          const notes = await client.fetchNotes(vault.slug)
           const noteCards = await Promise.all(notes.map(async note => {
             let matchScore = computeMatchScore(trimmedQuery, note)
             if (matchScore === 0) {
-              const fullNote = await client.fetchNote(vault.id, note.id)
+              const fullNote = await client.fetchNote(vault.slug, note.id)
               matchScore = computeMatchScore(trimmedQuery, note, fullNote.content)
             }
 
@@ -217,7 +210,7 @@ export function useGlobalNoteBrowsing() {
 
       try {
         const vaults = await client.fetchVaults()
-        const vaultMap = new Map(vaults.map(vault => [vault.id, vault]))
+        const vaultMap = new Map(vaults.map(vault => [vault.slug, vault]))
 
         for (const ref of refs) {
           const vault = vaultMap.get(ref.vault_id)
@@ -228,7 +221,7 @@ export function useGlobalNoteBrowsing() {
 
         if (legacyRefs.length > 0) {
           for (const vault of vaults) {
-            const notes = await client.fetchNotes(vault.id)
+            const notes = await client.fetchNotes(vault.slug)
             for (const note of notes) {
               if (!legacyRefs.some(ref => ref.note_id === note.id)) continue
               results.push(buildBrowseNote(note, profile, vault, true))
@@ -255,7 +248,7 @@ export function useGlobalNoteBrowsing() {
       try {
         const vaults = await client.fetchVaults()
         for (const vault of vaults) {
-          const notes = await client.fetchNotes(vault.id)
+          const notes = await client.fetchNotes(vault.slug)
           results.push(...notes.map(note => buildBrowseNote(
             note,
             profile,

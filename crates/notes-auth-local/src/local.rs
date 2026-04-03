@@ -1,4 +1,4 @@
-use notes_core::{AuthError, AuthStore, User};
+use notes_core::{AuthError, AuthStore, ServerRole, User};
 
 /// `AuthStore` implementation for `AUTH_MODE=local`.
 ///
@@ -18,6 +18,7 @@ impl LocalAuthStore {
                 id: user_id.clone(),
                 email: format!("{user_id}@localhost"),
                 display_name: name,
+                role: ServerRole::Admin,
             },
         }
     }

@@ -9,7 +9,7 @@ describe('VaultCard', () => {
     slug: 'research-notes',
     name: 'Research Notes',
     description: 'Drafts, references, and interview transcripts.',
-    owner: { type: 'user', id: 'user-1' },
+    owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
     permission: 'edit',
     icon: 'folder',
   }
@@ -39,13 +39,13 @@ describe('VaultCard', () => {
         stubs: {
           RouterLink: {
             props: ['to'],
-            template: '<a :href="to" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
+            template: '<a :href="`/${to.params.server_slug}/homes/${to.params.home_slug}/vaults/${to.params.vault_id}`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
           },
         },
       },
     })
 
     const link = wrapper.get('a[aria-label="Open Research Notes"]')
-    expect(link.attributes('href')).toBe('/vaults/vault-1')
+    expect(link.attributes('href')).toBe('/main-server/homes/user-1/vaults/research-notes')
   })
 })

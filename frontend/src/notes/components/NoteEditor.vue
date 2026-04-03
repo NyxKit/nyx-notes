@@ -33,7 +33,7 @@ const { saving } = storeToRefs(notesStore)
 const { save, updatePermission } = notesStore
 const editorStore = useEditorStore()
 
-// Local editable copies — reset when the note changes
+// Editable copies — reset when the note changes
 const localTitle = ref(props.note.meta.title)
 const localContent = ref(props.note.meta.is_encrypted ? '' : props.note.content)
 
@@ -70,12 +70,12 @@ function scheduleAutoSave() {
 async function flushSave() {
   if (!pendingSave || readonly.value) return
   pendingSave = false
-  await save(props.note.meta.vault_id, props.note.meta.id, {
-    title: localTitle.value,
-    content: localContent.value,
-    tags: props.note.meta.tags,
-    category: props.note.meta.category ?? undefined,
-  })
+    await save(props.note.meta.vault_id, props.note.meta.id, {
+      title: localTitle.value,
+      content: localContent.value,
+      tags: props.note.meta.tags,
+      category: props.note.meta.category ?? undefined,
+    })
 }
 
 function onTitleChange(value: string) {

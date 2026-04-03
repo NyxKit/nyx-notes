@@ -66,7 +66,7 @@ export function useWorkspaceProfiles() {
     if (!existingLocal) {
       profiles.value = sortProfiles([
         ...profiles.value,
-        { id: LOCAL_PROFILE_ID, type: 'local', display_name: 'Local' },
+        { id: LOCAL_PROFILE_ID, type: 'local', display_name: 'Main Server' },
       ])
     }
 
@@ -152,6 +152,10 @@ export function useWorkspaceProfiles() {
     touchProfile(profileId, updates as Partial<AnyWorkspaceProfile>)
   }
 
+  function updateProfileDisplayName(profileId: string, displayName: string) {
+    touchProfile(profileId, { display_name: displayName })
+  }
+
   return {
     profiles,
     remoteProfiles,
@@ -161,6 +165,7 @@ export function useWorkspaceProfiles() {
     addRemoteProfile,
     updateRemoteProfile,
     updateRemoteProfileStatus,
+    updateProfileDisplayName,
     setActiveProfile,
     removeProfile,
     updateProfileRoute,

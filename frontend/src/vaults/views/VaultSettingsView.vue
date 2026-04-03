@@ -2,24 +2,23 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { useAuth } from '@/auth/composables'
 import { NyxButton, NyxInput, NyxSelect, NyxTextarea } from 'nyx-kit/components'
 import { NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
-import { RouteName } from '@/shared/types'
 import { VaultIconPicker } from '@/vaults/components'
 import { useVaultStore } from '@/vaults/stores'
-import type { NotePermission } from '@/shared/types'
 
 const route = useRoute()
 const router = useRouter()
+const auth = useAuth()
 const vaultStore = useVaultStore()
 const { vaults } = storeToRefs(vaultStore)
-const { load, remove, update, patchPermission } = vaultStore
+const { load, remove, update, removeServerVault } = vaultStore
 
 const vaultId = computed(() => route.params.vault_id as string)
-const vault = computed(() => vaults.value.find(v => v.id === vaultId.value) ?? null)
+const vault = computed(() => vaults.value.find(v => v.slug === vaultId.value) ?? null)
 
-const permissionError = ref<string | null>(null)
 const deleteError = ref<string | null>(null)
 const confirmDelete = ref(false)
 const iconError = ref<string | null>(null)
@@ -65,37 +64,33 @@ async function onIconChange(slug: string | undefined) {
   }
 }
 
-async function onPermissionChange(permission: NotePermission) {
-  if (!vault.value || vault.value.owner.type !== 'team') return
-  permissionError.value = null
-  try {
-    await patchPermission(vault.value.owner.id, vaultId.value, permission)
-  } catch (e) {
-    permissionError.value = String(e)
-  }
-}
-
 async function onDelete() {
   deleteError.value = null
   try {
-    await remove(vaultId.value)
-    router.push({ name: RouteName.Home })
+    if (vault.value?.owner.type === 'server') {
+      await removeServerVault(vaultId.value)
+    } else {
+      await remove(vaultId.value)
+    }
+    router.push(auth.personalOverviewRoute.value)
   } catch (e) {
     deleteError.value = String(e)
     confirmDelete.value = false
   }
 }
 
-const permissionOptions: NyxSelectOption[] = [
-  { label: 'Restricted — only team members with explicit access', value: 'restricted' },
-  { label: 'Comment — all team members can comment', value: 'comment' },
-  { label: 'Edit — all team members can edit', value: 'edit' },
-]
-
-const permissionModel = computed({
-  get: () => vault.value?.permission ?? 'restricted',
-  set: (v: string) => onPermissionChange(v as NotePermission)
+const ownerLabel = computed(() => {
+  if (!vault.value) return ''
+  if (vault.value.owner.type === 'home') return 'Personal'
+  if (vault.value.owner.type === 'server') return `Server: ${vault.value.owner.server_slug}`
+  return 'Built-in'
 })
+
+const permissionOptions: NyxSelectOption[] = [
+  { label: 'Restricted', value: 'restricted' },
+  { label: 'Comment', value: 'comment' },
+  { label: 'Edit', value: 'edit' },
+]
 </script>
 
 <template>
@@ -128,11 +123,13 @@ const permissionModel = computed({
             <span class="settings-row__label">Slug</span>
             <span class="settings-row__value settings-row__value--mono">{{ vault.slug }}</span>
           </div>
-          <div class="settings-row">
-            <span class="settings-row__label">Owner</span>
-            <span class="settings-row__value">
-              {{ vault.owner.type === 'user' ? 'Personal' : `Team: ${vault.owner.id}` }}
-            </span>
+            <div class="settings-row">
+              <span class="settings-row__label">Owner</span>
+              <span class="settings-row__value">{{ ownerLabel }}</span>
+            </div>
+          <div v-if="vault.owner.type === 'server'" class="settings-row">
+            <span class="settings-row__label">Role</span>
+            <span class="settings-row__value">Shared server vault</span>
           </div>
           <div class="settings-actions">
             <NyxButton :gradient="true" @click="onDetailsSave">Save details</NyxButton>
@@ -154,18 +151,18 @@ const permissionModel = computed({
           <p v-if="iconError" class="settings-error">{{ iconError }}</p>
         </section>
 
-        <!-- Permission (team vaults only) -->
-        <section v-if="vault.owner.type === 'team'" class="settings-section">
+        <!-- Permission (shared server vaults are currently read-only in the frontend) -->
+        <section v-if="vault.owner.type === 'server'" class="settings-section">
           <h2 class="settings-section__heading">Default Permission</h2>
           <p class="settings-section__description">
-            Controls what team members can do with notes in this vault by default.
-            Note authors can override this per note.
+            Shared server vaults currently inherit their default note permission from the backend.
+            Permission editing is not yet exposed in the MVP frontend.
           </p>
           <NyxSelect
-            v-model="permissionModel"
+            :model-value="vault.permission"
             :options="permissionOptions"
+            disabled
           />
-          <p v-if="permissionError" class="settings-error">{{ permissionError }}</p>
         </section>
 
         <!-- Danger zone -->
