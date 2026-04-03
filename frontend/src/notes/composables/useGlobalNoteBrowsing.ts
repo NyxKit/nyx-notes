@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import { ofetch } from 'ofetch'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
-import { RouteName } from '@/shared/types'
+import { noteRoute } from '@/shared/utils'
 import type {
   AnyWorkspaceProfile,
   BrowseNoteCardModel,
@@ -76,13 +76,6 @@ function makeProfileClient(profile: AnyWorkspaceProfile, token?: string): Profil
   }
 }
 
-function makeHref(_profileId: string, vaultId: string, noteId: string) {
-  return {
-    name: RouteName.Note,
-    params: { vault_id: vaultId, id: noteId },
-  }
-}
-
 function computeMatchScore(query: string, note: NoteMeta, content?: string) {
   const normalized = query.trim().toLowerCase()
   if (!normalized) return 0
@@ -115,7 +108,7 @@ function buildBrowseNote(
     tags: note.tags,
     updated_at: note.updated_at,
     updated_label: formatUpdatedLabel(note.updated_at),
-    href: makeHref(profile.id, note.vault_id, note.id),
+    href: noteRoute(vault, note.id),
     server_label: getServerLabel(profile),
     server_id: profile.type === 'remote' ? profile.server_id : undefined,
     vault_name: vault.name,

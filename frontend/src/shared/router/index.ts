@@ -36,26 +36,22 @@ const router = createRouter({
           path: ':server_slug/vaults',
           name: RouteName.ServerVaults,
           component: () => import('@/vaults/views').then(({ RootView }) => RootView),
-          alias: ['server-vaults'],
           props: { scope: 'server' },
         },
         {
           path: ':server_slug/homes/:home_slug/vaults/:vault_id',
           name: RouteName.Vault,
           component: () => import('@/vaults/views').then(({ VaultView }) => VaultView),
-          alias: ['vaults/:vault_id', ':server_slug/vaults/:vault_id'],
         },
         {
           path: ':server_slug/homes/:home_slug/vaults/:vault_id/notes/:id?',
           name: RouteName.Note,
           component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
-          alias: ['vaults/:vault_id/notes/:id?', ':server_slug/vaults/:vault_id/notes/:id?'],
         },
         {
           path: ':server_slug/homes/:home_slug/vaults/:vault_id/settings',
           name: RouteName.VaultSettings,
           component: () => import('@/vaults/views').then(({ VaultSettingsView }) => VaultSettingsView),
-          alias: ['vaults/:vault_id/settings', ':server_slug/vaults/:vault_id/settings'],
         },
         {
           path: 'settings',
