@@ -1,27 +1,42 @@
-/// Serde types for `.vault.json` and `.team.json` on disk.
+/// Serde types for namespace metadata on disk.
 /// These are separate from the domain types in `notes-core` so that
 /// the on-disk format can evolve without changing the public API.
-use notes_core::{NotePermission, TeamMember};
+use notes_core::{NotePermission, VaultOwner};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ServerJson {
+    pub id: String,
+    pub slug: String,
+    pub name: String,
+    pub roles: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HomeJson {
+    pub id: String,
+    pub slug: String,
+    pub name: String,
+    pub owner_user_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalJson {
+    pub id: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VaultJson {
     pub id: String,
     pub name: String,
     pub slug: String,
+    pub kind: String,
+    pub owner: VaultOwner,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    /// Present only in team vaults. Absent for personal vaults (always restricted).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permission: Option<NotePermission>,
-    /// Optional decorative icon slug. Absent means no icon.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TeamJson {
-    pub id: String,
-    pub name: String,
-    pub members: Vec<TeamMember>,
 }

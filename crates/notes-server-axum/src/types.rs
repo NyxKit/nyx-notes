@@ -1,4 +1,4 @@
-use notes_core::{NotePermission, TeamRole};
+use notes_core::NotePermission;
 use serde::{Deserialize, Serialize};
 
 // --- Auth request types ---
@@ -38,29 +38,32 @@ pub struct AuthModeResponse {
 
 impl From<&AuthConfig> for AuthModeResponse {
     fn from(cfg: &AuthConfig) -> Self {
+        let server_name =
+            std::env::var("SERVER_NAME").unwrap_or_else(|_| "Main Server".to_string());
+        let server_id = format!("server-{}", notes_core::slugify(&server_name));
         match cfg {
             AuthConfig::Local => AuthModeResponse {
                 mode: "local",
                 issuer: None,
                 client_id: None,
-                server_id: None,
-                server_name: None,
+                server_id: Some(server_id.clone()),
+                server_name: Some(server_name.clone()),
                 api_version: Some(env!("CARGO_PKG_VERSION").to_string()),
             },
             AuthConfig::SecretKey => AuthModeResponse {
                 mode: "secret_key",
                 issuer: None,
                 client_id: None,
-                server_id: None,
-                server_name: None,
+                server_id: Some(server_id.clone()),
+                server_name: Some(server_name.clone()),
                 api_version: Some(env!("CARGO_PKG_VERSION").to_string()),
             },
             AuthConfig::Oidc { issuer, client_id } => AuthModeResponse {
                 mode: "oidc",
                 issuer: Some(issuer.clone()),
                 client_id: Some(client_id.clone()),
-                server_id: None,
-                server_name: None,
+                server_id: Some(server_id),
+                server_name: Some(server_name),
                 api_version: Some(env!("CARGO_PKG_VERSION").to_string()),
             },
         }
@@ -143,20 +146,12 @@ pub struct PatchCommentRequest {
     pub resolved: bool,
 }
 
-// --- Team request types ---
-
-#[derive(Deserialize)]
-pub struct CreateTeamRequest {
+#[derive(Serialize)]
+pub struct ServerMetadataResponse {
+    pub id: String,
+    pub slug: String,
     pub name: String,
-}
-
-#[derive(Deserialize)]
-pub struct AddMemberRequest {
-    pub user_id: String,
-    pub role: TeamRole,
-}
-
-#[derive(Deserialize)]
-pub struct PatchMemberRequest {
-    pub role: TeamRole,
+    pub role: &'static str,
+    pub root_path: Option<String>,
+    pub current_user_id: String,
 }

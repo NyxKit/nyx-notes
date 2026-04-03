@@ -1,8 +1,8 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createVault, fetchVaults } from '@/vaults/api'
-import HomeView from './HomeView.vue'
+import { createVault, fetchPersonalVaults, fetchVaults } from '@/vaults/api'
+import RootView from './RootView.vue'
 
 const push = vi.fn()
 const replace = vi.fn()
@@ -17,13 +17,15 @@ vi.mock('vue-router', async () => {
 
 vi.mock('@/vaults/api', () => ({
   fetchVaults: vi.fn(),
+  fetchPersonalVaults: vi.fn(),
+  fetchServerVaults: vi.fn(),
   createVault: vi.fn(),
   deleteVault: vi.fn(),
   patchVaultPermission: vi.fn(),
   updateVault: vi.fn(),
 }))
 
-describe('HomeView create card', () => {
+describe('RootView create card', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     push.mockReset()
@@ -34,7 +36,7 @@ describe('HomeView create card', () => {
         slug: 'writing',
         name: 'Writing',
         description: 'Fresh drafts and long-form work.',
-        owner: { type: 'user', id: 'user-1' },
+        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
         permission: 'edit',
         icon: 'folder',
       },
@@ -43,7 +45,27 @@ describe('HomeView create card', () => {
         slug: 'archive',
         name: 'Archive',
         description: 'Finished material.',
-        owner: { type: 'user', id: 'user-1' },
+        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
+        permission: 'edit',
+        icon: 'folder',
+      },
+    ])
+    vi.mocked(fetchPersonalVaults).mockResolvedValue([
+      {
+        id: 'vault-1',
+        slug: 'writing',
+        name: 'Writing',
+        description: 'Fresh drafts and long-form work.',
+        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
+        permission: 'edit',
+        icon: 'folder',
+      },
+      {
+        id: 'vault-2',
+        slug: 'archive',
+        name: 'Archive',
+        description: 'Finished material.',
+        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
         permission: 'edit',
         icon: 'folder',
       },
@@ -53,14 +75,14 @@ describe('HomeView create card', () => {
       slug: 'ideas',
       name: 'Ideas',
       description: 'Quick capture for future projects.',
-      owner: { type: 'user', id: 'user-1' },
+      owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
       permission: 'edit',
       icon: 'folder',
     })
   })
 
   it('shows and cancels the inline create card with description controls', async () => {
-    const wrapper = mount(HomeView, {
+    const wrapper = mount(RootView, {
       global: {
         stubs: {
           VaultCard: true,
@@ -70,19 +92,21 @@ describe('HomeView create card', () => {
     })
 
     await flushPromises()
-    await wrapper.get('button').trigger('click')
+    const headerButton = document.querySelector('#layout-header-actions button') as HTMLButtonElement
+    headerButton.click()
+    await flushPromises()
 
     expect(wrapper.text()).toContain('Choose a name, slug, description, and icon.')
     expect(wrapper.text()).toContain('Description')
 
     const buttons = wrapper.findAll('button')
-    await buttons[2].trigger('click')
+    await buttons[1].trigger('click')
 
     expect(wrapper.text()).not.toContain('Choose a name, slug, description, and icon.')
   })
 
   it('submits create-vault values including description and routes to the created vault', async () => {
-    const wrapper = mount(HomeView, {
+    const wrapper = mount(RootView, {
       global: {
         stubs: {
           VaultCard: true,
@@ -92,7 +116,9 @@ describe('HomeView create card', () => {
     })
 
     await flushPromises()
-    await wrapper.get('button').trigger('click')
+    const headerButton = document.querySelector('#layout-header-actions button') as HTMLButtonElement
+    headerButton.click()
+    await flushPromises()
 
     const inputs = wrapper.findAll('input')
     await inputs[0].setValue('  Ideas  ')
@@ -108,6 +134,8 @@ describe('HomeView create card', () => {
       description: 'Quick capture for future projects.',
       icon: undefined,
     })
-    expect(push).toHaveBeenCalledWith('/vaults/vault-3')
+    expect(push).toHaveBeenCalledWith({
+      path: '/main-server/homes/user-1/vaults/ideas',
+    })
   })
 })

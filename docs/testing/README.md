@@ -27,7 +27,9 @@ What to test:
 - `list_notes` returns correct metadata, sorted by `updated_at`
 - `delete_note` removes the file; returns `NotFound` on second call
 - `create_vault` / `delete_vault` (including non-empty vault rejection)
-- `.team.json` and `.vault.json` read/write correctness
+- `.server.json`, `.home.json`, `.vault.json`, and `.local.json` read/write correctness
+- personal vaults resolve under `<server>/homes/<home>/<vault>`
+- server vaults resolve under `<server>/vaults/<vault>`
 - `created_at` is not modified on update
 - `.comments.json` round-trips structured anchors, visibility state, and replies
 - legacy quote-only sidecars remain readable and are retained as hidden legacy records when no reliable anchor can be restored
@@ -51,6 +53,8 @@ What to test:
 - Auth middleware: `401` on missing or invalid token
 - `GET /api/auth/mode` returns the documented response shape, including additive metadata fields when present
 - `POST /api/auth/login` returns `422` when password login is unavailable for the configured auth mode
+- vault-ID routes resolve the correct personal or server vault in the HTTP contract
+- server-vault administration is `admin` only and personal vaults remain owner-scoped
 - `PUT` does not change `created_at`
 - `PATCH /permission` is owner-only
 - comment creation accepts structured anchors and returns `201 Created`
@@ -72,6 +76,7 @@ async fn non_owner_cannot_edit_restricted_note() {
 
 What to test:
 - `useNotes`: CRUD methods call correct endpoints with correct payloads
+- shared frontend types reflect server/home/server-vault ownership and ID-based route parameters
 - `useAuth`: active-profile bootstrap discovers auth mode correctly, tokens are attached only for the active remote profile, and logging out one profile does not clear another saved profile session
 - `useWorkspaceProfiles`: duplicate `server_url + username` entries are rejected while same-server different-username profiles are allowed
 - `useGlobalNoteBrowsing`: loads notes per reachable/authenticated profile without mutating active profile context, aggregates results across vaults, and reports excluded-profile counts
@@ -94,6 +99,7 @@ What to test:
 - Global favorites: favorites are shown from all reachable/authenticated profiles and vaults using the same browse layout as search
 - Shared browse layout: search and favorites both render server/vault origin labels, excluded-profile notice when applicable, and the correct sort controls for the current surface
 - Permission selector visible for owner, hidden for non-owner
+- no active team-settings route remains in the MVP flow
 - Comment: select text → add comment → thread appears with containing-line context while the selected text is annotated in the editor
 - Detached visible comments remain understandable after note edits
 - Legacy quote-only comments remain stored but do not appear in the default line-discussion sidebar
@@ -110,7 +116,7 @@ What to test:
 - `notes list` output includes the created note
 - `notes delete <id> --force` removes the file
 - `notes search "foo"` returns the note
-- `--vault` flag correctly scopes to the target vault
+- `--vault` flag correctly scopes to a personal or server vault in the new namespace layout
 
 ## What Not to Test
 

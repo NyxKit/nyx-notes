@@ -60,7 +60,7 @@ export function getServerLabel(profile: AnyWorkspaceProfile) {
     return profile.server_label || profile.display_name || profile.server_url
   }
 
-  return profile.display_name || 'Local'
+  return profile.display_name || 'Main Server'
 }
 
 function makeProfileClient(profile: AnyWorkspaceProfile, token?: string): ProfileBrowseClient {
@@ -169,11 +169,11 @@ export function useGlobalNoteBrowsing() {
       try {
         const vaults = await client.fetchVaults()
         for (const vault of vaults) {
-          const notes = await client.fetchNotes(vault.id)
+          const notes = await client.fetchNotes(vault.slug)
           const noteCards = await Promise.all(notes.map(async note => {
             let matchScore = computeMatchScore(trimmedQuery, note)
             if (matchScore === 0) {
-              const fullNote = await client.fetchNote(vault.id, note.id)
+              const fullNote = await client.fetchNote(vault.slug, note.id)
               matchScore = computeMatchScore(trimmedQuery, note, fullNote.content)
             }
 
@@ -217,7 +217,7 @@ export function useGlobalNoteBrowsing() {
 
       try {
         const vaults = await client.fetchVaults()
-        const vaultMap = new Map(vaults.map(vault => [vault.id, vault]))
+        const vaultMap = new Map(vaults.map(vault => [vault.slug, vault]))
 
         for (const ref of refs) {
           const vault = vaultMap.get(ref.vault_id)
@@ -228,7 +228,7 @@ export function useGlobalNoteBrowsing() {
 
         if (legacyRefs.length > 0) {
           for (const vault of vaults) {
-            const notes = await client.fetchNotes(vault.id)
+            const notes = await client.fetchNotes(vault.slug)
             for (const note of notes) {
               if (!legacyRefs.some(ref => ref.note_id === note.id)) continue
               results.push(buildBrowseNote(note, profile, vault, true))
@@ -255,7 +255,7 @@ export function useGlobalNoteBrowsing() {
       try {
         const vaults = await client.fetchVaults()
         for (const vault of vaults) {
-          const notes = await client.fetchNotes(vault.id)
+          const notes = await client.fetchNotes(vault.slug)
           results.push(...notes.map(note => buildBrowseNote(
             note,
             profile,

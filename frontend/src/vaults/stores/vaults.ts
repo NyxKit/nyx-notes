@@ -1,9 +1,8 @@
 import { ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { getApiRequestEpoch } from '@/shared/api'
-import { fetchVaults, createVault, deleteVault, patchVaultPermission, updateVault } from '@/vaults/api'
-import { createTeamVault, deleteTeamVault } from '@/teams/api'
-import type { Vault, CreateVaultRequest, UpdateVaultRequest, NotePermission } from '@/shared/types'
+import { fetchVaults, createVault, createServerVault, deleteServerVault, deleteVault, updateVault } from '@/vaults/api'
+import type { Vault, CreateVaultRequest, UpdateVaultRequest } from '@/shared/types'
 
 export const useVaultStore = defineStore('vaults', () => {
   const vaults = ref<Vault[]>([])
@@ -35,8 +34,8 @@ export const useVaultStore = defineStore('vaults', () => {
 
   async function remove(vaultId: string) {
     await deleteVault(vaultId)
-    vaults.value = vaults.value.filter(v => v.id !== vaultId)
-    if (activeVault.value?.id === vaultId) activeVault.value = null
+    vaults.value = vaults.value.filter(v => v.slug !== vaultId)
+    if (activeVault.value?.slug === vaultId) activeVault.value = null
   }
 
   function setActive(vault: Vault | null) {
@@ -45,28 +44,22 @@ export const useVaultStore = defineStore('vaults', () => {
 
   async function update(vaultId: string, body: UpdateVaultRequest) {
     const updated = await updateVault(vaultId, body)
-    const idx = vaults.value.findIndex(v => v.id === vaultId)
+    const idx = vaults.value.findIndex(v => v.slug === vaultId)
     if (idx !== -1) vaults.value[idx] = updated
-    if (activeVault.value?.id === vaultId) activeVault.value = updated
+    if (activeVault.value?.slug === vaultId) activeVault.value = updated
     return updated
   }
 
-  async function patchPermission(teamId: string, vaultId: string, permission: NotePermission) {
-    await patchVaultPermission(teamId, vaultId, permission)
-    const v = vaults.value.find(v => v.id === vaultId)
-    if (v) v.permission = permission
-  }
-
-  async function addTeamVault(teamId: string, body: CreateVaultRequest) {
-    const vault = await createTeamVault(teamId, body)
+  async function addServerVault(body: CreateVaultRequest) {
+    const vault = await createServerVault(body)
     vaults.value.push(vault)
     return vault
   }
 
-  async function removeTeamVault(teamId: string, vaultId: string) {
-    await deleteTeamVault(teamId, vaultId)
-    vaults.value = vaults.value.filter(v => v.id !== vaultId)
-    if (activeVault.value?.id === vaultId) activeVault.value = null
+  async function removeServerVault(vaultId: string) {
+    await deleteServerVault(vaultId)
+    vaults.value = vaults.value.filter(v => v.slug !== vaultId)
+    if (activeVault.value?.slug === vaultId) activeVault.value = null
   }
 
   function $reset() {
@@ -86,9 +79,8 @@ export const useVaultStore = defineStore('vaults', () => {
     update,
     remove,
     setActive,
-    patchPermission,
-    addTeamVault,
-    removeTeamVault,
+    addServerVault,
+    removeServerVault,
     $reset,
   }
 })

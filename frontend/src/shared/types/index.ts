@@ -16,6 +16,15 @@ export interface AuthModeResponse {
   api_version?: string
 }
 
+export interface ServerMetadata {
+  id: string
+  slug: string
+  name: string
+  current_user_id: string
+  role: ServerRole
+  root_path?: string
+}
+
 export interface LoginToken {
   token: string
   expires_in: number
@@ -25,11 +34,14 @@ export interface User {
   id: string
   email: string
   display_name: string
+  role?: ServerRole
 }
 
 // ─── Permissions ─────────────────────────────────────────────────────────────
 
 export type NotePermission = 'restricted' | 'comment' | 'edit'
+
+export type ServerRole = 'admin' | 'user'
 
 export type TeamRole = 'owner' | 'admin' | 'member'
 
@@ -46,8 +58,9 @@ export interface Vault {
 }
 
 export type VaultOwner =
-  | { type: 'user'; id: string }
-  | { type: 'team'; id: string }
+  | { type: 'home'; server_slug: string; home_slug: string }
+  | { type: 'server'; server_slug: string }
+  | { type: 'local' }
 
 // ─── Notes ───────────────────────────────────────────────────────────────────
 

@@ -25,7 +25,10 @@ fn seed_note(storage: &FsStorage, vault_id: &str, note_id: &str) {
         slug: "home".into(),
         name: "Home".into(),
         description: None,
-        owner: VaultOwner::User("local".into()),
+        owner: VaultOwner::Home {
+            server_slug: "main-server".into(),
+            home_slug: "local".into(),
+        },
         permission: NotePermission::Restricted,
         icon: None,
     };

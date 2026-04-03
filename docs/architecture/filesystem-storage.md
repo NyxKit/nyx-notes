@@ -2,55 +2,96 @@
 
 ## Purpose
 
-Implements `StorageBackend` from `notes-core` using the local filesystem. The filesystem is the **source of truth** for all note content. Notes survive independently of any database, server, or cloud service.
+Implements `StorageBackend` from `notes-core` using the local filesystem. The filesystem remains the source of truth for note content, vault metadata, and comment sidecars.
 
-## Principles
+The authoritative namespace layout is defined in [file-system.md](./file-system.md). This document describes how `FsStorage` realizes that layout in the MVP.
 
-- Each note is a single `.md` file — human-readable, git-friendly, portable
-- No proprietary binary format, no database required for content
-- The directory layout is the organizational structure (folders = vaults)
-- Notes can be edited directly with any text editor outside the app
+## MVP Layout
 
-## Directory Layout
-
-Notes are organized by vault, and vaults are owned by either a user or a team. See [vaults-and-teams.md](./vaults-and-teams.md) for the full model.
-
-```
+```text
 $NOTES_ROOT/
-  users/
-    <uid>/                    # one directory per user
-      home/                   # default personal vault (always exists)
-        .vault.json           # vault metadata: id, name, slug[, description, icon] (no permission field)
-        <slug>.md
-        <slug>.comments.json  # comment sidecar for that note (optional)
-      <vault-slug>/           # additional personal vaults
-        .vault.json
-        <slug>.md
-        <slug>.comments.json
-  teams/
-    <team-id>/
-      .team.json              # team metadata: name, members, roles
-      home/                   # default team vault (always exists)
-        .vault.json           # vault metadata: id, name, slug, permission[, description, icon]
-        <slug>.md
-        <slug>.comments.json
+  <server-slug>/
+    .server.json
+    homes/
+      <home-slug>/
+        .home.json
+        <vault-slug>/
+          .vault.json
+          <note-id>.md
+          <note-id>.comments.json
+    vaults/
       <vault-slug>/
         .vault.json
-        <slug>.md
-        <slug>.comments.json
+        <note-id>.md
+        <note-id>.comments.json
+  local/
+    .local.json
 ```
+
+- Personal vaults live under `<server-slug>/homes/<home-slug>/`
+- Shared server vaults live under `<server-slug>/vaults/`
+- `local/` is reserved in the on-disk contract but is not runtime-active in the MVP
+
+## Runtime Resolution
+
+`FsStorage` derives the active server namespace from `SERVER_NAME` by slugifying it at startup.
+
+- `SERVER_NAME="Main Server"` -> `main-server`
+- `NOTES_USER_ID` is used as the active home slug in the MVP
+
+This means the CLI and server both resolve a caller's personal vaults under:
+
+```text
+$NOTES_ROOT/<server-slug>/homes/<NOTES_USER_ID>/
+```
+
+## Metadata Files
+
+### `.server.json`
+
+Stored at `<server-slug>/.server.json`.
+
+Used for:
+
+- stable internal server ID
+- slug verification
+- display name
+- supported server roles (`admin`, `user`)
+
+### `.home.json`
+
+Stored at `<server-slug>/homes/<home-slug>/.home.json`.
+
+Used for:
+
+- stable internal home ID
+- slug verification
+- display name
+- `owner_user_id` lookup
+
+### `.vault.json`
+
+Stored in every vault directory.
+
+Used for:
+
+- stable internal vault ID
+- vault slug and name
+- owner metadata (`home`, `server`, or `local`)
+- vault kind (`personal`, `server`, `local`)
+- default note permission for notes created inside the vault
+- optional description and icon
 
 ## Note File Format
 
-Each `.md` file uses YAML frontmatter:
+Each note is a Markdown file with YAML frontmatter:
 
 ```markdown
 ---
-id: "my-note-slug"
-vault_id: "vault-xyz456"
-title: "My Note"
+id: "project-plan"
+title: "Project Plan"
 description: "The first actual paragraph of the note body."
-author_id: "user-123"
+author_id: "local"
 tags: ["rust", "backend"]
 category: "work"
 created_at: "2026-03-14T10:00:00Z"
@@ -64,132 +105,91 @@ Note body in **Markdown**.
 
 ### Rules
 
-- `id` must match the filename stem (e.g. `my-note-slug.md`) and be globally unique
-- `vault_id` identifies the containing vault; it must match the actual directory the file resides in
+- `id` must match the filename stem
+- Note IDs are stable identifiers and the canonical route/file identifiers
+- `vault_id` is derived by the server from the containing vault directory and returned in API responses
 - `created_at` is set on first write and never updated
 - `updated_at` is updated on every save
-- `description` is derived on every save from the first actual Markdown paragraph; headings, lists, and other non-paragraph blocks are ignored
+- `description` is derived from the first actual Markdown paragraph
 - If `is_encrypted: true`, the body below `---` is opaque ciphertext
-- `permission` must be one of `"restricted"`, `"comment"`, `"edit"`; defaults to the vault's permission if absent
+- `permission` must be one of `restricted`, `comment`, or `edit`
 
-## Implementation
+## `FsStorage` Behavior
 
-```rust
-pub struct FsStorage {
-    root: std::path::PathBuf,
-}
+### Vault resolution
 
-impl FsStorage {
-    pub fn new(root: impl Into<std::path::PathBuf>) -> Self {
-        Self { root: root.into() }
-    }
+Methods that accept `vault_id: &str` resolve the vault by vault slug in the active MVP contract. Storage may still accept stable vault IDs internally for compatibility.
 
-    fn vault_path(&self, vault: &Vault) -> PathBuf {
-        match &vault.owner {
-            VaultOwner::User(uid) => self.root.join("users").join(uid).join(&vault.slug),
-            VaultOwner::Team(team_id) => self.root.join("teams").join(team_id).join(&vault.slug),
-        }
-    }
+### `list_vaults(owner)`
 
-    fn note_path(&self, vault: &Vault, id: &str) -> PathBuf {
-        self.vault_path(vault).join(format!("{id}.md"))
-    }
-}
-```
+- For `VaultOwner::Home`, list vaults inside the caller's home directory
+- For `VaultOwner::Server`, list shared server vaults
+- For `VaultOwner::Local`, list local vaults when that namespace becomes runtime-active
 
-### Vault ID Resolution
+### `load_vault(vault_id)`
 
-Methods that accept a bare `vault_id: &str` (such as `list_notes`, `load_note`, `delete_vault`) need to resolve that ID to a filesystem path. `FsStorage` does this by scanning all vault directories and reading their `.vault.json` files until a match is found.
+- Resolve the vault directory by vault slug (with optional metadata-ID fallback)
+- Read `.vault.json`
+- Derive `VaultOwner` from the resolved path and metadata
 
-This is intentionally simple: the expected number of vaults per installation is small (tens, not thousands), so a linear scan on each operation is acceptable. If this becomes a bottleneck, a startup index built into `FsStorage::new` can be added without changing the `StorageBackend` trait.
+### `create_vault(vault)`
 
-All vault directories — personal and team alike — carry a `.vault.json` file. This uniformity is what makes the scan possible. See the `.vault.json` format in [vaults-and-teams.md](./vaults-and-teams.md). Both personal and team `.vault.json` files may carry optional `description` and `icon` fields. Missing `description` or `icon` is treated as `None`.
+- Ensure `.server.json` exists for the active server namespace
+- Ensure `.home.json` exists for personal vault owners
+- Create the vault directory
+- Write `.vault.json`
+
+### `delete_vault(vault_id)`
+
+- Resolve the vault directory
+- Return `StorageError::VaultNotEmpty` if any `.md` files exist
+- Remove the vault directory and its metadata file
 
 ### `list_notes(vault_id)`
 
-- Resolve the vault path from `vault_id`
-- Walk the vault directory for `*.md` files (non-recursive — notes live flat in the vault dir)
-- Parse only the frontmatter of each file (skip body for performance)
+- Resolve the vault directory
+- Walk the vault directory for `*.md` files (non-recursive)
+- Parse frontmatter only
+- Inject `vault_id` from the containing vault directory rather than trusting note frontmatter
 - Return `Vec<NoteMeta>` sorted by `updated_at` descending
 
 ### `load_note(vault_id, id)`
 
-- Read `<vault_path>/<id>.md`
-- Split on the second `---` delimiter
-- Parse frontmatter as YAML into `NoteMeta`
-- Return `Note { meta, content: body_string }`
+- Resolve the vault directory
+- Read `<vault-dir>/<id>.md`
+- Parse frontmatter plus Markdown body
+- Inject `vault_id` from the containing vault directory rather than trusting note frontmatter
 
 ### `save_note(note)`
 
-- Derive vault path from `note.meta.vault_id`
-- Serialize `NoteMeta` as YAML frontmatter
-- Recompute `description` from the first actual Markdown paragraph before serializing frontmatter
-- Write `---\n{frontmatter}---\n{content}` to `<vault_path>/<id>.md`
-- Create vault directory if it doesn't exist
-- On create: use the provided `created_at`; on update: only update `updated_at`
+- Resolve the vault directory from `note.meta.vault_id`
+- Serialize YAML frontmatter and body without persisting `vault_id` to disk
+- Write `<vault-dir>/<id>.md`
 
 ### `delete_note(vault_id, id)`
 
-- Remove `<vault_path>/<id>.md`
-- Remove `<vault_path>/<id>.comments.json` if it exists
-- Return `StorageError::NotFound` if the file doesn't exist
+- Remove `<vault-dir>/<id>.md`
+- Remove `<vault-dir>/<id>.comments.json` if it exists
 
-### Comment Sidecar Format
+## Comment Sidecars
 
-Each note may have an optional sidecar named `<id>.comments.json` alongside `<id>.md`.
+Each note may have an optional sidecar named `<id>.comments.json`.
 
-The sidecar stores serialized `Comment` records, including:
-
-- A structured `anchor` with exact selected text, surrounding context, last-known rendered range, and attachment state
-- `visibility` to distinguish visible line-based threads from retained hidden legacy records
-- Full reply history per thread
-
-Legacy sidecars that only contain `quoted_text` remain readable. When they cannot be converted into reliable structured anchors, they stay stored as hidden legacy records and are omitted from the default line-discussion UI.
-
-### `load_comments(vault_id, note_id)`
-
-- Read `<vault_path>/<note_id>.comments.json` if it exists
-- Return an empty `Vec<Comment>` if the sidecar is absent
-- Parse newer structured anchors and older `quoted_text`-only records through the same compatibility layer
-
-### `save_comments(vault_id, note_id, comments)`
-
-- Write pretty-printed JSON to `<vault_path>/<note_id>.comments.json`
-- Delete the sidecar entirely if the comment slice is empty
-- Preserve hidden legacy records unless an explicit migration or delete path removes them
-
-### `create_vault(vault)`
-
-- Create the directory at `vault_path(vault)`
-- Write `.vault.json` with name, slug, optional description, and optional icon
-- For team vaults: include permission in `.vault.json`
-
-### `delete_vault(vault_id)`
-
-- Return `StorageError::VaultNotEmpty` if any `.md` files exist in the directory
-- Remove the vault directory and its `.vault.json` if present
-
-### `load_team(team_id)` / `save_team(team)`
-
-- Read/write `teams/<team_id>/.team.json`
-- `save_team` creates the team directory if it doesn't exist and writes the default `home/` vault
+- Structured anchors are preserved
+- Legacy quote-only sidecars remain readable
+- Hidden legacy comments stay stored but are omitted from the default line-discussion UI
 
 ## Configuration
 
 | Env var | Default | Description |
 |---|---|---|
-| `NOTES_ROOT` | `./notes` | Root directory for all notes |
-
-## Dependencies
-
-- `std::fs` for synchronous IO (no async runtime dependency; the server layer handles blocking via `tokio::task::spawn_blocking`)
-- `chrono` for comment sidecar timestamps and backward-compatible sidecar parsing
-- `serde` + `serde_yaml` for frontmatter (YAML)
-- `serde_json` for `.vault.json` and `.team.json` (JSON)
-- `walkdir` for recursive directory traversal
+| `NOTES_ROOT` | `./notes` | Root directory for notes and metadata |
+| `SERVER_NAME` | `Main Server` | Human-facing name used to derive `<server-slug>` |
+| `NOTES_USER_ID` | `local` | Active user ID and home slug in the MVP |
 
 ## Non-Goals
 
 - No HTTP or network code
-- No auth logic — caller is responsible for passing a valid `vault_id`
-- No search indexing (that lives in the server layer)
+- No permission enforcement in storage
+- No team metadata in the MVP storage contract
+- No active runtime support for `local/` yet

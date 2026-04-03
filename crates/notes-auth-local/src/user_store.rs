@@ -4,7 +4,7 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use notes_core::AuthError;
+use notes_core::{AuthError, ServerRole};
 use serde::{Deserialize, Serialize};
 
 /// A user record stored in `$NOTES_ROOT/.users.json`.
@@ -14,7 +14,13 @@ pub struct LocalUser {
     pub username: String,
     pub email: String,
     pub display_name: String,
-    password_hash: String,
+    #[serde(default = "default_role")]
+    pub role: ServerRole,
+    pub(crate) password_hash: String,
+}
+
+fn default_role() -> ServerRole {
+    ServerRole::User
 }
 
 impl LocalUser {
@@ -35,6 +41,7 @@ impl LocalUser {
             username,
             email,
             display_name,
+            role: ServerRole::User,
             password_hash: hash,
         })
     }
@@ -54,8 +61,8 @@ pub fn load_users(root: &Path) -> Result<Vec<LocalUser>, AuthError> {
     if !path.exists() {
         return Ok(Vec::new());
     }
-    let content = std::fs::read_to_string(&path)
-        .map_err(|e| AuthError::ServiceError(e.to_string()))?;
+    let content =
+        std::fs::read_to_string(&path).map_err(|e| AuthError::ServiceError(e.to_string()))?;
     serde_json::from_str(&content).map_err(|e| AuthError::ServiceError(e.to_string()))
 }
 

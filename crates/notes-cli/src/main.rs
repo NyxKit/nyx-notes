@@ -24,7 +24,11 @@ enum Command {
         tag: Option<String>,
         #[arg(long, help = "Filter by category")]
         category: Option<String>,
-        #[arg(long, default_value = "updated", help = "Sort by: updated, created, title")]
+        #[arg(
+            long,
+            default_value = "updated",
+            help = "Sort by: updated, created, title"
+        )]
         sort: String,
         #[arg(long, help = "Output as JSON")]
         json: bool,
@@ -80,11 +84,6 @@ enum Command {
         #[command(subcommand)]
         cmd: VaultCommand,
     },
-    /// Manage teams
-    Team {
-        #[command(subcommand)]
-        cmd: TeamCommand,
-    },
 }
 
 #[derive(Subcommand)]
@@ -100,14 +99,6 @@ enum VaultCommand {
     },
     /// Delete a personal vault (must be empty)
     Delete { slug: String },
-}
-
-#[derive(Subcommand)]
-enum TeamCommand {
-    /// List all teams you belong to
-    List,
-    /// List members of a team
-    Members { team_id: String },
 }
 
 fn main() {

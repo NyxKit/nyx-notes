@@ -4,7 +4,9 @@ use axum::{
     Json,
 };
 use chrono::Utc;
-use notes_core::{Note, NoteMeta, NotePermission, TeamRole, VaultOwner, distill_markdown_description};
+use notes_core::{
+    Note, NoteMeta, NotePermission, ServerRole, VaultOwner, distill_markdown_description,
+};
 use uuid::Uuid;
 
 use crate::{
@@ -68,7 +70,7 @@ pub async fn create_note(
     let note = Note {
         meta: NoteMeta {
             id: Uuid::new_v4().to_string(),
-            vault_id,
+            vault_id: vault_id.clone(),
             title: body.title,
             description: distill_markdown_description(&body.content),
             author_id: user.id,
@@ -93,7 +95,7 @@ pub async fn update_note(
     Path((vault_id, id)): Path<(String, String)>,
     Json(body): Json<UpdateNoteRequest>,
 ) -> Result<Json<NoteMeta>, AppError> {
-    let mut note = state.storage.load_note(vault_id, id).await?;
+    let mut note = state.storage.load_note(vault_id.clone(), id).await?;
 
     if note.meta.author_id != user.id && note.meta.permission != NotePermission::Edit {
         return Err(AppError::Forbidden);
@@ -122,13 +124,9 @@ pub async fn delete_note(
         // The vault/team owner may also delete notes they don't author.
         let vault = state.storage.load_vault(vault_id.clone()).await?;
         let is_owner = match &vault.owner {
-            VaultOwner::User(uid) => uid == &user.id,
-            VaultOwner::Team(team_id) => {
-                let team = state.storage.load_team(team_id.clone()).await?;
-                team.members
-                    .iter()
-                    .any(|m| m.user_id == user.id && matches!(m.role, TeamRole::Owner))
-            }
+            VaultOwner::Home { home_slug, .. } => home_slug == &user.id,
+            VaultOwner::Server { .. } => matches!(user.role, ServerRole::Admin),
+            VaultOwner::Local => false,
         };
         if !is_owner {
             return Err(AppError::Forbidden);

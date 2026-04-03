@@ -4,10 +4,10 @@ import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { NyxButton, NyxGrid, NyxIcon } from 'nyx-kit/components'
 import { NyxGridMode } from 'nyx-kit/types'
+import { noteRoute } from '@/shared/utils'
 import NoteCard from '@/notes/components/NoteCard.vue'
 import { useNoteBrowsingStore, useNotesStore } from '@/notes/stores'
 import { useWorkspaceProfiles } from '@/shared/composables'
-import { RouteName } from '@/shared/types'
 import type { BrowseNoteCardModel } from '@/shared/types'
 import { useVaultStore } from '@/vaults/stores'
 
@@ -26,7 +26,7 @@ const { notesFor, loadList, create: createNote } = notesStore
 
 onMounted(async () => {
   await loadVaults()
-  const vault = vaults.value.find(v => v.id === vaultId.value) ?? null
+  const vault = vaults.value.find(v => v.slug === vaultId.value) ?? null
   if (vault) setActive(vault)
   await loadList(vaultId.value)
 })
@@ -50,11 +50,8 @@ const sortedNotes = computed<BrowseNoteCardModel[]>(() =>
       tags: note.tags,
       updated_at: note.updated_at,
       updated_label: formatDate(note.updated_at),
-      href: {
-        name: RouteName.Note,
-        params: { vault_id: note.vault_id, id: note.id },
-      },
-      server_label: activeProfile.value?.display_name ?? 'Local',
+        href: noteRoute(activeVault.value!, note.id),
+      server_label: activeProfile.value?.display_name ?? 'Main Server',
       server_id: activeProfile.value?.type === 'remote' ? activeProfile.value.server_id : undefined,
       vault_name: activeVault.value?.name ?? 'Vault',
       vault_slug: activeVault.value?.slug ?? '',
@@ -77,7 +74,9 @@ function formatDate(iso: string) {
 
 async function createFirst() {
   const meta = await createNote(vaultId.value, { title: '', content: '' })
-  router.push({ name: RouteName.Note, params: { vault_id: vaultId.value, id: meta.id } })
+  if (activeVault.value) {
+    router.push(noteRoute(activeVault.value, meta.id))
+  }
 }
 </script>
 

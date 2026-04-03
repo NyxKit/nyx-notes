@@ -29,7 +29,10 @@ fn update_vault_persists_description_to_vault_json() {
         slug: "writing".into(),
         name: "Writing".into(),
         description: None,
-        owner: VaultOwner::User("user-1".into()),
+        owner: VaultOwner::Home {
+            server_slug: "main-server".into(),
+            home_slug: "user-1".into(),
+        },
         permission: NotePermission::Restricted,
         icon: Some("folder".into()),
     };
@@ -63,7 +66,10 @@ fn update_vault_can_clear_description_in_vault_json() {
         slug: "writing".into(),
         name: "Writing".into(),
         description: Some("Original description".into()),
-        owner: VaultOwner::User("user-1".into()),
+        owner: VaultOwner::Home {
+            server_slug: "main-server".into(),
+            home_slug: "user-1".into(),
+        },
         permission: NotePermission::Restricted,
         icon: Some("folder".into()),
     };
@@ -97,7 +103,10 @@ fn save_and_load_comments_round_trip_with_structured_anchor() {
         slug: "writing".into(),
         name: "Writing".into(),
         description: None,
-        owner: VaultOwner::User("user-1".into()),
+        owner: VaultOwner::Home {
+            server_slug: "main-server".into(),
+            home_slug: "user-1".into(),
+        },
         permission: NotePermission::Restricted,
         icon: None,
     };
@@ -160,7 +169,10 @@ fn load_comments_converts_legacy_quote_only_records_to_hidden_legacy() {
         slug: "writing".into(),
         name: "Writing".into(),
         description: None,
-        owner: VaultOwner::User("user-1".into()),
+        owner: VaultOwner::Home {
+            server_slug: "main-server".into(),
+            home_slug: "user-1".into(),
+        },
         permission: NotePermission::Restricted,
         icon: None,
     };
@@ -200,6 +212,34 @@ fn load_comments_converts_legacy_quote_only_records_to_hidden_legacy() {
     ));
     assert_eq!(loaded[0].anchor.text, "legacy quote");
     assert_eq!(loaded[0].anchor.line_preview, "legacy quote");
+
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
+fn create_server_vault_writes_under_server_namespace() {
+    let root = temp_root();
+    let storage = FsStorage::new(&root);
+    let vault = Vault {
+        id: "vault-2".into(),
+        slug: "handbook".into(),
+        name: "Handbook".into(),
+        description: None,
+        owner: VaultOwner::Server {
+            server_slug: "main-server".into(),
+        },
+        permission: NotePermission::Edit,
+        icon: None,
+    };
+
+    storage.create_vault(&vault).unwrap();
+
+    assert!(root
+        .join("main-server")
+        .join("vaults")
+        .join("handbook")
+        .join(".vault.json")
+        .is_file());
 
     fs::remove_dir_all(root).unwrap();
 }

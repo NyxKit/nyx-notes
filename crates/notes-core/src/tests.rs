@@ -1,7 +1,8 @@
 use chrono::Utc;
 
 use crate::{
-    distill_markdown_description, Comment, CommentAnchor, CommentAttachment, CommentVisibility,
+    distill_markdown_description, slugify, Comment, CommentAnchor, CommentAttachment,
+    CommentVisibility, ServerRole, VaultOwner,
 };
 
 #[test]
@@ -60,4 +61,22 @@ fn comment_anchor_round_trip_preserves_structured_fields() {
         CommentAttachment::Attached
     ));
     assert!(matches!(round_trip.visibility, CommentVisibility::Visible));
+}
+
+#[test]
+fn slugify_normalizes_mixed_input() {
+    assert_eq!(slugify("Main Server 2026!"), "main-server-2026");
+}
+
+#[test]
+fn vault_owner_serializes_new_variants() {
+    let owner = VaultOwner::Home {
+        server_slug: "main-server".into(),
+        home_slug: "local".into(),
+    };
+
+    let json = serde_json::to_string(&owner).unwrap();
+    assert!(json.contains("home"));
+
+    assert!(matches!(ServerRole::Admin, ServerRole::Admin));
 }

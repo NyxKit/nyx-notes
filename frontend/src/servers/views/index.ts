@@ -1,1 +1,1 @@
-export { default as ServersView } from './ServersView.vue'
+export { default as SettingsView } from './ServersView.vue'

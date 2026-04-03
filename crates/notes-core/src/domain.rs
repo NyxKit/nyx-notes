@@ -1,6 +1,40 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+pub fn slugify(value: &str) -> String {
+    let mut slug = String::new();
+    let mut last_was_separator = false;
+
+    for ch in value.chars() {
+        let mapped = match ch {
+            'a'..='z' | '0'..='9' => Some(ch),
+            'A'..='Z' => Some(ch.to_ascii_lowercase()),
+            _ => Some('-'),
+        };
+
+        match mapped {
+            Some('-') => {
+                if !slug.is_empty() && !last_was_separator {
+                    slug.push('-');
+                    last_was_separator = true;
+                }
+            }
+            Some(valid) => {
+                slug.push(valid);
+                last_was_separator = false;
+            }
+            None => {}
+        }
+    }
+
+    let trimmed = slug.trim_matches('-');
+    if trimmed.is_empty() {
+        "untitled".into()
+    } else {
+        trimmed.chars().take(64).collect()
+    }
+}
+
 pub fn distill_markdown_description(content: &str) -> Option<String> {
     content
         .split("\n\n")
@@ -87,7 +121,7 @@ pub struct Comment {
     pub replies: Vec<CommentReply>,
 }
 
-/// Controls who (beyond the owner) can interact with a note or team vault.
+/// Controls who (beyond the owner) can interact with a note or shared vault.
 /// The owner always retains full access regardless of this value.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -125,12 +159,24 @@ pub struct Note {
     pub content: String,
 }
 
-/// Identifies the owner of a vault: either a user or a team.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase", tag = "type", content = "id")]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum VaultOwner {
-    User(String),
-    Team(String),
+    Home {
+        server_slug: String,
+        home_slug: String,
+    },
+    Server {
+        server_slug: String,
+    },
+    Local,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ServerRole {
+    Admin,
+    User,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -144,8 +190,7 @@ pub struct Vault {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub owner: VaultOwner,
-    /// Only meaningful for team vaults.
-    /// Personal vaults are always implicitly `Restricted` to the owner.
+    /// Default note permission for new notes created in this vault.
     pub permission: NotePermission,
     /// Optional decorative icon slug (e.g. "briefcase"). One of 20 curated slugs or None.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -164,28 +209,4 @@ pub struct VaultUpdate {
 pub enum VaultIconUpdate {
     Set(String),
     Clear,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Team {
-    pub id: String,
-    pub name: String,
-    pub members: Vec<TeamMember>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TeamMember {
-    pub user_id: String,
-    pub role: TeamRole,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum TeamRole {
-    /// Full control: manage members, vaults, and vault permissions.
-    Owner,
-    /// Can manage vaults and their permissions; cannot manage members.
-    Admin,
-    /// Access governed by vault-level permissions.
-    Member,
 }

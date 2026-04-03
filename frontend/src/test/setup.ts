@@ -1,8 +1,13 @@
 import { config } from '@vue/test-utils'
-import { afterEach, vi } from 'vitest'
+import { afterEach, beforeEach, vi } from 'vitest'
+
+beforeEach(() => {
+  document.body.innerHTML = '<div id="layout-header-actions"></div>'
+})
 
 afterEach(() => {
   vi.restoreAllMocks()
+  document.body.innerHTML = ''
 })
 
 Object.defineProperty(window, 'matchMedia', {

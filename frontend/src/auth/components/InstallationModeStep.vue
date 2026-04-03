@@ -17,10 +17,10 @@ const emit = defineEmits<{
   <div class="setup-step">
     <NyxCard class="setup-step__card">
       <h2>How should Nyx Notes start?</h2>
-      <p>Pick a local workspace or connect this client to a self-hosted server.</p>
+      <p>Use this server directly or connect this client to another self-hosted server.</p>
 
       <div class="setup-step__actions">
-        <NyxButton @click="emit('selectMode', 'local')">Use Local Workspace</NyxButton>
+        <NyxButton @click="emit('selectMode', 'local')">Use This Server</NyxButton>
         <NyxButton @click="emit('selectMode', 'server')">Use Server</NyxButton>
       </div>
 

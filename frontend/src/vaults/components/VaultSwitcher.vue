@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { NyxSelect } from 'nyx-kit/components'
 import { NyxSize } from 'nyx-kit/types'
 import type { NyxSelectOptionGroup } from 'nyx-kit/types'
+import { noteRoute, vaultRoute } from '@/shared/utils'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
-import { useTeams } from '@/teams/composables'
-import { RouteName } from '@/shared/types'
 import type { Vault } from '@/shared/types'
 
 const props = withDefaults(defineProps<{ dest?: 'notes' | 'vault' }>(), { dest: 'notes' })
@@ -18,37 +17,26 @@ const router = useRouter()
 const vaultStore = useVaultStore()
 const { vaults, activeVault } = storeToRefs(vaultStore)
 const { setActive } = vaultStore
-const { load: loadTeams, teamName } = useTeams()
 const { notesFor } = useNotesStore()
 
-onMounted(loadTeams)
-
 const personalVaults = computed(() =>
-  vaults.value.filter(v => v.owner.type === 'user')
+  vaults.value.filter(v => v.owner.type === 'home')
 )
 
-const teamGroups = computed(() => {
-  const groups = new Map<string, Vault[]>()
-  for (const v of vaults.value.filter(v => v.owner.type === 'team')) {
-    const tid = v.owner.id
-    if (!groups.has(tid)) groups.set(tid, [])
-    groups.get(tid)!.push(v)
-  }
-  return groups
-})
+const serverVaults = computed(() => vaults.value.filter(v => v.owner.type === 'server'))
 
 const vaultSelectOptions = computed((): NyxSelectOptionGroup[] => {
   const groups: NyxSelectOptionGroup[] = []
   if (personalVaults.value.length) {
     groups.push({
       label: 'Personal',
-      options: personalVaults.value.map(v => ({ label: v.name, value: v.id }))
+      options: personalVaults.value.map(v => ({ label: v.name, value: v.slug }))
     })
   }
-  for (const [tid, tvaults] of teamGroups.value.entries()) {
+  if (serverVaults.value.length) {
     groups.push({
-      label: teamName(tid),
-      options: tvaults.map(v => ({ label: v.name, value: v.id }))
+      label: 'Shared Server',
+      options: serverVaults.value.map(v => ({ label: v.name, value: v.slug }))
     })
   }
   return groups
@@ -56,22 +44,22 @@ const vaultSelectOptions = computed((): NyxSelectOptionGroup[] => {
 
 const selectedVaultId = computed({
   get: () => String(route.params.vault_id ?? ''),
-  set: (id: string) => {
-    const vault = vaults.value.find(v => v.id === id)
+  set: (slug: string) => {
+    const vault = vaults.value.find(v => v.slug === slug)
     if (vault) select(vault)
   }
 })
 
 const noteCountLabel = computed(() => {
-  const n = activeVault.value ? notesFor(activeVault.value.id).length : 0
+  const n = activeVault.value ? notesFor(activeVault.value.slug).length : 0
   return `${n} ${n === 1 ? 'note' : 'notes'}`
 })
 
 function select(vault: Vault) {
   setActive(vault)
   const target = props.dest === 'vault'
-    ? { name: RouteName.Vault, params: { vault_id: vault.id } }
-    : { name: RouteName.Note, params: { vault_id: vault.id } }
+    ? vaultRoute(vault)
+    : noteRoute(vault, '')
   router.push(target)
 }
 </script>
@@ -90,13 +78,6 @@ function select(vault: Vault) {
       <span class="vault-switcher__count">{{ noteCountLabel }}</span>
     </div>
 
-    <RouterLink
-      v-if="activeVault?.owner.type === 'team'"
-      :to="{ name: RouteName.TeamSettings, params: { team_id: activeVault.owner.id } }"
-      class="vault-switcher__team-link"
-    >
-      Team settings ›
-    </RouterLink>
   </div>
 </template>
 
@@ -143,16 +124,4 @@ function select(vault: Vault) {
   color: var(--nyx-c-text-3);
 }
 
-.vault-switcher__team-link {
-  display: block;
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--nyx-c-primary);
-  text-decoration: none;
-  padding-left: 0.125rem;
-}
-
-.vault-switcher__team-link:hover {
-  text-decoration: underline;
-}
 </style>

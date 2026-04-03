@@ -2,7 +2,7 @@
 import { RouterLink } from 'vue-router'
 import { NyxCard, NyxBadge } from 'nyx-kit/components'
 import VaultIcon from './VaultIcon.vue'
-import { RouteName } from '@/shared/types'
+import { vaultRoute } from '@/shared/utils'
 import type { Vault } from '@/shared/types'
 
 const model = defineModel<Vault>({ required: true })
@@ -11,7 +11,7 @@ const model = defineModel<Vault>({ required: true })
 <template>
   <RouterLink
     class="vault-item"
-    :to="{ name: RouteName.Vault, params: { vault_id: model.id } }"
+    :to="vaultRoute(model)"
     :aria-label="`Open ${model.name}`"
   >
     <NyxCard class="vault-item__shell">

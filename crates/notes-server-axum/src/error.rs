@@ -32,6 +32,7 @@ impl From<StorageError> for AppError {
     fn from(e: StorageError) -> Self {
         match e {
             StorageError::NotFound => AppError::NotFound,
+            StorageError::AlreadyExists => AppError::UnprocessableEntity("already exists".into()),
             StorageError::PermissionDenied => AppError::Forbidden,
             StorageError::VaultNotEmpty => {
                 AppError::UnprocessableEntity("vault is not empty".into())

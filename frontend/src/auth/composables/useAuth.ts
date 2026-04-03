@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { fetchAuthMode, login as apiLogin } from '@/auth/api'
+import { api } from '@/shared/api'
 import {
   getApiRequestEpoch,
   resetApiClientContext,
@@ -7,7 +8,8 @@ import {
 } from '@/shared/api'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { readProfilePassword } from '@/shared/utils'
-import type { AuthMode, ProfileSession, RemoteWorkspaceProfile, User } from '@/shared/types'
+import { RouteName } from '@/shared/types'
+import type { AuthMode, ProfileSession, RemoteWorkspaceProfile, ServerMetadata, User } from '@/shared/types'
 
 const SESSION_STORAGE_KEY = 'nyx_profile_sessions'
 
@@ -17,6 +19,14 @@ const authMode = ref<AuthMode | null>(null)
 const oidcIssuer = ref<string | null>(null)
 const token = ref<string | null>(null)
 const currentUser = ref<User | null>(null)
+const serverMetadata = ref<ServerMetadata | null>(null)
+
+function slugifyClient(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
 const bootstrapping = ref(false)
 const sessions = ref<StoredSessions>(readStoredSessions())
 const apiEpoch = ref(getApiRequestEpoch())
@@ -57,7 +67,7 @@ function clearSession(profileId: string) {
 
 export function useAuth() {
   const workspaceProfiles = useWorkspaceProfiles()
-  const { activeProfile, updateRemoteProfileStatus } = workspaceProfiles
+  const { activeProfile, updateRemoteProfileStatus, updateProfileDisplayName } = workspaceProfiles
 
   const isAuthenticated = computed(() =>
     authMode.value === 'local' || token.value !== null
@@ -116,8 +126,18 @@ export function useAuth() {
     }
 
     if (profile.type === 'local') {
-      authMode.value = 'local'
+      let response = null
+      try {
+        response = await fetchAuthMode()
+      } catch {
+        response = null
+      }
+      authMode.value = response?.mode ?? 'local'
+      if (response?.server_name) {
+        updateProfileDisplayName(profile.id, response.server_name)
+      }
       applyApiContext(null, null)
+      await refreshServerMetadata()
       bootstrapping.value = false
       return profile
     }
@@ -143,6 +163,7 @@ export function useAuth() {
       if (storedSession?.token) {
         token.value = storedSession.token
         applyApiContext(profile.server_url, storedSession.token)
+        await refreshServerMetadata()
         updateSession(profile.id, {
           state: 'signed_in',
           auth_mode: response.mode,
@@ -197,6 +218,7 @@ export function useAuth() {
 
       token.value = res.token
       applyApiContext(profile.server_url, res.token)
+      await refreshServerMetadata()
       updateRemoteProfileStatus(profile.id, {
         connection_status: 'reachable',
         last_error: undefined,
@@ -229,6 +251,7 @@ export function useAuth() {
     const profile = activeProfile.value
     token.value = null
     currentUser.value = null
+    serverMetadata.value = null
     resetApiClientContext()
 
     if (!profile) {
@@ -257,11 +280,50 @@ export function useAuth() {
     clearSession(profileId)
   }
 
+  async function refreshServerMetadata() {
+    try {
+      serverMetadata.value = await api<ServerMetadata>('/api/server')
+    } catch {
+      serverMetadata.value = null
+    }
+  }
+
+  const personalOverviewRoute = computed(() => {
+    const serverSlug = serverMetadata.value?.slug || slugifyClient(activeProfile.value?.display_name ?? 'Main Server')
+    const homeSlug = serverMetadata.value?.current_user_id || currentUser.value?.id
+
+    if (!serverSlug || !homeSlug) {
+      return { path: '/' }
+    }
+    return {
+      name: RouteName.Root,
+      params: {
+        server_slug: serverSlug,
+        home_slug: homeSlug,
+      },
+    }
+  })
+
+  const serverVaultsRoute = computed(() => {
+    const serverSlug = serverMetadata.value?.slug || slugifyClient(activeProfile.value?.display_name ?? 'Main Server')
+
+    if (!serverSlug) {
+      return { path: '/server-vaults' }
+    }
+    return {
+      name: RouteName.ServerVaults,
+      params: {
+        server_slug: serverSlug,
+      },
+    }
+  })
+
   return {
     authMode,
     oidcIssuer,
     token,
     currentUser,
+    serverMetadata,
     bootstrapping,
     sessions,
     activeSession,
@@ -269,6 +331,9 @@ export function useAuth() {
     isAuthenticated,
     apiEpoch,
     bootstrapActiveProfile,
+    refreshServerMetadata,
+    personalOverviewRoute,
+    serverVaultsRoute,
     discoverMode,
     login,
     logout,

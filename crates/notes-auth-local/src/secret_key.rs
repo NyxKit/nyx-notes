@@ -5,7 +5,7 @@ use std::{
 
 use chrono::Utc;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
-use notes_core::{AuthError, AuthStore, LoginToken, User};
+use notes_core::{AuthError, AuthStore, LoginToken, ServerRole, User};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -53,7 +53,10 @@ impl SecretKeyAuthStore {
                         "Admin".into(),
                         password,
                     )?;
-                    users.push(admin);
+                    users.push(LocalUser {
+                        role: ServerRole::Admin,
+                        ..admin
+                    });
                     save_users(notes_root, &users)?;
                     eprintln!("Created initial admin user.");
                 }
@@ -88,8 +91,7 @@ impl AuthStore for SecretKeyAuthStore {
             .map_err(|_| AuthError::InvalidToken)?;
         let user_id = data.claims.sub;
 
-        self.find_user(&user_id)?
-            .ok_or(AuthError::UserNotFound)
+        self.find_user(&user_id)?.ok_or(AuthError::UserNotFound)
     }
 
     fn login(&self, username: &str, password: &str) -> Result<LoginToken, AuthError> {
@@ -125,6 +127,7 @@ fn to_user(u: &LocalUser) -> User {
         id: u.id.clone(),
         email: u.email.clone(),
         display_name: u.display_name.clone(),
+        role: u.role.clone(),
     }
 }
 
@@ -138,9 +141,8 @@ fn to_user(u: &LocalUser) -> User {
 /// 3. Generate a fresh random key and persist it to the path above.
 pub fn load_or_generate_key() -> Vec<u8> {
     if let Ok(hex) = std::env::var("NOTES_SECRET_KEY") {
-        return hex_decode(&hex).expect(
-            "NOTES_SECRET_KEY must be exactly 64 hex characters (32 bytes)",
-        );
+        return hex_decode(&hex)
+            .expect("NOTES_SECRET_KEY must be exactly 64 hex characters (32 bytes)");
     }
 
     let key_path = std::env::var("NOTES_SECRET_KEY_PATH").unwrap_or_else(|_| {

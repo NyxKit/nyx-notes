@@ -8,13 +8,13 @@ use std::path::{Path, PathBuf};
 
 use chrono::{DateTime, Utc};
 use notes_core::{
-    Comment, CommentAnchor, CommentAttachment, CommentReply, CommentVisibility, Note, NoteMeta,
-    NotePermission, StorageBackend, StorageError, Team, Vault, VaultIconUpdate, VaultOwner,
+    slugify, Comment, CommentAnchor, CommentAttachment, CommentReply, CommentVisibility, Note,
+    NoteMeta, NotePermission, StorageBackend, StorageError, Vault, VaultIconUpdate, VaultOwner,
     VaultUpdate,
 };
 use serde::{Deserialize, Serialize};
 
-use meta::{TeamJson, VaultJson};
+use meta::{HomeJson, LocalJson, ServerJson, VaultJson};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct SidecarCommentAnchor {
@@ -138,17 +138,96 @@ impl FsStorage {
         Self { root: root.into() }
     }
 
+    fn active_server_slug(&self) -> String {
+        let name = std::env::var("SERVER_NAME").unwrap_or_else(|_| "Main Server".into());
+        slugify(&name)
+    }
+
+    fn active_server_name(&self) -> String {
+        std::env::var("SERVER_NAME").unwrap_or_else(|_| "Main Server".into())
+    }
+
     // --- Path helpers ---
+
+    fn server_dir(&self) -> PathBuf {
+        self.root.join(self.active_server_slug())
+    }
+
+    fn homes_dir(&self) -> PathBuf {
+        self.server_dir().join("homes")
+    }
+
+    fn home_dir(&self, home_slug: &str) -> PathBuf {
+        self.homes_dir().join(home_slug)
+    }
+
+    fn server_vaults_dir(&self) -> PathBuf {
+        self.server_dir().join("vaults")
+    }
+
+    fn local_dir(&self) -> PathBuf {
+        self.root.join("local")
+    }
+
+    fn ensure_server_metadata(&self) -> Result<(), StorageError> {
+        let server_dir = self.server_dir();
+        std::fs::create_dir_all(&server_dir)?;
+        let path = server_dir.join(".server.json");
+        if !path.exists() {
+            let meta = ServerJson {
+                id: format!("server-{}", self.active_server_slug()),
+                slug: self.active_server_slug(),
+                name: self.active_server_name(),
+                roles: vec!["admin".into(), "user".into()],
+            };
+            let content = serde_json::to_string_pretty(&meta)
+                .map_err(|e| StorageError::ParseError(e.to_string()))?;
+            std::fs::write(path, content)?;
+        }
+        Ok(())
+    }
+
+    fn ensure_home_metadata(&self, home_slug: &str) -> Result<(), StorageError> {
+        self.ensure_server_metadata()?;
+        let home_dir = self.home_dir(home_slug);
+        std::fs::create_dir_all(&home_dir)?;
+        let path = home_dir.join(".home.json");
+        if !path.exists() {
+            let meta = HomeJson {
+                id: format!("home-{home_slug}"),
+                slug: home_slug.into(),
+                name: format!("{}'s Home", home_slug),
+                owner_user_id: home_slug.into(),
+            };
+            let content = serde_json::to_string_pretty(&meta)
+                .map_err(|e| StorageError::ParseError(e.to_string()))?;
+            std::fs::write(path, content)?;
+        }
+        Ok(())
+    }
+
+    fn ensure_local_metadata(&self) -> Result<(), StorageError> {
+        let local_dir = self.local_dir();
+        std::fs::create_dir_all(&local_dir)?;
+        let path = local_dir.join(".local.json");
+        if !path.exists() {
+            let meta = LocalJson {
+                id: "local".into(),
+                name: "Local Storage".into(),
+            };
+            let content = serde_json::to_string_pretty(&meta)
+                .map_err(|e| StorageError::ParseError(e.to_string()))?;
+            std::fs::write(path, content)?;
+        }
+        Ok(())
+    }
 
     fn vault_path(&self, vault: &Vault) -> PathBuf {
         match &vault.owner {
-            VaultOwner::User(uid) => self.root.join("users").join(uid).join(&vault.slug),
-            VaultOwner::Team(team_id) => self.root.join("teams").join(team_id).join(&vault.slug),
+            VaultOwner::Home { home_slug, .. } => self.home_dir(home_slug).join(&vault.slug),
+            VaultOwner::Server { .. } => self.server_vaults_dir().join(&vault.slug),
+            VaultOwner::Local => self.local_dir().join(&vault.slug),
         }
-    }
-
-    fn team_dir(&self, team_id: &str) -> PathBuf {
-        self.root.join("teams").join(team_id)
     }
 
     /// Return the filesystem path of a note file.
@@ -160,56 +239,62 @@ impl FsStorage {
 
     // --- Vault resolution ---
 
-    /// Resolve a `vault_id` to its directory path by scanning `.vault.json` files.
-    ///
-    /// All vault directories (personal and team) carry a `.vault.json` with an `id` field,
-    /// so this scan works uniformly across both ownership types.
-    ///
-    /// The scan is O(total vaults) and intended for installations with tens of vaults.
+    /// Resolve a vault slug or stable ID to its directory path by scanning `.vault.json` files.
     fn find_vault_path(&self, vault_id: &str) -> Result<PathBuf, StorageError> {
-        // Scan users/*/*/  .vault.json
-        let users_root = self.root.join("users");
-        if users_root.is_dir() {
-            for user_entry in std::fs::read_dir(&users_root)? {
-                let user_dir = user_entry?.path();
-                if !user_dir.is_dir() {
-                    continue;
+        let server_dir = self.server_dir();
+        if server_dir.is_dir() {
+            let homes_dir = self.homes_dir();
+            if homes_dir.is_dir() {
+                for home_entry in std::fs::read_dir(&homes_dir)? {
+                    let home_dir = home_entry?.path();
+                    if !home_dir.is_dir() {
+                        continue;
+                    }
+                    if let Some(path) = self.scan_owner_dir_for_vault(&home_dir, vault_id)? {
+                        return Ok(path);
+                    }
                 }
-                if let Some(path) = self.scan_owner_dir_for_vault(&user_dir, vault_id)? {
-                    return Ok(path);
-                }
+            }
+
+            let shared_dir = self.server_vaults_dir();
+            if let Some(path) = self.scan_owner_dir_for_vault(&shared_dir, vault_id)? {
+                return Ok(path);
             }
         }
 
-        // Scan teams/*/  */  .vault.json
-        let teams_root = self.root.join("teams");
-        if teams_root.is_dir() {
-            for team_entry in std::fs::read_dir(&teams_root)? {
-                let team_dir = team_entry?.path();
-                if !team_dir.is_dir() {
-                    continue;
-                }
-                if let Some(path) = self.scan_owner_dir_for_vault(&team_dir, vault_id)? {
-                    return Ok(path);
-                }
-            }
+        let local_dir = self.local_dir();
+        if let Some(path) = self.scan_owner_dir_for_vault(&local_dir, vault_id)? {
+            return Ok(path);
         }
 
         Err(StorageError::NotFound)
     }
 
-    /// Derive the `VaultOwner` from a vault directory path relative to `root`.
-    /// Path layout: `<root>/users/<uid>/<slug>/` or `<root>/teams/<team_id>/<slug>/`.
     fn vault_owner_from_path(&self, vault_dir: &Path) -> Option<VaultOwner> {
         let rel = vault_dir.strip_prefix(&self.root).ok()?;
-        let mut comps = rel.components();
-        let owner_type = comps.next()?.as_os_str().to_str()?;
-        let owner_id = comps.next()?.as_os_str().to_str()?.to_string();
-        match owner_type {
-            "users" => Some(VaultOwner::User(owner_id)),
-            "teams" => Some(VaultOwner::Team(owner_id)),
-            _ => None,
+        let parts = rel
+            .iter()
+            .map(|part| part.to_str())
+            .collect::<Option<Vec<_>>>()?;
+
+        if parts.len() >= 4 && parts[1] == "homes" {
+            return Some(VaultOwner::Home {
+                server_slug: parts[0].to_string(),
+                home_slug: parts[2].to_string(),
+            });
         }
+
+        if parts.len() >= 3 && parts[1] == "vaults" {
+            return Some(VaultOwner::Server {
+                server_slug: parts[0].to_string(),
+            });
+        }
+
+        if parts.len() >= 2 && parts[0] == "local" {
+            return Some(VaultOwner::Local);
+        }
+
+        None
     }
 
     fn scan_owner_dir_for_vault(
@@ -217,6 +302,9 @@ impl FsStorage {
         owner_dir: &Path,
         vault_id: &str,
     ) -> Result<Option<PathBuf>, StorageError> {
+        if !owner_dir.is_dir() {
+            return Ok(None);
+        }
         for entry in std::fs::read_dir(owner_dir)? {
             let vault_dir = entry?.path();
             if !vault_dir.is_dir() {
@@ -229,7 +317,7 @@ impl FsStorage {
             let content = std::fs::read_to_string(&vault_json_path)?;
             let meta: VaultJson = serde_json::from_str(&content)
                 .map_err(|e| StorageError::ParseError(e.to_string()))?;
-            if meta.id == vault_id {
+            if meta.slug == vault_id || meta.id == vault_id {
                 return Ok(Some(vault_dir));
             }
         }
@@ -256,8 +344,9 @@ impl StorageBackend for FsStorage {
 
     fn list_vaults(&self, owner: &VaultOwner) -> Result<Vec<Vault>, StorageError> {
         let owner_dir = match owner {
-            VaultOwner::User(uid) => self.root.join("users").join(uid),
-            VaultOwner::Team(team_id) => self.root.join("teams").join(team_id),
+            VaultOwner::Home { home_slug, .. } => self.home_dir(home_slug),
+            VaultOwner::Server { .. } => self.server_vaults_dir(),
+            VaultOwner::Local => self.local_dir(),
         };
 
         if !owner_dir.is_dir() {
@@ -280,7 +369,7 @@ impl StorageBackend for FsStorage {
                 slug: meta.slug,
                 name: meta.name,
                 description: meta.description,
-                owner: owner.clone(),
+                owner: meta.owner,
                 permission: meta.permission.unwrap_or(NotePermission::Restricted),
                 icon: meta.icon,
             });
@@ -307,6 +396,12 @@ impl StorageBackend for FsStorage {
     }
 
     fn create_vault(&self, vault: &Vault) -> Result<(), StorageError> {
+        match &vault.owner {
+            VaultOwner::Home { home_slug, .. } => self.ensure_home_metadata(home_slug)?,
+            VaultOwner::Server { .. } => self.ensure_server_metadata()?,
+            VaultOwner::Local => self.ensure_local_metadata()?,
+        }
+
         let vault_dir = self.vault_path(vault);
         std::fs::create_dir_all(&vault_dir)?;
 
@@ -314,11 +409,15 @@ impl StorageBackend for FsStorage {
             id: vault.id.clone(),
             name: vault.name.clone(),
             slug: vault.slug.clone(),
+            kind: match &vault.owner {
+                VaultOwner::Home { .. } => "personal",
+                VaultOwner::Server { .. } => "server",
+                VaultOwner::Local => "local",
+            }
+            .into(),
+            owner: vault.owner.clone(),
             description: vault.description.clone(),
-            permission: match &vault.owner {
-                VaultOwner::Team(_) => Some(vault.permission.clone()),
-                VaultOwner::User(_) => None,
-            },
+            permission: Some(vault.permission.clone()),
             icon: vault.icon.clone(),
         };
         Self::write_vault_json(&vault_dir, &meta)?;
@@ -372,94 +471,6 @@ impl StorageBackend for FsStorage {
         Ok(())
     }
 
-    // --- Team management ---
-
-    fn load_team(&self, team_id: &str) -> Result<Team, StorageError> {
-        let path = self.team_dir(team_id).join(".team.json");
-        if !path.is_file() {
-            return Err(StorageError::NotFound);
-        }
-        let content = std::fs::read_to_string(&path)?;
-        let meta: TeamJson =
-            serde_json::from_str(&content).map_err(|e| StorageError::ParseError(e.to_string()))?;
-        Ok(Team {
-            id: meta.id,
-            name: meta.name,
-            members: meta.members,
-        })
-    }
-
-    fn save_team(&self, team: &Team) -> Result<(), StorageError> {
-        let team_dir = self.team_dir(&team.id);
-        std::fs::create_dir_all(&team_dir)?;
-
-        let meta = TeamJson {
-            id: team.id.clone(),
-            name: team.name.clone(),
-            members: team.members.clone(),
-        };
-        let content = serde_json::to_string_pretty(&meta)
-            .map_err(|e| StorageError::ParseError(e.to_string()))?;
-        std::fs::write(team_dir.join(".team.json"), content)?;
-
-        // Ensure the default `home` vault exists.
-        let home_vault_dir = team_dir.join("home");
-        if !home_vault_dir.is_dir() {
-            let home_vault = Vault {
-                id: format!("{}-home", team.id),
-                slug: "home".to_string(),
-                name: "Home".to_string(),
-                description: None,
-                owner: VaultOwner::Team(team.id.clone()),
-                permission: NotePermission::Restricted,
-                icon: None,
-            };
-            self.create_vault(&home_vault)?;
-        }
-
-        Ok(())
-    }
-
-    fn delete_team(&self, team_id: &str) -> Result<(), StorageError> {
-        let team_dir = self.team_dir(team_id);
-        if !team_dir.is_dir() {
-            return Err(StorageError::NotFound);
-        }
-        std::fs::remove_dir_all(&team_dir)?;
-        Ok(())
-    }
-
-    fn list_teams_for_user(&self, user_id: &str) -> Result<Vec<Team>, StorageError> {
-        let teams_dir = self.root.join("teams");
-        if !teams_dir.is_dir() {
-            return Ok(Vec::new());
-        }
-
-        let mut teams = Vec::new();
-        for entry in std::fs::read_dir(&teams_dir)? {
-            let team_dir = entry?.path();
-            if !team_dir.is_dir() {
-                continue;
-            }
-            let path = team_dir.join(".team.json");
-            if !path.is_file() {
-                continue;
-            }
-            let content = std::fs::read_to_string(&path)?;
-            let meta: TeamJson = serde_json::from_str(&content)
-                .map_err(|e| StorageError::ParseError(e.to_string()))?;
-            if meta.members.iter().any(|m| m.user_id == user_id) {
-                teams.push(Team {
-                    id: meta.id,
-                    name: meta.name,
-                    members: meta.members,
-                });
-            }
-        }
-
-        Ok(teams)
-    }
-
     // --- Notes ---
 
     fn list_notes(&self, vault_id: &str) -> Result<Vec<NoteMeta>, StorageError> {
@@ -470,7 +481,7 @@ impl StorageBackend for FsStorage {
             let path = entry?.path();
             if path.extension().map_or(false, |ext| ext == "md") {
                 let content = std::fs::read_to_string(&path)?;
-                let meta = frontmatter::parse_frontmatter_only(&content)?;
+                let meta = frontmatter::parse_frontmatter_only(&content, vault_id)?;
                 metas.push(meta);
             }
         }
@@ -488,7 +499,7 @@ impl StorageBackend for FsStorage {
         }
 
         let content = std::fs::read_to_string(&note_path)?;
-        let (meta, body) = frontmatter::parse_note_file(&content)?;
+        let (meta, body) = frontmatter::parse_note_file(&content, vault_id)?;
         Ok(Note {
             meta,
             content: body,
@@ -500,6 +511,15 @@ impl StorageBackend for FsStorage {
         let note_path = vault_dir.join(format!("{}.md", note.meta.id));
         let content = frontmatter::serialize_note_file(note)?;
         std::fs::write(&note_path, content)?;
+        Ok(())
+    }
+
+    fn rename_note(
+        &self,
+        _vault_id: &str,
+        _old_id: &str,
+        _new_id: &str,
+    ) -> Result<(), StorageError> {
         Ok(())
     }
 

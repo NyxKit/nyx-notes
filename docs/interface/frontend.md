@@ -42,7 +42,7 @@ frontend/src/
       VaultCard.vue          # single vault card (title, slug, description, oversized icon, link)
       VaultIcon.vue          # renders a vault icon SVG by slug prop; falls back to folder
       VaultIconPicker.vue    # 5×4 grid of 20 icon options; emits select with chosen slug
-      VaultSwitcher.vue      # dropdown: switch between personal and team vaults
+      VaultSwitcher.vue      # dropdown: switch between personal and shared server vaults
       index.ts               # exports vault components
     stores/vaults.ts         # useVaultStore — vault list, activeVault, CRUD, $reset()
     stores/index.ts          # exports vault stores
@@ -102,17 +102,6 @@ frontend/src/
       LoginView.vue          # login UI (adapts to auth mode)
       index.ts               # exports auth views
 
-  teams/
-    index.ts                 # re-exports the team barrels below
-    api/teams.ts             # team CRUD API calls
-    api/index.ts             # exports team API functions
-    composables/
-      useTeams.ts            # team management (members, roles, team vaults)
-      index.ts               # exports team composables
-    views/
-      TeamSettingsView.vue   # manage members, roles, and team vaults
-      index.ts               # exports team views
-
   shared/
     index.ts                 # re-exports shared barrels below
     api/client.ts            # base ofetch HTTP client (used by all domain API modules)
@@ -157,10 +146,31 @@ frontend/src/
 
 ### `HomeView`
 
-- If the user has exactly **one vault**: redirects immediately to `/vaults/:vault_id` (replaces history entry)
-- If the user has **more than one vault**: renders a `NyxGrid` overview in `grid` mode containing `VaultCard` links; each card navigates to `/vaults/:vault_id` via an internal `RouterLink` anchor that preserves standard browser link affordances
+- The default overview is the **Personal** vault overview
+- Uses `GET /api/vaults/personal` for the overview payload
+- If the user has exactly **one personal vault** and no back-navigation context: redirects immediately to `/vaults/:vault_id` (replaces history entry)
+- Otherwise renders a `NyxGrid` overview in `grid` mode containing only personal vaults; each card navigates to `/vaults/:vault_id` via an internal `RouterLink` anchor that preserves standard browser link affordances
 - `VaultCard` aligns title, slug, and optional description to the top-left and places the decorative icon as a large element in the bottom-right, overflowing the card only slightly on both edges
 - Provides a "New Vault" inline form (slug + name + optional description) that uses the same card family while preserving form semantics; it calls `useVaultStore().create()` and redirects to the new vault
+
+### `ServerVaultsView`
+
+- Rendered as a second vault overview route for shared server vaults
+- Uses `GET /api/server/vaults` for the overview payload
+- Shows only vaults owned by the active server namespace
+- Uses the active server name as the page/sidebar label
+- Provides the same inline vault-creation card pattern as the personal overview, but creates shared server vaults
+
+### `SettingsView` (`/settings`)
+
+- Reuses the existing server/profile management page content from the former `/servers` route
+- Adds a read-only server settings section above the profile-management content
+- Includes:
+  - server name input
+  - root path input (disabled for now)
+  - auth mode display
+  - server slug display
+- Server/profile management content remains available below a visual separator
 
 ### `VaultView` (`/vaults/:vault_id`)
 
@@ -206,6 +216,8 @@ The frontend uses a shared browse-card family for browse-and-select surfaces onl
 - Center panel: `NoteEditor` — TipTap editor for the selected note (read-only if the user has `comment` access)
 - Right panel: `CommentSidebar` — comment threads, aligned to their annotated text
 - Toolbar: save button, delete button, tags input, category selector, permission selector (note author only)
+- Editing a note title must not change the route ID or trigger a file rename in the MVP
+- The client should treat `note.meta.vault_id` returned by the API as authoritative for setting active vault context
 - Left sidebar (VaultSwitcher, NoteSearch, SidebarNav, NoteList) is owned by `AppLayout`, not this view
 
 ### `VaultSettingsView` (`/vaults/:vault_id/settings`)
@@ -214,14 +226,6 @@ The frontend uses a shared browse-card family for browse-and-select surfaces onl
 - Edit or clear the vault description
 - For team vaults: change vault permission level (team owner or admin only)
 - Delete vault (must be empty; shows note count if not)
-
-### `TeamSettingsView` (`/teams/:team_id/settings`)
-
-- Rename team
-- Member list: display name, role, remove button
-- Add member by email (looks up user by email via the API)
-- Change member role (owner only can promote/demote admins)
-- List of team vaults with a link to each vault's settings
 
 ## Editor (`NoteEditor.vue`)
 
@@ -247,7 +251,7 @@ The editor works in **Markdown storage mode**: content passed in and emitted out
 
 Rendered at the top of the left panel. Lets the user switch between vaults without leaving the current view.
 
-- Groups vaults: **Personal** (user's own vaults) and **Teams** (one group per team, listing that team's vaults)
+- Groups vaults into **Personal** and **Shared Server** sections
 - Shows the active vault name with a dropdown arrow
 - "New vault" option at the bottom of the personal group
 - Navigates to `/vaults/:vault_id/notes` on selection, opening the most recently edited note in the vault
@@ -269,6 +273,10 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
 ## Sidebar Navigation (`SidebarNav.vue`)
 
 - Does not expose a context-free `New Note` action
+- Splits vault overviews into two top-level items:
+  - `Personal` -> personal vault overview
+  - `<server name>` -> shared server-vault overview
+- Adds `Settings` as the bottom sidebar item
 - Links `Favorites` to `/favorites`
 - Leaves note creation to vault-specific surfaces such as `VaultView`
 
@@ -276,12 +284,12 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
 
 The frontend boots from the active workspace profile, not from one global server configuration.
 
-- A local profile skips login entirely
+- The built-in single-server profile skips login entirely when the backend reports `AUTH_MODE=local`
 - A remote profile first calls `GET /api/auth/mode` for that profile's server URL
 - If the remote server reports `secret_key`, the client shows the username/password form and stores the resulting token only for that profile
 - If the remote server reports `oidc`, the client keeps the profile saved but marks it unsupported for this feature's remote flow
 - Switching profiles clears in-memory auth, vault, note, comment, and team state before loading the newly selected profile
-- In-app navigation should not append `?profile=local` or other routine profile query params just to keep profile state in sync
+- In-app navigation should not append routine profile query params just to keep profile state in sync
 - Future direction: introduce a dedicated `profileStore` that owns `currentProfile`, switching, bootstrap, and last-route restoration internally; URL-level `?profile=` should remain only as an explicit deep-link override when needed
 
 ```ts
@@ -308,6 +316,8 @@ The token is attached only to requests made through the currently active remote 
 await apiForActiveProfile(`/api/vaults/${vaultId}/notes/${id}`)
 ```
 
+The built-in single-server profile should present the configured server name from server metadata, not a generic `Local` label.
+
 ## Routing
 
 All authenticated routes are nested under the `AppLayout` parent route. `AppLayout` mounts once per session and persists across child route changes — it is never unmounted when navigating between authenticated views.
@@ -315,6 +325,7 @@ All authenticated routes are nested under the `AppLayout` parent route. `AppLayo
 ```
 /                          → AppLayout      (meta: { requiresAuth: true })
   /                        → HomeView
+  /server-vaults           → ServerVaultsView
   /vaults/:vault_id        → VaultView
   /vaults/:vault_id/notes/:id? → NoteView
   /vaults/:vault_id/settings  → VaultSettingsView
@@ -325,6 +336,7 @@ All authenticated routes are nested under the `AppLayout` parent route. `AppLayo
 | Path | View | Guard |
 |---|---|---|
 | `/` | `HomeView` (child of `AppLayout`) | Auth required (inherited) |
+| `/server-vaults` | `ServerVaultsView` (child of `AppLayout`) | Auth required (inherited) |
 | `/vaults/:vault_id` | `VaultView` (child of `AppLayout`) | Auth required (inherited) |
 | `/vaults/:vault_id/notes/:id` | `NoteView` (child of `AppLayout`) | Auth required (inherited) |
 | `/vaults/:vault_id/settings` | `VaultSettingsView` (child of `AppLayout`) | Auth required (inherited) |

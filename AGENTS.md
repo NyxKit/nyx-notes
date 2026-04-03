@@ -231,4 +231,4 @@ When you notice that something in the codebase or docs is out of sync, record it
 
 | Noticed | Location | Description | Status |
 |---|---|---|---|
-| — | — | No known divergences. | — |
+| 2026-04-03 | docs/architecture/*, README.md, crates/*, frontend/src/* | The new storage source of truth in `docs/architecture/file-system.md` diverged from the active docs and implementation, which still assumed `users/<uid>/` and `teams/<team-id>/` layout plus team-based MVP sharing. | In progress |
