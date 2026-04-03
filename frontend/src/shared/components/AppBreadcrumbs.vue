@@ -28,14 +28,14 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
   if (serverSlug) {
     breadcrumbs.push({
       label: serverMetadata.value?.slug === serverSlug ? serverMetadata.value.name : serverSlug,
-      route: { path: `/${serverSlug}/vaults` },
+      route: { name: RouteName.ServerRoot, params: { server_slug: serverSlug } },
     })
   }
 
   if (serverSlug && homeSlug) {
     breadcrumbs.push({
       label: homeSlug,
-      route: { path: `/${serverSlug}/homes/${homeSlug}` },
+      route: { name: RouteName.UserRoot, params: { server_slug: serverSlug, home_slug: homeSlug } },
     })
   }
 
@@ -53,7 +53,7 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
     return breadcrumbs
   }
 
-  if ([RouteName.Vault, RouteName.ServerVault, RouteName.Note, RouteName.ServerNote].includes(route.name as RouteName)) {
+  if ([RouteName.UserVault, RouteName.ServerVault, RouteName.UserNote, RouteName.ServerNote].includes(route.name as RouteName)) {
     const vaultId = String(route.params.vault_id ?? '')
     const vaultName = vaults.value.find(v => v.slug === vaultId)?.name ?? String(route.params.vault_id ?? '')
     breadcrumbs.push({
@@ -66,7 +66,7 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
     })
   }
 
-  if ([RouteName.Note, RouteName.ServerNote].includes(route.name as RouteName) && activeNote.value) {
+  if ([RouteName.UserNote, RouteName.ServerNote].includes(route.name as RouteName) && activeNote.value) {
     breadcrumbs.push({
       label: activeNote.value.meta.title || DEFAULT_NOTE_TITLE,
       route: noteCrumbRouteFromParams(

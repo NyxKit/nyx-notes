@@ -39,7 +39,7 @@ describe('VaultCard', () => {
         stubs: {
           RouterLink: {
             props: ['to'],
-            template: '<a :href="to.path" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
+            template: '<a :href="`/${to.params.server_slug}/homes/${to.params.home_slug}/vaults/${to.params.vault_id}`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
           },
         },
       },

@@ -94,7 +94,7 @@ describe('VaultView note cards', () => {
           VaultIcon: true,
           RouterLink: {
             props: ['to'],
-            template: '<a :href="`${to.path}?profile=local`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
+            template: '<a :href="`/${to.params.server_slug}/homes/${to.params.home_slug}/vaults/${to.params.vault_id}/${to.params.id}?profile=local`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
           },
         },
       },
@@ -118,7 +118,7 @@ describe('VaultView note cards', () => {
           VaultIcon: true,
           RouterLink: {
             props: ['to'],
-            template: '<a :href="`${to.path}?profile=local`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
+            template: '<a :href="`/${to.params.server_slug}/homes/${to.params.home_slug}/vaults/${to.params.vault_id}/${to.params.id}?profile=local`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
           },
         },
       },
@@ -127,6 +127,6 @@ describe('VaultView note cards', () => {
     await flushPromises()
 
     const link = wrapper.get('a[aria-label="Open Untitled note"]')
-    expect(link.attributes('href')).toBe('/main-server/homes/user-1/vaults/writing/notes/note-1?profile=local')
+    expect(link.attributes('href')).toBe('/main-server/homes/user-1/vaults/writing/note-1?profile=local')
   })
 })

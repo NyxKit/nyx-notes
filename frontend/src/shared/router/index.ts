@@ -28,19 +28,19 @@ const router = createRouter({
         },
         {
           path: ':server_slug/homes/:home_slug',
-          name: RouteName.Root,
+          name: RouteName.UserRoot,
           component: () => import('@/vaults/views').then(({ RootView }) => RootView),
           props: { scope: 'personal' },
         },
         {
           path: ':server_slug/vaults',
-          name: RouteName.ServerVaults,
+          name: RouteName.ServerRoot,
           component: () => import('@/vaults/views').then(({ RootView }) => RootView),
           props: { scope: 'server' },
         },
         {
-          path: ':server_slug/homes/:home_slug/vaults/:vault_id',
-          name: RouteName.Vault,
+          path: ':server_slug/homes/:home_slug/:vault_id',
+          name: RouteName.UserVault,
           component: () => import('@/vaults/views').then(({ VaultView }) => VaultView),
         },
         {
@@ -49,18 +49,18 @@ const router = createRouter({
           component: () => import('@/vaults/views').then(({ VaultView }) => VaultView),
         },
         {
-          path: ':server_slug/homes/:home_slug/vaults/:vault_id/notes/:id?',
-          name: RouteName.Note,
+          path: ':server_slug/homes/:home_slug/:vault_id/:id?',
+          name: RouteName.UserNote,
           component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
         },
         {
-          path: ':server_slug/vaults/:vault_id/notes/:id?',
+          path: ':server_slug/vaults/:vault_id/:id?',
           name: RouteName.ServerNote,
           component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
         },
         {
-          path: ':server_slug/homes/:home_slug/vaults/:vault_id/settings',
-          name: RouteName.VaultSettings,
+          path: ':server_slug/homes/:home_slug/:vault_id/settings',
+          name: RouteName.UserVaultSettings,
           component: () => import('@/vaults/views').then(({ VaultSettingsView }) => VaultSettingsView),
         },
         {

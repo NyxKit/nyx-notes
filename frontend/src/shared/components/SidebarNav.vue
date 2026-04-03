@@ -13,8 +13,8 @@ const { activeProfile } = useWorkspaceProfiles()
 const serverLabel = computed(() => activeProfile.value?.display_name ?? 'Main Server')
 
 const section = computed(() => {
-  if (route.name === RouteName.Root) return 'personal'
-  if (route.name === RouteName.ServerVaults) return 'server'
+  if (route.name === RouteName.UserRoot) return 'personal'
+  if (route.name === RouteName.ServerRoot) return 'server'
   if (route.name === RouteName.Favorites) return 'favorites'
   return 'notes'
 })

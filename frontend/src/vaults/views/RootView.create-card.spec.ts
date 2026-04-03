@@ -135,7 +135,12 @@ describe('RootView create card', () => {
       icon: undefined,
     })
     expect(push).toHaveBeenCalledWith({
-      path: '/main-server/homes/user-1/vaults/ideas',
+      name: 'user-vault',
+      params: {
+        server_slug: 'main-server',
+        home_slug: 'user-1',
+        vault_id: 'ideas',
+      },
     })
   })
 })

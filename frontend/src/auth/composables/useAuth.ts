@@ -293,10 +293,10 @@ export function useAuth() {
     const homeSlug = serverMetadata.value?.current_user_id || currentUser.value?.id
 
     if (!serverSlug || !homeSlug) {
-      return { path: '/' }
+      return { name: RouteName.Home }
     }
     return {
-      name: RouteName.Root,
+      name: RouteName.UserRoot,
       params: {
         server_slug: serverSlug,
         home_slug: homeSlug,
@@ -308,10 +308,10 @@ export function useAuth() {
     const serverSlug = serverMetadata.value?.slug || slugifyClient(activeProfile.value?.display_name ?? 'Main Server')
 
     if (!serverSlug) {
-      return { path: '/server-vaults' }
+      return { name: RouteName.Home }
     }
     return {
-      name: RouteName.ServerVaults,
+      name: RouteName.ServerRoot,
       params: {
         server_slug: serverSlug,
       },
