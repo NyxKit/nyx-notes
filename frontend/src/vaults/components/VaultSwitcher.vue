@@ -10,7 +10,7 @@ import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
 import type { Vault } from '@/shared/types'
 
-const props = withDefaults(defineProps<{ dest?: 'notes' | 'vault' }>(), { dest: 'notes' })
+const props = withDefaults(defineProps<{ dest?: 'notes' | 'vault' }>(), { dest: 'vault' })
 
 const route = useRoute()
 const router = useRouter()

@@ -44,13 +44,28 @@ const router = createRouter({
           component: () => import('@/vaults/views').then(({ VaultView }) => VaultView),
         },
         {
+          path: ':server_slug/vaults/:vault_id',
+          name: RouteName.ServerVault,
+          component: () => import('@/vaults/views').then(({ VaultView }) => VaultView),
+        },
+        {
           path: ':server_slug/homes/:home_slug/vaults/:vault_id/notes/:id?',
           name: RouteName.Note,
           component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
         },
         {
+          path: ':server_slug/vaults/:vault_id/notes/:id?',
+          name: RouteName.ServerNote,
+          component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
+        },
+        {
           path: ':server_slug/homes/:home_slug/vaults/:vault_id/settings',
           name: RouteName.VaultSettings,
+          component: () => import('@/vaults/views').then(({ VaultSettingsView }) => VaultSettingsView),
+        },
+        {
+          path: ':server_slug/vaults/:vault_id/settings',
+          name: RouteName.ServerVaultSettings,
           component: () => import('@/vaults/views').then(({ VaultSettingsView }) => VaultSettingsView),
         },
         {
