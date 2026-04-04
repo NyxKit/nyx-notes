@@ -4,14 +4,27 @@ use uuid::Uuid;
 
 use crate::context::resolve_vault;
 
-pub fn list(storage: &FsStorage, user_id: &str) -> anyhow::Result<()> {
-    let server_slug =
-        slugify(&std::env::var("SERVER_NAME").unwrap_or_else(|_| "Main Server".into()));
-    let mut vaults = storage.list_vaults(&VaultOwner::Home {
-        server_slug: server_slug.clone(),
+fn current_server_slug() -> String {
+    slugify(&std::env::var("SERVER_NAME").unwrap_or_else(|_| "Main Server".into()))
+}
+
+fn user_home_owner(user_id: &str) -> VaultOwner {
+    VaultOwner::Home {
+        server_slug: current_server_slug(),
         home_slug: user_id.to_string(),
-    })?;
-    vaults.extend(storage.list_vaults(&VaultOwner::Server { server_slug })?);
+    }
+}
+
+fn server_owner() -> VaultOwner {
+    VaultOwner::Server {
+        server_slug: current_server_slug(),
+    }
+}
+
+pub fn list(storage: &FsStorage, user_id: &str) -> anyhow::Result<()> {
+    let home_owner = user_home_owner(user_id);
+    let mut vaults = storage.list_vaults(&home_owner)?;
+    vaults.extend(storage.list_vaults(&server_owner())?);
 
     if vaults.is_empty() {
         println!("(no vaults)");
@@ -31,17 +44,12 @@ pub fn list(storage: &FsStorage, user_id: &str) -> anyhow::Result<()> {
 }
 
 pub fn new(storage: &FsStorage, user_id: &str, slug: String, name: String) -> anyhow::Result<()> {
-    let server_slug =
-        slugify(&std::env::var("SERVER_NAME").unwrap_or_else(|_| "Main Server".into()));
     let vault = Vault {
         id: Uuid::new_v4().to_string(),
         slug,
         name,
         description: None,
-        owner: VaultOwner::Home {
-            server_slug,
-            home_slug: user_id.to_string(),
-        },
+        owner: user_home_owner(user_id),
         permission: NotePermission::Restricted,
         icon: None,
     };
@@ -66,7 +74,7 @@ pub fn delete(storage: &FsStorage, user_id: &str, slug: String) -> anyhow::Resul
         return Ok(());
     }
 
-    storage.delete_vault(&vault.slug)?;
+    storage.delete_vault(&vault.owner, &vault.slug)?;
     println!("Deleted vault: {slug}");
     Ok(())
 }

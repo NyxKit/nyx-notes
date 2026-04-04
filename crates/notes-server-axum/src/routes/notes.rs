@@ -5,23 +5,64 @@ use axum::{
 };
 use chrono::Utc;
 use notes_core::{
-    Note, NoteMeta, NotePermission, ServerRole, VaultOwner, distill_markdown_description,
+    Note, NoteMeta, NotePermission, ServerRole, VaultOwner, distill_markdown_description, slugify,
 };
 use uuid::Uuid;
 
 use crate::{
     auth_extractor::AuthenticatedUser,
     error::AppError,
+    storage_adapter::AsyncStorageAdapter,
     types::{CreateNoteRequest, PatchPermissionRequest, UpdateNoteRequest},
     AppState,
 };
+
+fn current_server_slug() -> String {
+    slugify(&std::env::var("SERVER_NAME").unwrap_or_else(|_| "Main Server".into()))
+}
+
+fn user_home_owner(username: &str) -> VaultOwner {
+    VaultOwner::Home {
+        server_slug: current_server_slug(),
+        home_slug: username.to_string(),
+    }
+}
+
+fn server_owner() -> VaultOwner {
+    VaultOwner::Server {
+        server_slug: current_server_slug(),
+    }
+}
+
+/// Resolve the vault owner for a given vault_id, trying user's home first, then server.
+async fn resolve_vault_owner(
+    storage: &AsyncStorageAdapter,
+    vault_id: &str,
+    username: &str,
+    is_admin: bool,
+) -> Result<VaultOwner, AppError> {
+    let owner = user_home_owner(username);
+    if storage.load_vault(owner.clone(), vault_id.to_string()).await.is_ok() {
+        return Ok(owner);
+    }
+
+    if is_admin {
+        let owner = server_owner();
+        if storage.load_vault(owner.clone(), vault_id.to_string()).await.is_ok() {
+            return Ok(owner);
+        }
+    }
+
+    Err(AppError::NotFound)
+}
 
 pub async fn list_notes(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser,
     Path(vault_id): Path<String>,
 ) -> Result<Json<Vec<NoteMeta>>, AppError> {
-    let all = state.storage.list_notes(vault_id).await?;
+    let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
+    let all = state.storage.list_notes(owner, vault_id).await?;
 
     // Filter to notes this user can view.
     // The vault-level permission floor is implicitly enforced: the caller must have
@@ -40,7 +81,8 @@ pub async fn get_note(
     AuthenticatedUser(user): AuthenticatedUser,
     Path((vault_id, id)): Path<(String, String)>,
 ) -> Result<Json<Note>, AppError> {
-    let note = state.storage.load_note(vault_id, id).await?;
+    let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
+    let note = state.storage.load_note(owner, vault_id, id).await?;
 
     if note.meta.author_id != user.id && note.meta.permission == NotePermission::Restricted {
         return Err(AppError::Forbidden);
@@ -55,13 +97,14 @@ pub async fn create_note(
     Path(vault_id): Path<String>,
     Json(body): Json<CreateNoteRequest>,
 ) -> Result<(StatusCode, Json<NoteMeta>), AppError> {
+    let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
     let now = Utc::now();
     // Inherit the vault's permission level when the caller doesn't specify one.
     let permission = match body.permission {
         Some(p) => p,
         None => state
             .storage
-            .load_vault(vault_id.clone())
+            .load_vault(owner.clone(), vault_id.clone())
             .await
             .map(|v| v.permission)
             .unwrap_or(NotePermission::Restricted),
@@ -85,7 +128,7 @@ pub async fn create_note(
     };
 
     let meta = note.meta.clone();
-    state.storage.save_note(note).await?;
+    state.storage.save_note(owner, note).await?;
     Ok((StatusCode::CREATED, Json(meta)))
 }
 
@@ -95,7 +138,8 @@ pub async fn update_note(
     Path((vault_id, id)): Path<(String, String)>,
     Json(body): Json<UpdateNoteRequest>,
 ) -> Result<Json<NoteMeta>, AppError> {
-    let mut note = state.storage.load_note(vault_id.clone(), id).await?;
+    let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
+    let mut note = state.storage.load_note(owner.clone(), vault_id.clone(), id).await?;
 
     if note.meta.author_id != user.id && note.meta.permission != NotePermission::Edit {
         return Err(AppError::Forbidden);
@@ -109,7 +153,7 @@ pub async fn update_note(
     note.content = body.content;
 
     let meta = note.meta.clone();
-    state.storage.save_note(note).await?;
+    state.storage.save_note(owner, note).await?;
     Ok(Json(meta))
 }
 
@@ -118,11 +162,12 @@ pub async fn delete_note(
     AuthenticatedUser(user): AuthenticatedUser,
     Path((vault_id, id)): Path<(String, String)>,
 ) -> Result<StatusCode, AppError> {
-    let note = state.storage.load_note(vault_id.clone(), id.clone()).await?;
+    let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
+    let note = state.storage.load_note(owner.clone(), vault_id.clone(), id.clone()).await?;
 
     if note.meta.author_id != user.id {
         // The vault/team owner may also delete notes they don't author.
-        let vault = state.storage.load_vault(vault_id.clone()).await?;
+        let vault = state.storage.load_vault(owner.clone(), vault_id.clone()).await?;
         let is_owner = match &vault.owner {
             VaultOwner::Home { home_slug, .. } => home_slug == &user.username,
             VaultOwner::Server { .. } => matches!(user.role, ServerRole::Admin),
@@ -133,7 +178,7 @@ pub async fn delete_note(
         }
     }
 
-    state.storage.delete_note(vault_id, id).await?;
+    state.storage.delete_note(owner, vault_id, id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -143,7 +188,8 @@ pub async fn patch_note_permission(
     Path((vault_id, id)): Path<(String, String)>,
     Json(body): Json<PatchPermissionRequest>,
 ) -> Result<Json<NoteMeta>, AppError> {
-    let mut note = state.storage.load_note(vault_id, id).await?;
+    let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
+    let mut note = state.storage.load_note(owner.clone(), vault_id, id).await?;
 
     if note.meta.author_id != user.id {
         return Err(AppError::Forbidden);
@@ -153,6 +199,6 @@ pub async fn patch_note_permission(
     note.meta.updated_at = Utc::now();
 
     let meta = note.meta.clone();
-    state.storage.save_note(note).await?;
+    state.storage.save_note(owner, note).await?;
     Ok(Json(meta))
 }

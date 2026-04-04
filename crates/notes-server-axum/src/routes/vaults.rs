@@ -9,6 +9,7 @@ use uuid::Uuid;
 use crate::{
     auth_extractor::AuthenticatedUser,
     error::AppError,
+    storage_adapter::AsyncStorageAdapter,
     types::{CreateVaultRequest, PatchVaultRequest},
     AppState,
 };
@@ -22,6 +23,43 @@ const VALID_ICONS: &[&str] = &[
 
 fn current_server_slug() -> String {
     slugify(&std::env::var("SERVER_NAME").unwrap_or_else(|_| "Main Server".into()))
+}
+
+fn user_home_owner(username: &str) -> VaultOwner {
+    VaultOwner::Home {
+        server_slug: current_server_slug(),
+        home_slug: username.to_string(),
+    }
+}
+
+fn server_owner() -> VaultOwner {
+    VaultOwner::Server {
+        server_slug: current_server_slug(),
+    }
+}
+
+/// Try to load a vault, trying user's home first, then server vault.
+async fn load_vault_with_fallback(
+    storage: &AsyncStorageAdapter,
+    vault_id: &str,
+    username: &str,
+    is_admin: bool,
+) -> Result<Vault, AppError> {
+    // Try user's personal vault first
+    let owner = user_home_owner(username);
+    if let Ok(vault) = storage.load_vault(owner.clone(), vault_id.to_string()).await {
+        return Ok(vault);
+    }
+
+    // Try server vault (only if admin)
+    if is_admin {
+        let owner = server_owner();
+        if let Ok(vault) = storage.load_vault(owner, vault_id.to_string()).await {
+            return Ok(vault);
+        }
+    }
+
+    Err(AppError::NotFound)
 }
 
 /// List all vaults accessible to the user: personal vaults + shared server vaults.
@@ -118,17 +156,13 @@ pub async fn patch_vault(
         }
     }
 
-    let vault = state.storage.load_vault(vault_id.clone()).await?;
+    let vault = load_vault_with_fallback(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
 
-    match &vault.owner {
-        VaultOwner::Home { home_slug, .. } if home_slug == &user.username => {}
-        VaultOwner::Server { .. } => {
-            if !matches!(user.role, ServerRole::Admin) {
-                return Err(AppError::Forbidden);
-            }
-        }
+    let owner = match &vault.owner {
+        VaultOwner::Home { home_slug, .. } if home_slug == &user.username => user_home_owner(&user.username),
+        VaultOwner::Server { .. } if matches!(user.role, ServerRole::Admin) => server_owner(),
         _ => return Err(AppError::Forbidden),
-    }
+    };
 
     let update = VaultUpdate {
         name: body.name,
@@ -138,8 +172,8 @@ pub async fn patch_vault(
             None => VaultIconUpdate::Clear,
         }),
     };
-    state.storage.update_vault(vault_id.clone(), update).await?;
-    let updated = state.storage.load_vault(vault_id).await?;
+    state.storage.update_vault(owner.clone(), vault_id.clone(), update).await?;
+    let updated = state.storage.load_vault(owner, vault_id).await?;
     Ok(Json(updated))
 }
 
@@ -148,14 +182,14 @@ pub async fn delete_vault(
     AuthenticatedUser(user): AuthenticatedUser,
     Path(vault_id): Path<String>,
 ) -> Result<StatusCode, AppError> {
-    let vault = state.storage.load_vault(vault_id.clone()).await?;
+    let vault = state.storage.load_vault(user_home_owner(&user.username), vault_id.clone()).await?;
 
     match &vault.owner {
         VaultOwner::Home { home_slug, .. } if home_slug == &user.username => {}
         _ => return Err(AppError::Forbidden),
     }
 
-    state.storage.delete_vault(vault_id).await?;
+    state.storage.delete_vault(user_home_owner(&user.username), vault_id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -193,11 +227,12 @@ pub async fn delete_server_vault(
         return Err(AppError::Forbidden);
     }
 
-    let vault = state.storage.load_vault(vault_id.clone()).await?;
+    let owner = server_owner();
+    let vault = state.storage.load_vault(owner.clone(), vault_id.clone()).await?;
     if !matches!(vault.owner, VaultOwner::Server { .. }) {
         return Err(AppError::Forbidden);
     }
 
-    state.storage.delete_vault(vault_id).await?;
+    state.storage.delete_vault(owner, vault_id).await?;
     Ok(StatusCode::NO_CONTENT)
 }

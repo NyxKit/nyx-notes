@@ -1,7 +1,7 @@
 use std::process::Command as Process;
 
 use chrono::Utc;
-use notes_core::{Note, NoteMeta, StorageBackend, Vault};
+use notes_core::{Note, NoteMeta, StorageBackend, Vault, VaultOwner};
 use notes_storage_fs::FsStorage;
 use uuid::Uuid;
 
@@ -9,13 +9,14 @@ use crate::output::print_notes_table;
 
 pub fn list(
     storage: &FsStorage,
+    owner: &VaultOwner,
     vault_id: &str,
     tag: Option<&str>,
     category: Option<&str>,
     sort: &str,
     json: bool,
 ) -> anyhow::Result<()> {
-    let mut notes = storage.list_notes(vault_id)?;
+    let mut notes = storage.list_notes(owner, vault_id)?;
 
     if let Some(t) = tag {
         notes.retain(|n| n.tags.iter().any(|tag| tag == t));
@@ -41,6 +42,7 @@ pub fn list(
 
 pub fn new(
     storage: &FsStorage,
+    owner: &VaultOwner,
     vault: &Vault,
     user_id: &str,
     title: Option<String>,
@@ -74,18 +76,24 @@ pub fn new(
         content: String::new(),
     };
 
-    storage.save_note(&note)?;
+    storage.save_note(owner, &note)?;
     println!("Created: {}", note.meta.id);
 
     if do_edit {
-        edit(storage, &vault.slug, &note.meta.id, editor)?;
+        edit(storage, owner, &vault.slug, &note.meta.id, editor)?;
     }
 
     Ok(())
 }
 
-pub fn edit(storage: &FsStorage, vault_id: &str, id: &str, editor: &str) -> anyhow::Result<()> {
-    let path = storage.note_file_path(vault_id, id)?;
+pub fn edit(
+    storage: &FsStorage,
+    owner: &VaultOwner,
+    vault_id: &str,
+    id: &str,
+    editor: &str,
+) -> anyhow::Result<()> {
+    let path = storage.note_file_path(owner, vault_id, id)?;
 
     let status = Process::new(editor)
         .arg(&path)
@@ -97,9 +105,9 @@ pub fn edit(storage: &FsStorage, vault_id: &str, id: &str, editor: &str) -> anyh
     }
 
     // Re-read the file and touch updated_at so the timestamp reflects the edit.
-    let mut note = storage.load_note(vault_id, id)?;
+    let mut note = storage.load_note(owner, vault_id, id)?;
     note.meta.updated_at = Utc::now();
-    storage.save_note(&note)?;
+    storage.save_note(owner, &note)?;
 
     Ok(())
 }
@@ -116,7 +124,13 @@ pub fn show(note: &Note, raw: bool) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn delete(storage: &FsStorage, vault_id: &str, id: &str, force: bool) -> anyhow::Result<()> {
+pub fn delete(
+    storage: &FsStorage,
+    owner: &VaultOwner,
+    vault_id: &str,
+    id: &str,
+    force: bool,
+) -> anyhow::Result<()> {
     if !force {
         let confirmed = dialoguer::Confirm::new()
             .with_prompt(format!("Delete note '{id}'?"))
@@ -128,20 +142,21 @@ pub fn delete(storage: &FsStorage, vault_id: &str, id: &str, force: bool) -> any
         }
     }
 
-    storage.delete_note(vault_id, id)?;
+    storage.delete_note(owner, vault_id, id)?;
     println!("Deleted: {id}");
     Ok(())
 }
 
 pub fn search(
     storage: &FsStorage,
+    owner: &VaultOwner,
     vault_id: &str,
     query: &str,
     tag: Option<&str>,
     search_body: bool,
 ) -> anyhow::Result<()> {
     let query_lower = query.to_lowercase();
-    let all_meta = storage.list_notes(vault_id)?;
+    let all_meta = storage.list_notes(owner, vault_id)?;
 
     let mut results: Vec<NoteMeta> = Vec::new();
 
@@ -157,7 +172,7 @@ pub fn search(
         }
 
         if search_body {
-            if let Ok(note) = storage.load_note(vault_id, &meta.id) {
+            if let Ok(note) = storage.load_note(owner, vault_id, &meta.id) {
                 if note.content.to_lowercase().contains(&query_lower) {
                     results.push(meta);
                 }
@@ -169,8 +184,8 @@ pub fn search(
     Ok(())
 }
 
-pub fn tags(storage: &FsStorage, vault_id: &str) -> anyhow::Result<()> {
-    let notes = storage.list_notes(vault_id)?;
+pub fn tags(storage: &FsStorage, owner: &VaultOwner, vault_id: &str) -> anyhow::Result<()> {
+    let notes = storage.list_notes(owner, vault_id)?;
 
     let mut counts: std::collections::BTreeMap<&str, usize> = std::collections::BTreeMap::new();
     for meta in &notes {

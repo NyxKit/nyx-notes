@@ -1,6 +1,7 @@
 pub mod notes;
 pub mod vault;
 
+use notes_core::VaultOwner;
 use notes_storage_fs::FsStorage;
 
 use crate::{
@@ -8,6 +9,10 @@ use crate::{
     context::{find_note, resolve_vault},
     Cli, Command, VaultCommand,
 };
+
+fn vault_owner_from_vault(vault: &notes_core::Vault) -> VaultOwner {
+    vault.owner.clone()
+}
 
 pub fn run(cli: Cli, config: &CliConfig, storage: &FsStorage) -> anyhow::Result<()> {
     let default_vault = || config.vault.clone();
@@ -25,8 +30,10 @@ pub fn run(cli: Cli, config: &CliConfig, storage: &FsStorage) -> anyhow::Result<
                 &config.user_id,
                 &vault.unwrap_or_else(default_vault),
             )?;
+            let owner = vault_owner_from_vault(&v);
             notes::list(
                 storage,
+                &owner,
                 &v.slug,
                 tag.as_deref(),
                 category.as_deref(),
@@ -47,8 +54,10 @@ pub fn run(cli: Cli, config: &CliConfig, storage: &FsStorage) -> anyhow::Result<
                 &config.user_id,
                 &vault.unwrap_or_else(default_vault),
             )?;
+            let owner = vault_owner_from_vault(&v);
             notes::new(
                 storage,
+                &owner,
                 &v,
                 &config.user_id,
                 title,
@@ -65,7 +74,8 @@ pub fn run(cli: Cli, config: &CliConfig, storage: &FsStorage) -> anyhow::Result<
                 &config.user_id,
                 &vault.unwrap_or_else(default_vault),
             )?;
-            notes::edit(storage, &v.slug, &id, &config.editor)
+            let owner = vault_owner_from_vault(&v);
+            notes::edit(storage, &owner, &v.slug, &id, &config.editor)
         }
 
         Command::Show { id, raw } => {
@@ -75,7 +85,8 @@ pub fn run(cli: Cli, config: &CliConfig, storage: &FsStorage) -> anyhow::Result<
 
         Command::Delete { id, force } => {
             let (vault, _) = find_note(storage, &config.user_id, &id)?;
-            notes::delete(storage, &vault.slug, &id, force)
+            let owner = vault_owner_from_vault(&vault);
+            notes::delete(storage, &owner, &vault.slug, &id, force)
         }
 
         Command::Search {
@@ -89,7 +100,8 @@ pub fn run(cli: Cli, config: &CliConfig, storage: &FsStorage) -> anyhow::Result<
                 &config.user_id,
                 &vault.unwrap_or_else(default_vault),
             )?;
-            notes::search(storage, &v.slug, &query, tag.as_deref(), body)
+            let owner = vault_owner_from_vault(&v);
+            notes::search(storage, &owner, &v.slug, &query, tag.as_deref(), body)
         }
 
         Command::Tags { vault } => {
@@ -98,7 +110,8 @@ pub fn run(cli: Cli, config: &CliConfig, storage: &FsStorage) -> anyhow::Result<
                 &config.user_id,
                 &vault.unwrap_or_else(default_vault),
             )?;
-            notes::tags(storage, &v.slug)
+            let owner = vault_owner_from_vault(&v);
+            notes::tags(storage, &owner, &v.slug)
         }
 
         Command::Vault { cmd } => match cmd {

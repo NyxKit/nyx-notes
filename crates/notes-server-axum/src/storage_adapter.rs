@@ -32,9 +32,9 @@ impl AsyncStorageAdapter {
             .map_err(Self::wrap_join_err)?
     }
 
-    pub async fn load_vault(&self, vault_id: String) -> Result<Vault, StorageError> {
+    pub async fn load_vault(&self, owner: VaultOwner, vault_id: String) -> Result<Vault, StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.load_vault(&vault_id))
+        tokio::task::spawn_blocking(move || s.load_vault(&owner, &vault_id))
             .await
             .map_err(Self::wrap_join_err)?
     }
@@ -46,69 +46,71 @@ impl AsyncStorageAdapter {
             .map_err(Self::wrap_join_err)?
     }
 
-    pub async fn delete_vault(&self, vault_id: String) -> Result<(), StorageError> {
+    pub async fn delete_vault(&self, owner: VaultOwner, vault_id: String) -> Result<(), StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.delete_vault(&vault_id))
+        tokio::task::spawn_blocking(move || s.delete_vault(&owner, &vault_id))
             .await
             .map_err(Self::wrap_join_err)?
     }
 
     pub async fn update_vault_permission(
         &self,
+        owner: VaultOwner,
         vault_id: String,
         permission: NotePermission,
     ) -> Result<(), StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.update_vault_permission(&vault_id, permission))
+        tokio::task::spawn_blocking(move || s.update_vault_permission(&owner, &vault_id, permission))
             .await
             .map_err(Self::wrap_join_err)?
     }
 
-    pub async fn update_vault(&self, vault_id: String, update: VaultUpdate) -> Result<(), StorageError> {
+    pub async fn update_vault(&self, owner: VaultOwner, vault_id: String, update: VaultUpdate) -> Result<(), StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.update_vault(&vault_id, &update))
+        tokio::task::spawn_blocking(move || s.update_vault(&owner, &vault_id, &update))
             .await
             .map_err(Self::wrap_join_err)?
     }
 
     // --- Notes ---
 
-    pub async fn list_notes(&self, vault_id: String) -> Result<Vec<NoteMeta>, StorageError> {
+    pub async fn list_notes(&self, owner: VaultOwner, vault_id: String) -> Result<Vec<NoteMeta>, StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.list_notes(&vault_id))
+        tokio::task::spawn_blocking(move || s.list_notes(&owner, &vault_id))
             .await
             .map_err(Self::wrap_join_err)?
     }
 
-    pub async fn load_note(&self, vault_id: String, id: String) -> Result<Note, StorageError> {
+    pub async fn load_note(&self, owner: VaultOwner, vault_id: String, id: String) -> Result<Note, StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.load_note(&vault_id, &id))
+        tokio::task::spawn_blocking(move || s.load_note(&owner, &vault_id, &id))
             .await
             .map_err(Self::wrap_join_err)?
     }
 
-    pub async fn save_note(&self, note: Note) -> Result<(), StorageError> {
+    pub async fn save_note(&self, owner: VaultOwner, note: Note) -> Result<(), StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.save_note(&note))
+        tokio::task::spawn_blocking(move || s.save_note(&owner, &note))
             .await
             .map_err(Self::wrap_join_err)?
     }
 
     pub async fn rename_note(
         &self,
+        owner: VaultOwner,
         vault_id: String,
         old_id: String,
         new_id: String,
     ) -> Result<(), StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.rename_note(&vault_id, &old_id, &new_id))
+        tokio::task::spawn_blocking(move || s.rename_note(&owner, &vault_id, &old_id, &new_id))
             .await
             .map_err(Self::wrap_join_err)?
     }
 
-    pub async fn delete_note(&self, vault_id: String, id: String) -> Result<(), StorageError> {
+    pub async fn delete_note(&self, owner: VaultOwner, vault_id: String, id: String) -> Result<(), StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.delete_note(&vault_id, &id))
+        tokio::task::spawn_blocking(move || s.delete_note(&owner, &vault_id, &id))
             .await
             .map_err(Self::wrap_join_err)?
     }
@@ -117,23 +119,25 @@ impl AsyncStorageAdapter {
 
     pub async fn load_comments(
         &self,
+        owner: VaultOwner,
         vault_id: String,
         note_id: String,
     ) -> Result<Vec<Comment>, StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.load_comments(&vault_id, &note_id))
+        tokio::task::spawn_blocking(move || s.load_comments(&owner, &vault_id, &note_id))
             .await
             .map_err(Self::wrap_join_err)?
     }
 
     pub async fn save_comments(
         &self,
+        owner: VaultOwner,
         vault_id: String,
         note_id: String,
         comments: Vec<Comment>,
     ) -> Result<(), StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.save_comments(&vault_id, &note_id, &comments))
+        tokio::task::spawn_blocking(move || s.save_comments(&owner, &vault_id, &note_id, &comments))
             .await
             .map_err(Self::wrap_join_err)?
     }

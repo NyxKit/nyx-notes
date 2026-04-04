@@ -230,98 +230,57 @@ impl FsStorage {
         }
     }
 
-    /// Return the filesystem path of a note file.
-    /// Intended for CLI use (opening the file in `$EDITOR`).
-    pub fn note_file_path(&self, vault_id: &str, id: &str) -> Result<PathBuf, StorageError> {
-        let vault_dir = self.find_vault_path(vault_id)?;
-        Ok(vault_dir.join(format!("{id}.md")))
-    }
+    fn vault_dir_from_owner(
+        &self,
+        owner: &VaultOwner,
+        vault_id: &str,
+    ) -> Result<PathBuf, StorageError> {
+        let base_dir = match owner {
+            VaultOwner::Home { home_slug, .. } => self.home_dir(home_slug),
+            VaultOwner::Server { .. } => self.server_vaults_dir(),
+            VaultOwner::Local => self.local_dir(),
+        };
 
-    // --- Vault resolution ---
+        // First try exact match on vault slug
+        let slug_path = base_dir.join(vault_id);
+        if slug_path.is_dir() && slug_path.join(".vault.json").is_file() {
+            return Ok(slug_path);
+        }
 
-    /// Resolve a vault slug or stable ID to its directory path by scanning `.vault.json` files.
-    fn find_vault_path(&self, vault_id: &str) -> Result<PathBuf, StorageError> {
-        let server_dir = self.server_dir();
-        if server_dir.is_dir() {
-            let homes_dir = self.homes_dir();
-            if homes_dir.is_dir() {
-                for home_entry in std::fs::read_dir(&homes_dir)? {
-                    let home_dir = home_entry?.path();
-                    if !home_dir.is_dir() {
-                        continue;
-                    }
-                    if let Some(path) = self.scan_owner_dir_for_vault(&home_dir, vault_id)? {
-                        return Ok(path);
+        // If not found by slug, scan for matching ID (fallback for stable IDs)
+        if base_dir.is_dir() {
+            for entry in std::fs::read_dir(&base_dir)? {
+                let vault_dir = entry?.path();
+                if !vault_dir.is_dir() {
+                    continue;
+                }
+                let vault_json_path = vault_dir.join(".vault.json");
+                if !vault_json_path.is_file() {
+                    continue;
+                }
+                if let Ok(content) = std::fs::read_to_string(&vault_json_path) {
+                    if let Ok(meta) = serde_json::from_str::<VaultJson>(&content) {
+                        if meta.id == vault_id {
+                            return Ok(vault_dir);
+                        }
                     }
                 }
             }
-
-            let shared_dir = self.server_vaults_dir();
-            if let Some(path) = self.scan_owner_dir_for_vault(&shared_dir, vault_id)? {
-                return Ok(path);
-            }
-        }
-
-        let local_dir = self.local_dir();
-        if let Some(path) = self.scan_owner_dir_for_vault(&local_dir, vault_id)? {
-            return Ok(path);
         }
 
         Err(StorageError::NotFound)
     }
 
-    fn vault_owner_from_path(&self, vault_dir: &Path) -> Option<VaultOwner> {
-        let rel = vault_dir.strip_prefix(&self.root).ok()?;
-        let parts = rel
-            .iter()
-            .map(|part| part.to_str())
-            .collect::<Option<Vec<_>>>()?;
-
-        if parts.len() >= 4 && parts[1] == "homes" {
-            return Some(VaultOwner::Home {
-                server_slug: parts[0].to_string(),
-                home_slug: parts[2].to_string(),
-            });
-        }
-
-        if parts.len() >= 3 && parts[1] == "vaults" {
-            return Some(VaultOwner::Server {
-                server_slug: parts[0].to_string(),
-            });
-        }
-
-        if parts.len() >= 2 && parts[0] == "local" {
-            return Some(VaultOwner::Local);
-        }
-
-        None
-    }
-
-    fn scan_owner_dir_for_vault(
+    /// Return the filesystem path of a note file.
+    /// Intended for CLI use (opening the file in `$EDITOR`).
+    pub fn note_file_path(
         &self,
-        owner_dir: &Path,
+        owner: &VaultOwner,
         vault_id: &str,
-    ) -> Result<Option<PathBuf>, StorageError> {
-        if !owner_dir.is_dir() {
-            return Ok(None);
-        }
-        for entry in std::fs::read_dir(owner_dir)? {
-            let vault_dir = entry?.path();
-            if !vault_dir.is_dir() {
-                continue;
-            }
-            let vault_json_path = vault_dir.join(".vault.json");
-            if !vault_json_path.is_file() {
-                continue;
-            }
-            let content = std::fs::read_to_string(&vault_json_path)?;
-            let meta: VaultJson = serde_json::from_str(&content)
-                .map_err(|e| StorageError::ParseError(e.to_string()))?;
-            if meta.slug == vault_id || meta.id == vault_id {
-                return Ok(Some(vault_dir));
-            }
-        }
-        Ok(None)
+        id: &str,
+    ) -> Result<PathBuf, StorageError> {
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
+        Ok(vault_dir.join(format!("{id}.md")))
     }
 
     // --- JSON helpers ---
@@ -378,18 +337,15 @@ impl StorageBackend for FsStorage {
         Ok(vaults)
     }
 
-    fn load_vault(&self, vault_id: &str) -> Result<Vault, StorageError> {
-        let vault_dir = self.find_vault_path(vault_id)?;
+    fn load_vault(&self, owner: &VaultOwner, vault_id: &str) -> Result<Vault, StorageError> {
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
         let meta = Self::read_vault_json(&vault_dir)?;
-        let owner = self.vault_owner_from_path(&vault_dir).ok_or_else(|| {
-            StorageError::ParseError("cannot determine vault owner from path".into())
-        })?;
         Ok(Vault {
             id: meta.id,
             slug: meta.slug,
             name: meta.name,
             description: meta.description,
-            owner,
+            owner: owner.clone(),
             permission: meta.permission.unwrap_or(NotePermission::Restricted),
             icon: meta.icon,
         })
@@ -425,8 +381,8 @@ impl StorageBackend for FsStorage {
         Ok(())
     }
 
-    fn delete_vault(&self, vault_id: &str) -> Result<(), StorageError> {
-        let vault_dir = self.find_vault_path(vault_id)?;
+    fn delete_vault(&self, owner: &VaultOwner, vault_id: &str) -> Result<(), StorageError> {
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
 
         let has_notes = std::fs::read_dir(&vault_dir)?
             .filter_map(|e| e.ok())
@@ -442,18 +398,24 @@ impl StorageBackend for FsStorage {
 
     fn update_vault_permission(
         &self,
+        owner: &VaultOwner,
         vault_id: &str,
         permission: NotePermission,
     ) -> Result<(), StorageError> {
-        let vault_dir = self.find_vault_path(vault_id)?;
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
         let mut meta = Self::read_vault_json(&vault_dir)?;
         meta.permission = Some(permission);
         Self::write_vault_json(&vault_dir, &meta)?;
         Ok(())
     }
 
-    fn update_vault(&self, vault_id: &str, update: &VaultUpdate) -> Result<(), StorageError> {
-        let vault_dir = self.find_vault_path(vault_id)?;
+    fn update_vault(
+        &self,
+        owner: &VaultOwner,
+        vault_id: &str,
+        update: &VaultUpdate,
+    ) -> Result<(), StorageError> {
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
         let mut meta = Self::read_vault_json(&vault_dir)?;
         if let Some(name) = &update.name {
             meta.name = name.clone();
@@ -473,8 +435,12 @@ impl StorageBackend for FsStorage {
 
     // --- Notes ---
 
-    fn list_notes(&self, vault_id: &str) -> Result<Vec<NoteMeta>, StorageError> {
-        let vault_dir = self.find_vault_path(vault_id)?;
+    fn list_notes(
+        &self,
+        owner: &VaultOwner,
+        vault_id: &str,
+    ) -> Result<Vec<NoteMeta>, StorageError> {
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
 
         let mut metas: Vec<NoteMeta> = Vec::new();
         for entry in std::fs::read_dir(&vault_dir)? {
@@ -490,8 +456,13 @@ impl StorageBackend for FsStorage {
         Ok(metas)
     }
 
-    fn load_note(&self, vault_id: &str, id: &str) -> Result<Note, StorageError> {
-        let vault_dir = self.find_vault_path(vault_id)?;
+    fn load_note(
+        &self,
+        owner: &VaultOwner,
+        vault_id: &str,
+        id: &str,
+    ) -> Result<Note, StorageError> {
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
         let note_path = vault_dir.join(format!("{id}.md"));
 
         if !note_path.is_file() {
@@ -506,8 +477,8 @@ impl StorageBackend for FsStorage {
         })
     }
 
-    fn save_note(&self, note: &Note) -> Result<(), StorageError> {
-        let vault_dir = self.find_vault_path(&note.meta.vault_id)?;
+    fn save_note(&self, owner: &VaultOwner, note: &Note) -> Result<(), StorageError> {
+        let vault_dir = self.vault_dir_from_owner(owner, &note.meta.vault_id)?;
         let note_path = vault_dir.join(format!("{}.md", note.meta.id));
         let content = frontmatter::serialize_note_file(note)?;
         std::fs::write(&note_path, content)?;
@@ -516,15 +487,25 @@ impl StorageBackend for FsStorage {
 
     fn rename_note(
         &self,
-        _vault_id: &str,
-        _old_id: &str,
-        _new_id: &str,
+        owner: &VaultOwner,
+        vault_id: &str,
+        old_id: &str,
+        new_id: &str,
     ) -> Result<(), StorageError> {
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
+        let old_path = vault_dir.join(format!("{old_id}.md"));
+        let new_path = vault_dir.join(format!("{new_id}.md"));
+        std::fs::rename(&old_path, &new_path)?;
         Ok(())
     }
 
-    fn delete_note(&self, vault_id: &str, id: &str) -> Result<(), StorageError> {
-        let vault_dir = self.find_vault_path(vault_id)?;
+    fn delete_note(
+        &self,
+        owner: &VaultOwner,
+        vault_id: &str,
+        id: &str,
+    ) -> Result<(), StorageError> {
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
         let note_path = vault_dir.join(format!("{id}.md"));
 
         if !note_path.is_file() {
@@ -544,8 +525,13 @@ impl StorageBackend for FsStorage {
 
     // --- Comments ---
 
-    fn load_comments(&self, vault_id: &str, note_id: &str) -> Result<Vec<Comment>, StorageError> {
-        let vault_dir = self.find_vault_path(vault_id)?;
+    fn load_comments(
+        &self,
+        owner: &VaultOwner,
+        vault_id: &str,
+        note_id: &str,
+    ) -> Result<Vec<Comment>, StorageError> {
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
         let path = vault_dir.join(format!("{note_id}.comments.json"));
 
         if !path.is_file() {
@@ -563,11 +549,12 @@ impl StorageBackend for FsStorage {
 
     fn save_comments(
         &self,
+        owner: &VaultOwner,
         vault_id: &str,
         note_id: &str,
         comments: &[Comment],
     ) -> Result<(), StorageError> {
-        let vault_dir = self.find_vault_path(vault_id)?;
+        let vault_dir = self.vault_dir_from_owner(owner, vault_id)?;
         let path = vault_dir.join(format!("{note_id}.comments.json"));
 
         if comments.is_empty() {
