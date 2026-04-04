@@ -7,7 +7,7 @@ export default defineConfig(async ({ mode }) => {
 
   // @ts-expect-error process is a nodejs global
   const host = process.env.TAURI_DEV_HOST
-  const apiProxyTarget = rootEnv.VITE_API_PROXY_TARGET || `http://localhost:${rootEnv.PORT || '8080'}`
+  const apiProxyTarget = rootEnv.VITE_API_PROXY_TARGET || `http://localhost:${rootEnv.PORT || '4200'}`
 
   return ({
   plugins: [vue()],

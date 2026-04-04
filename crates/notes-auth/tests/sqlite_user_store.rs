@@ -9,7 +9,7 @@ fn actor(store: &SqliteUserStore) -> notes_core::User {
 #[test]
 fn bootstraps_admin_and_lists_users() {
     let dir = tempdir().unwrap();
-    let store = SqliteUserStore::new(dir.path()).unwrap();
+    let store = SqliteUserStore::new(dir.path(), "test-server").unwrap();
     store.bootstrap_admin(Some("Correct-password1")).unwrap();
 
     let admin = actor(&store);
@@ -24,7 +24,7 @@ fn bootstraps_admin_and_lists_users() {
 #[test]
 fn enforces_required_unique_email_and_password_policy() {
     let dir = tempdir().unwrap();
-    let store = SqliteUserStore::new(dir.path()).unwrap();
+    let store = SqliteUserStore::new(dir.path(), "test-server").unwrap();
     store.bootstrap_admin(Some("Correct-password1")).unwrap();
     let admin = actor(&store);
 
@@ -74,7 +74,7 @@ fn enforces_required_unique_email_and_password_policy() {
 #[test]
 fn blocks_self_demotion_self_delete_and_last_admin_delete() {
     let dir = tempdir().unwrap();
-    let store = SqliteUserStore::new(dir.path()).unwrap();
+    let store = SqliteUserStore::new(dir.path(), "test-server").unwrap();
     store.bootstrap_admin(Some("Correct-password1")).unwrap();
     let admin = actor(&store);
 
@@ -109,7 +109,7 @@ fn blocks_self_demotion_self_delete_and_last_admin_delete() {
 #[test]
 fn creates_updates_and_deletes_other_users() {
     let dir = tempdir().unwrap();
-    let store = SqliteUserStore::new(dir.path()).unwrap();
+    let store = SqliteUserStore::new(dir.path(), "test-server").unwrap();
     store.bootstrap_admin(Some("Correct-password1")).unwrap();
     let admin = actor(&store);
 

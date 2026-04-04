@@ -6,6 +6,17 @@
 
 ---
 
+## Testing and Development
+
+**Always clear ports after internal testing.** When testing the server or frontend locally, kill the processes on ports 4200 (backend) and 1420 (frontend) before returning control to the user:
+
+```bash
+fuser -k 4200/tcp 2>/dev/null
+fuser -k 1420/tcp 2>/dev/null
+```
+
+---
+
 ## The Docs Are the Source of Truth
 
 The `docs/` folder is the **authoritative specification** for this project. It is a living document.

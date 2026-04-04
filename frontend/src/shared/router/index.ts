@@ -85,12 +85,17 @@ const router = createRouter({
       name: RouteName.Login,
       component: () => import('@/auth/views').then(({ LoginView }) => LoginView),
     },
+    {
+      path: '/setup',
+      name: RouteName.Setup,
+      component: () => import('@/auth/views').then(({ SetupView }) => SetupView),
+    },
   ],
 })
 
 router.beforeEach(async (to) => {
   const { activeProfile, setActiveProfile } = useWorkspaceProfiles()
-  const { authMode, isAuthenticated, bootstrapActiveProfile } = useAuth()
+  const { authMode, isAuthenticated, bootstrapActiveProfile, checkInitialized } = useAuth()
   let switchedProfile = false
 
   if (typeof to.query.profile === 'string' && to.query.profile !== activeProfile.value?.id) {
@@ -111,6 +116,21 @@ router.beforeEach(async (to) => {
   }
 
   if (authMode.value === 'local') return true
+
+  if (to.path === '/login') return true
+  
+  if (to.path === '/setup') {
+    const initialized = await checkInitialized()
+    if (initialized) {
+      return { path: '/login' }
+    }
+    return true
+  }
+
+  const initialized = await checkInitialized()
+  if (!initialized) {
+    return { path: '/setup' }
+  }
 
   if (to.meta.requiresAuth && !isAuthenticated.value) {
     return { path: '/login', query: { redirect: to.fullPath } }

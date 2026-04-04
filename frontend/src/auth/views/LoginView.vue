@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { NyxButton, NyxCard } from 'nyx-kit/components'
-import { InstallationModeStep, RemoteProfileForm, useAuth } from '@/auth'
+import { NyxCard } from 'nyx-kit/components'
+import { InitialSetupForm, InstallationModeStep, RemoteProfileForm, SignInForm, useAuth } from '@/auth'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import type { InstallationMode } from '@/auth/types/profileSetup'
 import type { ServerSetupChoice } from '@/auth/types/profileSetup'
 import type { RemoteProfileDraft } from '@/shared/types'
+import { RouteName } from '@/shared/types/router'
 
 const router = useRouter()
 const route = useRoute()
@@ -17,6 +18,7 @@ const selectedMode = ref<InstallationMode | null>(null)
 const serverChoice = ref<ServerSetupChoice | null>(null)
 const error = ref<string | null>(null)
 const loading = ref(false)
+const initialized = ref<boolean | null>(null)
 
 const hasProfiles = computed(() => workspaceProfiles.profiles.value.length > 0)
 const addingRemoteProfile = computed(() => route.query.add === 'remote')
@@ -27,11 +29,49 @@ const activeRemoteProfile = computed(() =>
     : null
 )
 
+const needsSetup = computed(() => 
+  hasProfiles.value && 
+  initialized.value === false
+)
+
+onMounted(async () => {
+  if (route.path === '/setup') {
+    return
+  }
+  if (hasProfiles.value) {
+    initialized.value = await auth.checkInitialized()
+  }
+})
+
+watch(() => route.path, async (path) => {
+  if (path === '/setup') {
+    return
+  }
+  if (hasProfiles.value && initialized.value === null) {
+    initialized.value = await auth.checkInitialized()
+  }
+})
+
+async function completeSetup() {
+  initialized.value = true
+  await auth.bootstrapActiveProfile()
+  if (auth.isAuthenticated.value) {
+    await router.push(auth.personalOverviewRoute.value)
+  } else {
+    await router.push({ name: RouteName.Login })
+  }
+}
+
 async function completeLocalSetup() {
   error.value = null
   workspaceProfiles.createLocalProfile()
   await auth.bootstrapActiveProfile()
-  await router.push(auth.personalOverviewRoute.value)
+  initialized.value = await auth.checkInitialized()
+  if (initialized.value === false) {
+    await router.push({ name: RouteName.Setup })
+  } else {
+    await router.push(auth.personalOverviewRoute.value)
+  }
 }
 
 function chooseServerMode(choice: ServerSetupChoice) {
@@ -79,11 +119,23 @@ async function signInRemoteProfile(draft: RemoteProfileDraft) {
   error.value = null
 
   try {
-    if (activeRemoteProfile.value) {
-      workspaceProfiles.updateRemoteProfile(activeRemoteProfile.value.id, draft)
-      await auth.login(draft.username, draft.password)
-      await router.push((route.query.redirect as string) ?? '/')
-    }
+    const serverUrl = draft.server_url
+    await auth.login(draft.username, draft.password, serverUrl)
+    await router.push((route.query.redirect as string) ?? '/')
+  } catch {
+    error.value = 'Invalid credentials'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function signIn(data: { username: string; password: string }) {
+  loading.value = true
+  error.value = null
+
+  try {
+    await auth.login(data.username, data.password)
+    await router.push(auth.personalOverviewRoute.value)
   } catch {
     error.value = 'Invalid credentials'
   } finally {
@@ -94,9 +146,7 @@ async function signInRemoteProfile(draft: RemoteProfileDraft) {
 
 <template>
   <div class="login">
-    <NyxCard class="login__card">
-      <h1>Nyx Notes</h1>
-
+    <NyxCard class="login__card" title="Nyx Notes">
       <template v-if="!hasProfiles">
         <InstallationModeStep
           :selected-mode="selectedMode"
@@ -154,6 +204,17 @@ async function signInRemoteProfile(draft: RemoteProfileDraft) {
           :loading="loading || auth.bootstrapping.value"
           @submit="signInRemoteProfile"
         />
+      </template>
+
+      <template v-else-if="auth.authMode.value === 'secret_key' && !auth.isAuthenticated.value">
+        <SignInForm
+          :loading="loading || auth.bootstrapping.value"
+          @submit="signIn"
+        />
+      </template>
+
+      <template v-else-if="needsSetup">
+        <InitialSetupForm :loading="loading" @complete="completeSetup" />
       </template>
 
       <template v-else>

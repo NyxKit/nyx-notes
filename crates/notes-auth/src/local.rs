@@ -16,6 +16,7 @@ impl LocalAuthStore {
         Self {
             user: User {
                 id: user_id.clone(),
+                username: user_id.clone(),
                 email: format!("{user_id}@localhost"),
                 display_name: name,
                 role: ServerRole::Admin,

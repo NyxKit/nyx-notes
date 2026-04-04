@@ -33,7 +33,7 @@ pub async fn list_vaults(
         .storage
         .list_vaults(VaultOwner::Home {
             server_slug: current_server_slug(),
-            home_slug: user.id.clone(),
+            home_slug: user.username.clone(),
         })
         .await?;
 
@@ -56,7 +56,7 @@ pub async fn list_personal_vaults(
         .storage
         .list_vaults(VaultOwner::Home {
             server_slug: current_server_slug(),
-            home_slug: user.id,
+            home_slug: user.username.clone(),
         })
         .await?;
 
@@ -94,7 +94,7 @@ pub async fn create_vault(
         description: body.description,
         owner: VaultOwner::Home {
             server_slug: current_server_slug(),
-            home_slug: user.id,
+            home_slug: user.username.clone(),
         },
         permission: NotePermission::Restricted,
         icon: body.icon,
@@ -121,7 +121,7 @@ pub async fn patch_vault(
     let vault = state.storage.load_vault(vault_id.clone()).await?;
 
     match &vault.owner {
-        VaultOwner::Home { home_slug, .. } if home_slug == &user.id => {}
+        VaultOwner::Home { home_slug, .. } if home_slug == &user.username => {}
         VaultOwner::Server { .. } => {
             if !matches!(user.role, ServerRole::Admin) {
                 return Err(AppError::Forbidden);
@@ -151,7 +151,7 @@ pub async fn delete_vault(
     let vault = state.storage.load_vault(vault_id.clone()).await?;
 
     match &vault.owner {
-        VaultOwner::Home { home_slug, .. } if home_slug == &user.id => {}
+        VaultOwner::Home { home_slug, .. } if home_slug == &user.username => {}
         _ => return Err(AppError::Forbidden),
     }
 

@@ -104,7 +104,7 @@ pub struct CreateUserRequest {
     pub username: String,
     pub email: String,
     pub display_name: String,
-    pub role: ServerRole,
+    pub role: Option<ServerRole>,
     pub password: String,
 }
 
@@ -171,4 +171,5 @@ pub struct ServerMetadataResponse {
     pub role: &'static str,
     pub root_path: Option<String>,
     pub current_user_id: String,
+    pub current_user_username: String,
 }

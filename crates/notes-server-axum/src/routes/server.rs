@@ -13,6 +13,7 @@ pub async fn get_server(
         slug: slugify(&name),
         name,
         current_user_id: user.id,
+        current_user_username: user.username,
         role: match user.role {
             notes_core::ServerRole::Admin => "admin",
             notes_core::ServerRole::User => "user",

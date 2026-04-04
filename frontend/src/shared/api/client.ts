@@ -42,4 +42,31 @@ export const api = ofetch.create({
       options.signal = _requestController.signal
     }
   },
+  onResponseError({ response }) {
+    let message = 'Something went wrong'
+    
+    if (response._data?.error) {
+      const rawError = response._data.error
+      
+      if (response.status === 422) {
+        message = rawError
+      } else if (response.status === 401) {
+        message = 'Invalid credentials'
+      } else if (response.status === 403) {
+        message = 'Access denied'
+      } else if (response.status === 404) {
+        message = 'Not found'
+      } else if (response.status === 409) {
+        message = rawError
+      } else if (response.status >= 500) {
+        message = 'Server error'
+      } else {
+        message = rawError
+      }
+    }
+    
+    const error = new Error(message)
+    ;(error as any).status = response.status
+    throw error
+  },
 })

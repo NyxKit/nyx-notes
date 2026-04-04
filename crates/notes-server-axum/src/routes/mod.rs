@@ -16,6 +16,8 @@ pub fn router() -> Router<AppState> {
     Router::new()
         // Auth (unauthenticated)
         .route("/api/auth/mode", get(auth::get_mode))
+        .route("/api/auth/initialized", get(auth::get_initialized))
+        .route("/api/auth/setup", post(auth::setup))
         .route("/api/auth/login", post(auth::login))
         .route("/api/users", get(users::list_users).post(users::create_user))
         .route("/api/users/:user_id", patch(users::update_user).delete(users::delete_user))

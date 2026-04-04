@@ -11,8 +11,6 @@ use notes_core::{
 use rusqlite::{params, Connection, OptionalExtension};
 use uuid::Uuid;
 
-const DEFAULT_DB_FILE: &str = ".auth.db";
-
 #[derive(Debug, Clone)]
 struct StoredUser {
     id: String,
@@ -30,10 +28,14 @@ pub struct SqliteUserStore {
 }
 
 impl SqliteUserStore {
-    pub fn new(notes_root: &Path) -> Result<Self, AuthError> {
+    pub fn new(notes_root: &Path, server_slug: &str) -> Result<Self, AuthError> {
         let db_path = std::env::var("NYX_DB_PATH")
             .map(PathBuf::from)
-            .unwrap_or_else(|_| notes_root.join(DEFAULT_DB_FILE));
+            .unwrap_or_else(|_| {
+                notes_root
+                    .join(server_slug)
+                    .join(format!(".{server_slug}.db"))
+            });
 
         let store = Self { db_path };
         store.init()?;
@@ -63,6 +65,7 @@ impl SqliteUserStore {
     pub fn find_user(&self, user_id: &str) -> Result<Option<User>, AuthError> {
         Ok(self.load_user_by_id(user_id)?.map(|user| User {
             id: user.id,
+            username: user.username,
             email: user.email,
             display_name: user.display_name,
             role: user.role,
@@ -86,6 +89,7 @@ impl SqliteUserStore {
 
         Ok(User {
             id: user.id,
+            username: user.username,
             email: user.email,
             display_name: user.display_name,
             role: user.role,
@@ -127,6 +131,10 @@ impl SqliteUserStore {
     ) -> Result<ManagedUserSummary, AuthError> {
         ensure_admin(actor)?;
 
+        let role = input
+            .role
+            .ok_or_else(|| AuthError::Validation("role is required when creating a user".into()))?;
+
         let username = normalize_username(&input.username)?;
         let email = normalize_email(&input.email)?;
         let display_name = require_non_empty("display name", &input.display_name)?;
@@ -145,7 +153,7 @@ impl SqliteUserStore {
                     username,
                     email,
                     display_name,
-                    role_to_db(&input.role),
+                    role_to_db(&role),
                     password_hash,
                     now.to_rfc3339(),
                     now.to_rfc3339(),
@@ -275,6 +283,43 @@ impl SqliteUserStore {
         Connection::open(&self.db_path).map_err(to_service_error)
     }
 
+    pub fn create_initial_user(&self, input: CreateUserInput) -> Result<User, AuthError> {
+        let username = normalize_username(&input.username)?;
+        let email = normalize_email(&input.email)?;
+        let display_name = require_non_empty("display name", &input.display_name)?;
+        validate_password_policy(&input.password)?;
+        let role = input.role.unwrap_or(ServerRole::Admin);
+
+        let now = Utc::now();
+        let user_id = Uuid::new_v4().to_string();
+        let password_hash = hash_password(&input.password)?;
+        let connection = self.connection()?;
+        connection
+            .execute(
+                "INSERT INTO users (id, username, email, display_name, role, password_hash, created_at, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+                params![
+                    &user_id,
+                    username,
+                    email,
+                    display_name,
+                    role_to_db(&role),
+                    password_hash,
+                    now.to_rfc3339(),
+                    now.to_rfc3339(),
+                ],
+            )
+            .map_err(to_constraint_error)?;
+
+        Ok(User {
+            id: user_id,
+            username,
+            email,
+            display_name,
+            role,
+        })
+    }
+
     fn create_initial_admin(&self, password: &str) -> Result<(), AuthError> {
         validate_password_policy(password)?;
         let now = Utc::now();
@@ -322,7 +367,7 @@ impl SqliteUserStore {
             .map_err(to_service_error)
     }
 
-    fn user_count(&self) -> Result<usize, AuthError> {
+    pub fn user_count(&self) -> Result<usize, AuthError> {
         let connection = self.connection()?;
         connection
             .query_row("SELECT COUNT(*) FROM users", [], |row| row.get(0))

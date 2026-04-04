@@ -31,14 +31,8 @@ pub struct SecretKeyAuthStore {
 
 impl SecretKeyAuthStore {
     /// Construct from a raw 32-byte (256-bit) key and load users from `notes_root`.
-    /// If the auth database is empty and `admin_password` is provided, an initial admin user is created automatically.
-    pub fn new(
-        notes_root: &Path,
-        key_bytes: &[u8],
-        admin_password: Option<&str>,
-    ) -> Result<Self, AuthError> {
-        let users = SqliteUserStore::new(notes_root)?;
-        users.bootstrap_admin(admin_password)?;
+    pub fn new(notes_root: &Path, key_bytes: &[u8], server_slug: &str) -> Result<Self, AuthError> {
+        let users = SqliteUserStore::new(notes_root, server_slug)?;
 
         Ok(Self {
             encoding_key: EncodingKey::from_secret(key_bytes),
@@ -98,6 +92,28 @@ impl AuthStore for SecretKeyAuthStore {
 
     fn delete_user(&self, actor: &User, user_id: &str) -> Result<(), AuthError> {
         self.users.delete_user(actor, user_id)
+    }
+
+    fn is_initialized(&self) -> Result<bool, AuthError> {
+        Ok(self.users.user_count()? > 0)
+    }
+
+    fn setup_initial_user(&self, input: CreateUserInput) -> Result<LoginToken, AuthError> {
+        if self.users.user_count()? > 0 {
+            return Err(AuthError::Conflict("system already initialized".into()));
+        }
+
+        let user = self.users.create_initial_user(input)?;
+
+        let exp = (Utc::now().timestamp() as u64 + TOKEN_TTL_SECS) as usize;
+        let claims = Claims { sub: user.id, exp };
+        let token = encode(&Header::default(), &claims, &self.encoding_key)
+            .map_err(|e| AuthError::ServiceError(e.to_string()))?;
+
+        Ok(LoginToken {
+            token,
+            expires_in: TOKEN_TTL_SECS,
+        })
     }
 }
 

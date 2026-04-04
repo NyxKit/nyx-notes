@@ -21,6 +21,7 @@ export interface ServerMetadata {
   slug: string
   name: string
   current_user_id: string
+  current_user_username: string
   role: ServerRole
   root_path?: string
 }

@@ -13,4 +13,5 @@ export enum RouteName {
   Users = 'users',
   Settings = 'settings',
   Login = 'login',
+  Setup = 'setup',
 }

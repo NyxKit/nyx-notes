@@ -7,6 +7,7 @@ use crate::domain::ServerRole;
 #[derive(Debug, Clone)]
 pub struct User {
     pub id: String,
+    pub username: String,
     pub email: String,
     pub display_name: String,
     pub role: ServerRole,
@@ -30,7 +31,8 @@ pub struct CreateUserInput {
     pub username: String,
     pub email: String,
     pub display_name: String,
-    pub role: ServerRole,
+    #[serde(default)]
+    pub role: Option<ServerRole>,
     pub password: String,
 }
 
@@ -108,6 +110,20 @@ pub trait AuthStore: Send + Sync {
     }
 
     fn delete_user(&self, _actor: &User, _user_id: &str) -> Result<(), AuthError> {
+        Err(AuthError::ServiceError(
+            "user management not supported in this auth mode".into(),
+        ))
+    }
+
+    /// Check if any users exist in the system.
+    fn is_initialized(&self) -> Result<bool, AuthError> {
+        Err(AuthError::ServiceError(
+            "user management not supported in this auth mode".into(),
+        ))
+    }
+
+    /// Create the first admin user. Only succeeds if `is_initialized()` returns false.
+    fn setup_initial_user(&self, _input: CreateUserInput) -> Result<LoginToken, AuthError> {
         Err(AuthError::ServiceError(
             "user management not supported in this auth mode".into(),
         ))

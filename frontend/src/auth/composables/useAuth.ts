@@ -1,5 +1,5 @@
 import { computed, ref } from 'vue'
-import { fetchAuthMode, login as apiLogin } from '@/auth/api'
+import { fetchAuthMode, fetchInitialized, login as apiLogin } from '@/auth/api'
 import { api } from '@/shared/api'
 import {
   getApiRequestEpoch,
@@ -28,6 +28,7 @@ function slugifyClient(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 const bootstrapping = ref(false)
+const serverInitialized = ref<boolean | null>(null)
 const sessions = ref<StoredSessions>(readStoredSessions())
 const apiEpoch = ref(getApiRequestEpoch())
 
@@ -200,49 +201,55 @@ export function useAuth() {
     return profile
   }
 
-  async function login(username: string, password: string) {
+  async function login(username: string, password: string, serverUrl?: string) {
     const profile = activeProfile.value
-    if (!profile || profile.type !== 'remote') {
-      throw new Error('No active remote profile selected')
+    const isRemote = profile && profile.type === 'remote'
+    
+    const targetServerUrl = serverUrl ?? (isRemote ? profile.server_url : null)
+    
+    if (isRemote) {
+      updateSession(profile.id, {
+        state: 'signing_in',
+        auth_mode: profile.auth_mode ?? authMode.value ?? undefined,
+        last_error: undefined,
+      })
     }
 
-    updateSession(profile.id, {
-      state: 'signing_in',
-      auth_mode: profile.auth_mode ?? authMode.value ?? undefined,
-      last_error: undefined,
-    })
-
     try {
-      const res = await apiLogin(username, password, profile.server_url)
+      const res = await apiLogin(username, password, targetServerUrl ?? undefined)
       const expiresAt = new Date(Date.now() + res.expires_in * 1000).toISOString()
 
       token.value = res.token
-      applyApiContext(profile.server_url, res.token)
+      applyApiContext(targetServerUrl, res.token)
       await refreshServerMetadata()
-      updateRemoteProfileStatus(profile.id, {
-        connection_status: 'reachable',
-        last_error: undefined,
-      })
-      updateSession(profile.id, {
-        state: 'signed_in',
-        auth_mode: 'secret_key',
-        token: res.token,
-        expires_at: expiresAt,
-        last_error: undefined,
-      })
+      
+      if (isRemote) {
+        updateRemoteProfileStatus(profile.id, {
+          connection_status: 'reachable',
+          last_error: undefined,
+        })
+        updateSession(profile.id, {
+          state: 'signed_in',
+          auth_mode: 'secret_key',
+          token: res.token,
+          expires_at: expiresAt,
+          last_error: undefined,
+        })
+      }
       return res
     } catch (error) {
       token.value = null
-      applyApiContext(profile.server_url, null)
-      updateRemoteProfileStatus(profile.id, {
-        connection_status: 'auth_failed',
-        last_error: 'Invalid credentials',
-      })
-      updateSession(profile.id, {
-        state: 'error',
-        token: undefined,
-        last_error: 'Invalid credentials',
-      })
+      applyApiContext(targetServerUrl, null)
+      if (isRemote) {
+        updateRemoteProfileStatus(profile.id, {
+          connection_status: 'auth_failed',
+          last_error: 'Invalid credentials',
+        })
+        updateSession(profile.id, {
+          state: 'signed_out',
+          last_error: 'Invalid credentials',
+        })
+      }
       throw error
     }
   }
@@ -288,9 +295,20 @@ export function useAuth() {
     }
   }
 
+  async function checkInitialized() {
+    try {
+      const res = await fetchInitialized()
+      serverInitialized.value = res.initialized
+      return res.initialized
+    } catch {
+      serverInitialized.value = null
+      return null
+    }
+  }
+
   const personalOverviewRoute = computed(() => {
     const serverSlug = serverMetadata.value?.slug || slugifyClient(activeProfile.value?.display_name ?? 'Main Server')
-    const homeSlug = serverMetadata.value?.current_user_id || currentUser.value?.id
+    const homeSlug = serverMetadata.value?.current_user_username || serverMetadata.value?.current_user_id || currentUser.value?.id
 
     if (!serverSlug || !homeSlug) {
       return { name: RouteName.Home }
@@ -325,6 +343,7 @@ export function useAuth() {
     currentUser,
     serverMetadata,
     bootstrapping,
+    serverInitialized,
     sessions,
     activeSession,
     hasProfiles,
@@ -332,6 +351,7 @@ export function useAuth() {
     apiEpoch,
     bootstrapActiveProfile,
     refreshServerMetadata,
+    checkInitialized,
     personalOverviewRoute,
     serverVaultsRoute,
     discoverMode,

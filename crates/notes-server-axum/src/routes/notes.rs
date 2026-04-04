@@ -124,7 +124,7 @@ pub async fn delete_note(
         // The vault/team owner may also delete notes they don't author.
         let vault = state.storage.load_vault(vault_id.clone()).await?;
         let is_owner = match &vault.owner {
-            VaultOwner::Home { home_slug, .. } => home_slug == &user.id,
+            VaultOwner::Home { home_slug, .. } => home_slug == &user.username,
             VaultOwner::Server { .. } => matches!(user.role, ServerRole::Admin),
             VaultOwner::Local => false,
         };
