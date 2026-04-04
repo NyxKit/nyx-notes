@@ -17,6 +17,6 @@ pub async fn get_server(
             notes_core::ServerRole::Admin => "admin",
             notes_core::ServerRole::User => "user",
         },
-        root_path: std::env::var("NOTES_ROOT").ok(),
+        root_path: std::env::var("NYX_ROOT").ok(),
     })
 }

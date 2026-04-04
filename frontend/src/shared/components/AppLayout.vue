@@ -17,7 +17,7 @@ import type { Vault } from '@/shared/types'
 const route = useRoute()
 const vaultStore = useVaultStore()
 const notesStore = useNotesStore()
-const { apiEpoch, isAuthenticated } = useAuth()
+const { apiEpoch, isAuthenticated, authMode, serverMetadata } = useAuth()
 const { activeProfile } = useWorkspaceProfiles()
 const { vaults } = storeToRefs(vaultStore)
 const { load } = vaultStore
@@ -70,6 +70,15 @@ watch(
         <SidebarNav />
         <NoteList />
         <SidebarNavItem
+          v-if="authMode === 'secret_key' && serverMetadata?.role === 'admin'"
+          :to="{ name: RouteName.Users }"
+          icon="users"
+          class="app-shell__settings-link app-shell__users-link"
+          :active="route.name === RouteName.Users"
+        >
+          Users
+        </SidebarNavItem>
+        <SidebarNavItem
           :to="{ name: RouteName.Settings }"
           icon="settings"
           class="app-shell__settings-link"
@@ -95,6 +104,10 @@ watch(
   margin: 0 0.75rem 0.75rem;
   border-top: 1px solid var(--nyx-c-divider);
   flex-shrink: 0;
+}
+
+.app-shell__users-link {
+  margin-bottom: 0.5rem;
 }
 
 .app-shell {

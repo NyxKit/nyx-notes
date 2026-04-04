@@ -53,6 +53,7 @@ What to test:
 - Auth middleware: `401` on missing or invalid token
 - `GET /api/auth/mode` returns the documented response shape, including additive metadata fields when present
 - `POST /api/auth/login` returns `422` when password login is unavailable for the configured auth mode
+- `/api/users` routes enforce `admin`-only access, required unique email/username validation, self-delete blocking, and last-admin protections
 - vault-ID routes resolve the correct personal or server vault in the HTTP contract
 - server-vault administration is `admin` only and personal vaults remain owner-scoped
 - `PUT` does not change `created_at`
@@ -78,6 +79,7 @@ What to test:
 - `useNotes`: CRUD methods call correct endpoints with correct payloads
 - shared frontend types reflect server/home/server-vault ownership and ID-based route parameters
 - `useAuth`: active-profile bootstrap discovers auth mode correctly, tokens are attached only for the active remote profile, and logging out one profile does not clear another saved profile session
+- `useUsers`: loads managed users only in `secret_key` admin contexts, exposes create/edit/delete mutations, and surfaces validation failures without stale state
 - `useWorkspaceProfiles`: duplicate `server_url + username` entries are rejected while same-server different-username profiles are allowed
 - `useGlobalNoteBrowsing`: loads notes per reachable/authenticated profile without mutating active profile context, aggregates results across vaults, and reports excluded-profile counts
 - `useComments`: maps comment records to `NyxAnnotation[]`, tracks active/focused annotations, and orders attached threads before detached ones
@@ -92,6 +94,7 @@ What to test:
 - First-run setup: choose local mode and enter the app without a login screen
 - First-run setup: connect to an existing remote `secret_key` server and enter the app with a saved remote profile
 - Profile switcher: switching between local and remote profiles loads the correct workspace and clears stale content from the previous profile
+- Secret-key admin flow: open `Users`, create a user, edit it, reject duplicate email/username, block self-delete, and delete an eligible user
 - Login → note list loads → open note → edit → save persists
 - Sidebar search: typing in `NoteSearch` routes to global search and updates results live without explicit submit
 - Sidebar recent notes: the list shows the most recently updated notes across reachable/authenticated profiles and vaults, with source server/vault labels

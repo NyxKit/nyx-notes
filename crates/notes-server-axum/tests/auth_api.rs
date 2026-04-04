@@ -1,7 +1,7 @@
 use std::{path::PathBuf, sync::Arc, time::{SystemTime, UNIX_EPOCH}};
 
 use axum::{body::{to_bytes, Body}, http::{Request, StatusCode}};
-use notes_auth_local::{LocalAuthStore, SecretKeyAuthStore};
+use notes_auth::{LocalAuthStore, SecretKeyAuthStore};
 use notes_core::AuthStore;
 use notes_server_axum::{routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
 use notes_storage_fs::FsStorage;
@@ -72,7 +72,7 @@ async fn login_returns_401_for_invalid_secret_key_credentials() {
     let _ = std::fs::create_dir_all(&root);
     let storage = FsStorage::new(&root);
     let auth: Arc<dyn AuthStore> = Arc::new(
-        SecretKeyAuthStore::new(&root, &[7; 32], Some("correct-password")).unwrap(),
+        SecretKeyAuthStore::new(&root, &[7; 32], Some("Correct-password1")).unwrap(),
     );
 
     let app = routes::router().with_state(AppState {

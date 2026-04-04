@@ -102,6 +102,21 @@ frontend/src/
       LoginView.vue          # login UI (adapts to auth mode)
       index.ts               # exports auth views
 
+  users/
+    index.ts                 # re-exports users barrels below
+    api/users.ts             # user management API calls
+    api/index.ts             # exports users API functions
+    components/
+      CreateEditUser.vue     # admin modal for creating and editing users
+      UsersTable.vue         # managed users table and row actions
+      index.ts               # exports users components
+    composables/
+      useUsers.ts            # user list and mutations
+      index.ts               # exports users composables
+    views/
+      UsersView.vue          # admin user-management page
+      index.ts               # exports users views
+
   shared/
     index.ts                 # re-exports shared barrels below
     api/client.ts            # base ofetch HTTP client (used by all domain API modules)
@@ -171,6 +186,15 @@ frontend/src/
   - auth mode display
   - server slug display
 - Server/profile management content remains available below a visual separator
+
+### `UsersView` (`/users`)
+
+- Available only in the authenticated shell when the backend reports `AUTH_MODE=secret_key`
+- Visible only to administrators
+- Uses a table to list managed users with `email`, `display_name`, `role`, and row actions
+- Provides `Add user` as a header action and a shared create/edit modal flow
+- The currently signed-in administrator may edit their own record but cannot delete themselves or remove their own administrator role
+- Validation messaging must explain the 12-character minimum and the requirement to include at least 3 of these 4 categories: lowercase letters, uppercase letters, digits, and symbols
 
 ### `VaultView` (`/vaults/:vault_id`)
 
@@ -277,6 +301,7 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
   - `Personal` -> personal vault overview
   - `<server name>` -> shared server-vault overview
 - Adds `Settings` as the bottom sidebar item
+- Adds `Users` just above `Settings` when the active server is in `secret_key` mode and the caller is an administrator
 - Links `Favorites` to `/favorites`
 - Leaves note creation to vault-specific surfaces such as `VaultView`
 

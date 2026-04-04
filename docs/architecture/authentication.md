@@ -29,11 +29,15 @@ Auth is pluggable. The active implementation is selected with `AUTH_MODE` and al
 
 ## `secret_key`
 
-- User records live in `$NOTES_ROOT/.users.json`
+- MVP server-managed user records live in a local SQLite database under `$NOTES_ROOT`
 - Passwords are hashed with Argon2
 - JWTs are signed with a server-managed HMAC key
 - The first bootstrap user is created as `admin`
-- Additional users default to role `user` unless the user store is edited or extended by later admin flows
+- Additional users are created and managed through backend-owned admin flows
+- This is the only auth mode that supports user management in the MVP
+- Every managed user requires a unique `username` and a unique `email`
+- Passwords must be at least 12 characters and include at least 3 of these 4 categories: lowercase letters, uppercase letters, digits, and symbols
+- Administrators may edit themselves, but may not delete themselves or demote themselves from `admin`
 
 Example stored user shape:
 
@@ -61,3 +65,5 @@ Optional additive fields may include:
 
 - Permission enforcement still belongs in `notes-server-axum`, not the auth store and not `FsStorage`
 - `SERVER_NAME` is used to derive the active server slug for filesystem layout, but user role membership lives with the auth/user record
+- `local` mode remains single-user and out of scope for user management
+- `oidc` mode remains future work for user-management support; Nyx Notes does not store passwords for `oidc`

@@ -106,7 +106,7 @@ The following implementation areas must be updated to match the new docs:
 - `notes-core`
 - `notes-storage-fs`
 - `notes-server-axum`
-- `notes-auth-local`
+- `notes-auth`
 - `notes-cli`
 - frontend shared types and any routes or stores that currently assume teams
 

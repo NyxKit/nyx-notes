@@ -27,6 +27,15 @@ An Axum HTTP server that exposes note CRUD operations over a REST API. It wraps 
 | `POST` | `/api/server/vaults` | Create a shared server vault (`admin` only) |
 | `DELETE` | `/api/server/vaults/:vault_id` | Delete a shared server vault (`admin` only; must be empty) |
 
+## User Routes
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/users` | List managed users (`admin`, `secret_key` mode only) |
+| `POST` | `/api/users` | Create a managed user (`admin`, `secret_key` mode only) |
+| `PATCH` | `/api/users/:user_id` | Update a managed user (`admin`, `secret_key` mode only) |
+| `DELETE` | `/api/users/:user_id` | Delete a managed user (`admin`, `secret_key` mode only) |
+
 ## Vault Routes
 
 | Method | Path | Description |
@@ -71,6 +80,15 @@ An Axum HTTP server that exposes note CRUD operations over a REST API. It wraps 
 - `admin` can create/delete shared server vaults and update their metadata
 - `user` can use existing shared server vaults but cannot create or delete them
 - Shared server vaults default to `permission: edit` for newly created notes in the MVP
+
+### Managed users
+
+- User management is available only in `secret_key` mode for the MVP
+- Only `admin` callers may list, create, update, or delete managed users
+- Every managed user requires a unique `username` and a unique `email`
+- Passwords must be at least 12 characters and include at least 3 of these 4 categories: lowercase letters, uppercase letters, digits, and symbols
+- The currently signed-in administrator may edit their own account details, but may not delete themselves or remove their own `admin` role
+- The last remaining administrator may not be deleted or demoted
 
 ### Notes and comments
 

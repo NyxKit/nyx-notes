@@ -2,7 +2,7 @@
 members = [
     "crates/notes-core",
     "crates/notes-storage-fs",
-    "crates/notes-auth-local",
+    "crates/notes-auth",
     "crates/notes-server-axum",
     "crates/notes-cli",
     "frontend/native",
@@ -10,8 +10,12 @@ members = [
 default-members = [
     "crates/notes-core",
     "crates/notes-storage-fs",
-    "crates/notes-auth-local",
+    "crates/notes-auth",
     "crates/notes-server-axum",
     "crates/notes-cli",
 ]
 resolver = "2"
+
+[workspace.dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }

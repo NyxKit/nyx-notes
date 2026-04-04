@@ -37,6 +37,33 @@ export interface User {
   role?: ServerRole
 }
 
+export interface ManagedUserSummary {
+  id: string
+  username: string
+  email: string
+  display_name: string
+  role: ServerRole
+  created_at: string
+  updated_at: string
+  can_edit: boolean
+  can_delete: boolean
+}
+
+export interface CreateUserRequest {
+  username: string
+  email: string
+  display_name: string
+  role: ServerRole
+  password: string
+}
+
+export interface UpdateUserRequest {
+  email: string
+  display_name: string
+  role: ServerRole
+  password?: string
+}
+
 // ─── Permissions ─────────────────────────────────────────────────────────────
 
 export type NotePermission = 'restricted' | 'comment' | 'edit'

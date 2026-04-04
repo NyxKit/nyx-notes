@@ -1,4 +1,4 @@
-use notes_core::NotePermission;
+use notes_core::{NotePermission, ServerRole};
 use serde::{Deserialize, Serialize};
 
 // --- Auth request types ---
@@ -98,6 +98,23 @@ pub struct PatchPermissionRequest {
 }
 
 // --- Vault request types ---
+
+#[derive(Deserialize)]
+pub struct CreateUserRequest {
+    pub username: String,
+    pub email: String,
+    pub display_name: String,
+    pub role: ServerRole,
+    pub password: String,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateUserRequest {
+    pub email: String,
+    pub display_name: String,
+    pub role: ServerRole,
+    pub password: Option<String>,
+}
 
 #[derive(Deserialize)]
 pub struct CreateVaultRequest {

@@ -54,7 +54,7 @@ src-tauri/
     main.rs           # Tauri app entry point; spawns Axum in background thread
     server.rs         # starts Axum on a free port, returns the bound address
   tauri.conf.json     # app name, identifier, window config, bundle targets
-  Cargo.toml          # depends on notes-server-axum, notes-storage-fs, notes-auth-local
+  Cargo.toml          # depends on notes-server-axum, notes-storage-fs, notes-auth
   icons/              # app icons for all platforms
 ```
 

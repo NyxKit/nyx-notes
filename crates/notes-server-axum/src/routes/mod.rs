@@ -2,6 +2,7 @@ pub mod auth;
 pub mod comments;
 pub mod notes;
 pub mod server;
+pub mod users;
 pub mod vaults;
 
 use axum::{
@@ -16,6 +17,8 @@ pub fn router() -> Router<AppState> {
         // Auth (unauthenticated)
         .route("/api/auth/mode", get(auth::get_mode))
         .route("/api/auth/login", post(auth::login))
+        .route("/api/users", get(users::list_users).post(users::create_user))
+        .route("/api/users/:user_id", patch(users::update_user).delete(users::delete_user))
         .route("/api/server", get(server::get_server))
         .route("/api/server/vaults", get(vaults::list_server_vaults).post(vaults::create_server_vault))
         // Notes (vault-scoped)

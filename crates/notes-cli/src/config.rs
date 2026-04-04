@@ -30,10 +30,10 @@ impl CliConfig {
     pub fn load() -> Self {
         let mut cfg = Self::from_file().unwrap_or_default();
 
-        if let Ok(v) = std::env::var("NOTES_ROOT") {
+        if let Ok(v) = std::env::var("NYX_ROOT") {
             cfg.notes_root = v;
         }
-        if let Ok(v) = std::env::var("NOTES_USER_ID") {
+        if let Ok(v) = std::env::var("LOCAL_USER_ID") {
             cfg.user_id = v;
         }
         if let Ok(v) = std::env::var("SERVER_NAME") {
