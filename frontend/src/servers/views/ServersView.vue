@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { NyxButton, NyxFormField, NyxInput } from 'nyx-kit/components'
+import { NyxTheme } from 'nyx-kit/types'
 import { fetchAuthMode } from '@/auth/api'
 import { useAuth } from '@/auth/composables'
 import { api } from '@/shared/api'
@@ -182,7 +183,7 @@ async function removeAllServerVaults() {
                 <strong>Remove all notes</strong>
                 <span>Delete every note across all vaults. Vaults remain.</span>
               </div>
-              <NyxButton :loading="removingNotes" class="danger-btn" @click="removeAllNotes">Remove Notes</NyxButton>
+              <NyxButton :theme="NyxTheme.Danger" :loading="removingNotes" @click="removeAllNotes">Remove Notes</NyxButton>
             </div>
 
             <div class="danger-item">
@@ -190,7 +191,7 @@ async function removeAllServerVaults() {
                 <strong>Remove all vaults</strong>
                 <span>Delete every vault and all notes inside them.</span>
               </div>
-              <NyxButton :loading="removingVaults" class="danger-btn" @click="removeAllVaults">Remove Vaults</NyxButton>
+              <NyxButton :theme="NyxTheme.Danger" :loading="removingVaults" @click="removeAllVaults">Remove Vaults</NyxButton>
             </div>
 
             <div class="danger-item">
@@ -198,7 +199,7 @@ async function removeAllServerVaults() {
                 <strong>Remove all homes</strong>
                 <span>Delete all user home directories (personal vaults and notes).</span>
               </div>
-              <NyxButton :loading="removingHomes" class="danger-btn" @click="removeAllHomes">Remove Homes</NyxButton>
+              <NyxButton :theme="NyxTheme.Danger" :loading="removingHomes" @click="removeAllHomes">Remove Homes</NyxButton>
             </div>
 
             <div class="danger-item">
@@ -206,7 +207,7 @@ async function removeAllServerVaults() {
                 <strong>Remove all server vaults</strong>
                 <span>Delete all shared server vaults and their notes.</span>
               </div>
-              <NyxButton :loading="removingServerVaults" class="danger-btn" @click="removeAllServerVaults">Remove Server Vaults</NyxButton>
+              <NyxButton :theme="NyxTheme.Danger" :loading="removingServerVaults" @click="removeAllServerVaults">Remove Server Vaults</NyxButton>
             </div>
           </div>
         </section>
@@ -250,7 +251,8 @@ async function removeAllServerVaults() {
 }
 
 .servers-section--danger {
-  border: 1px solid rgba(237, 137, 54, 0.3);
+  border: 1px solid var(--nyx-c-danger);
+  background: var(--nyx-c-danger-alt);
 }
 
 .servers-section__settings {
@@ -284,7 +286,7 @@ async function removeAllServerVaults() {
 }
 
 .danger-title {
-  color: #ed8936;
+  color: var(--nyx-c-danger);
 }
 
 .danger-grid {
@@ -299,9 +301,9 @@ async function removeAllServerVaults() {
   justify-content: space-between;
   gap: 1rem;
   padding: 0.75rem;
-  background: rgba(237, 137, 54, 0.05);
+  background: var(--nyx-c-bg-soft);
   border-radius: var(--nyx-radius-md);
-  border: 1px solid rgba(237, 137, 54, 0.15);
+  border: 1px solid var(--nyx-c-danger);
 }
 
 .danger-item__info {
@@ -329,14 +331,5 @@ async function removeAllServerVaults() {
   margin-top: 0.75rem;
   font-size: 0.75rem;
   color: var(--nyx-c-text-3);
-}
-
-:deep(.danger-btn) {
-  background: rgba(237, 137, 54, 0.15);
-  color: #ed8936;
-  border: 1px solid rgba(237, 137, 54, 0.3);
-}
-:deep(.danger-btn:hover) {
-  background: rgba(237, 137, 54, 0.25);
 }
 </style>
