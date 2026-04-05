@@ -13,4 +13,4 @@ pub use domain::{
     CommentVisibility, Note, NoteMeta, NotePermission, ServerRole, Vault, VaultIconUpdate,
     VaultOwner, VaultUpdate,
 };
-pub use storage::{StorageBackend, StorageError};
+pub use storage::{StorageBackend, StorageError, SyncResult};

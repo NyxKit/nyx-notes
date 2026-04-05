@@ -9,8 +9,8 @@ use std::path::{Path, PathBuf};
 use chrono::{DateTime, Utc};
 use notes_core::{
     slugify, Comment, CommentAnchor, CommentAttachment, CommentReply, CommentVisibility, Note,
-    NoteMeta, NotePermission, StorageBackend, StorageError, Vault, VaultIconUpdate, VaultOwner,
-    VaultUpdate,
+    NoteMeta, NotePermission, StorageBackend, StorageError, SyncResult, Vault, VaultIconUpdate,
+    VaultOwner, VaultUpdate,
 };
 use serde::{Deserialize, Serialize};
 
@@ -574,46 +574,268 @@ impl StorageBackend for FsStorage {
         Ok(())
     }
 
-    fn sync_owner_author_id(
-        &self,
-        owner: &VaultOwner,
-        new_user_id: &str,
-    ) -> Result<usize, StorageError> {
-        let vaults = self.list_vaults(owner)?;
-        let mut total_updated = 0;
+    fn sync_all_homes_author_id(&self) -> Result<SyncResult, StorageError> {
+        let homes_dir = self.homes_dir();
+        if !homes_dir.is_dir() {
+            return Ok(SyncResult::default());
+        }
 
-        for vault in &vaults {
-            // Rewrite .vault.json
-            let vault_dir = self.vault_dir_from_owner(owner, &vault.slug)?;
-            let vault_json_path = vault_dir.join(".vault.json");
-            if vault_json_path.is_file() {
+        let mut result = SyncResult::default();
+
+        for home_entry in std::fs::read_dir(&homes_dir)? {
+            let home_dir = home_entry?.path();
+            if !home_dir.is_dir() {
+                continue;
+            }
+
+            let home_slug = home_dir
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("")
+                .to_string();
+
+            // Read .home.json to get the correct user_id for this home
+            let home_json_path = home_dir.join(".home.json");
+            let correct_user_id = if home_json_path.is_file() {
+                let content = std::fs::read_to_string(&home_json_path)?;
+                let home_meta: HomeJson = serde_json::from_str(&content)
+                    .map_err(|e| StorageError::ParseError(e.to_string()))?;
+                Some(home_meta.owner_user_id)
+            } else {
+                None
+            };
+
+            result.homes_scanned += 1;
+
+            // Scan all vaults in this home
+            for vault_entry in std::fs::read_dir(&home_dir)? {
+                let vault_dir = vault_entry?.path();
+                if !vault_dir.is_dir() {
+                    continue;
+                }
+                let vault_json_path = vault_dir.join(".vault.json");
+                if !vault_json_path.is_file() {
+                    continue;
+                }
+
                 let content = std::fs::read_to_string(&vault_json_path)?;
                 let mut meta: VaultJson = serde_json::from_str(&content)
                     .map_err(|e| StorageError::ParseError(e.to_string()))?;
 
-                // Update the owner in .vault.json to reflect the correct owner
-                meta.owner = owner.clone();
+                // Fix .vault.json owner to match the home directory
+                let expected_owner = VaultOwner::Home {
+                    server_slug: self.active_server_slug(),
+                    home_slug: home_slug.clone(),
+                };
+                if meta.owner != expected_owner {
+                    meta.owner = expected_owner.clone();
+                    let updated_content = serde_json::to_string_pretty(&meta)
+                        .map_err(|e| StorageError::ParseError(e.to_string()))?;
+                    std::fs::write(&vault_json_path, updated_content)?;
+                    result.vaults_fixed += 1;
+                }
 
-                let updated_content = serde_json::to_string_pretty(&meta)
-                    .map_err(|e| StorageError::ParseError(e.to_string()))?;
-                std::fs::write(&vault_json_path, updated_content)?;
-            }
-
-            // Rewrite every note's frontmatter
-            for entry in std::fs::read_dir(&vault_dir)? {
-                let path = entry?.path();
-                if path.extension().map_or(false, |ext| ext == "md") {
-                    let content = std::fs::read_to_string(&path)?;
-                    if let Some(updated_content) =
-                        frontmatter::rewrite_author_id(&content, new_user_id)?
-                    {
-                        std::fs::write(&path, updated_content)?;
-                        total_updated += 1;
+                // Fix note author_ids
+                if let Some(ref user_id) = correct_user_id {
+                    for note_entry in std::fs::read_dir(&vault_dir)? {
+                        let path = note_entry?.path();
+                        if path.extension().map_or(false, |ext| ext == "md") {
+                            let note_content = std::fs::read_to_string(&path)?;
+                            if let Some(updated_content) =
+                                frontmatter::rewrite_author_id(&note_content, user_id)?
+                            {
+                                std::fs::write(&path, updated_content)?;
+                                result.notes_fixed += 1;
+                            }
+                        }
                     }
                 }
             }
         }
 
-        Ok(total_updated)
+        Ok(result)
+    }
+
+    fn remove_all_notes(&self) -> Result<usize, StorageError> {
+        let mut count = 0;
+
+        // Remove notes from all homes
+        let homes_dir = self.homes_dir();
+        if homes_dir.is_dir() {
+            for home_entry in std::fs::read_dir(&homes_dir)? {
+                let home_dir = home_entry?.path();
+                if !home_dir.is_dir() {
+                    continue;
+                }
+                for vault_entry in std::fs::read_dir(&home_dir)? {
+                    let vault_dir = vault_entry?.path();
+                    if !vault_dir.is_dir() {
+                        continue;
+                    }
+                    for note_entry in std::fs::read_dir(&vault_dir)? {
+                        let path = note_entry?.path();
+                        if path.extension().map_or(false, |ext| ext == "md") {
+                            std::fs::remove_file(&path)?;
+                            count += 1;
+                        }
+                        // Also remove comment sidecars
+                        if path.extension().map_or(false, |ext| ext == "json") {
+                            if path.file_name().map_or(false, |n| {
+                                n.to_str().map_or(false, |s| s.ends_with(".comments.json"))
+                            }) {
+                                std::fs::remove_file(&path)?;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Remove notes from server vaults
+        let server_vaults_dir = self.server_vaults_dir();
+        if server_vaults_dir.is_dir() {
+            for vault_entry in std::fs::read_dir(&server_vaults_dir)? {
+                let vault_dir = vault_entry?.path();
+                if !vault_dir.is_dir() {
+                    continue;
+                }
+                for note_entry in std::fs::read_dir(&vault_dir)? {
+                    let path = note_entry?.path();
+                    if path.extension().map_or(false, |ext| ext == "md") {
+                        std::fs::remove_file(&path)?;
+                        count += 1;
+                    }
+                    if path.extension().map_or(false, |ext| ext == "json") {
+                        if path.file_name().map_or(false, |n| {
+                            n.to_str().map_or(false, |s| s.ends_with(".comments.json"))
+                        }) {
+                            std::fs::remove_file(&path)?;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Remove notes from local vaults
+        let local_dir = self.local_dir();
+        if local_dir.is_dir() {
+            for vault_entry in std::fs::read_dir(&local_dir)? {
+                let vault_dir = vault_entry?.path();
+                if !vault_dir.is_dir() {
+                    continue;
+                }
+                for note_entry in std::fs::read_dir(&vault_dir)? {
+                    let path = note_entry?.path();
+                    if path.extension().map_or(false, |ext| ext == "md") {
+                        std::fs::remove_file(&path)?;
+                        count += 1;
+                    }
+                    if path.extension().map_or(false, |ext| ext == "json") {
+                        if path.file_name().map_or(false, |n| {
+                            n.to_str().map_or(false, |s| s.ends_with(".comments.json"))
+                        }) {
+                            std::fs::remove_file(&path)?;
+                        }
+                    }
+                }
+            }
+        }
+
+        Ok(count)
+    }
+
+    fn remove_all_vaults(&self) -> Result<usize, StorageError> {
+        let mut count = 0;
+        count += self.remove_all_notes()?;
+
+        // Remove vault dirs from all homes
+        let homes_dir = self.homes_dir();
+        if homes_dir.is_dir() {
+            for home_entry in std::fs::read_dir(&homes_dir)? {
+                let home_dir = home_entry?.path();
+                if !home_dir.is_dir() {
+                    continue;
+                }
+                for vault_entry in std::fs::read_dir(&home_dir)? {
+                    let vault_dir = vault_entry?.path();
+                    if vault_dir.is_dir() {
+                        std::fs::remove_dir_all(&vault_dir)?;
+                        count += 1;
+                    }
+                }
+            }
+        }
+
+        // Remove server vault dirs
+        let server_vaults_dir = self.server_vaults_dir();
+        if server_vaults_dir.is_dir() {
+            for vault_entry in std::fs::read_dir(&server_vaults_dir)? {
+                let vault_dir = vault_entry?.path();
+                if vault_dir.is_dir() {
+                    std::fs::remove_dir_all(&vault_dir)?;
+                    count += 1;
+                }
+            }
+        }
+
+        // Remove local vault dirs
+        let local_dir = self.local_dir();
+        if local_dir.is_dir() {
+            for vault_entry in std::fs::read_dir(&local_dir)? {
+                let vault_dir = vault_entry?.path();
+                if vault_dir.is_dir() {
+                    std::fs::remove_dir_all(&vault_dir)?;
+                    count += 1;
+                }
+            }
+        }
+
+        Ok(count)
+    }
+
+    fn remove_all_homes(&self) -> Result<usize, StorageError> {
+        let mut count = 0;
+
+        // Remove all notes and vaults from homes first
+        let homes_dir = self.homes_dir();
+        if homes_dir.is_dir() {
+            for home_entry in std::fs::read_dir(&homes_dir)? {
+                let home_dir = home_entry?.path();
+                if home_dir.is_dir() {
+                    std::fs::remove_dir_all(&home_dir)?;
+                    count += 1;
+                }
+            }
+        }
+
+        Ok(count)
+    }
+
+    fn remove_all_server_vaults(&self) -> Result<usize, StorageError> {
+        let mut count = 0;
+
+        // Remove notes first
+        let server_vaults_dir = self.server_vaults_dir();
+        if server_vaults_dir.is_dir() {
+            for vault_entry in std::fs::read_dir(&server_vaults_dir)? {
+                let vault_dir = vault_entry?.path();
+                if vault_dir.is_dir() {
+                    // Remove notes and sidecars
+                    for note_entry in std::fs::read_dir(&vault_dir)? {
+                        let path = note_entry?.path();
+                        if path.extension().map_or(false, |ext| ext == "md")
+                            || path.extension().map_or(false, |ext| ext == "json")
+                        {
+                            std::fs::remove_file(&path)?;
+                        }
+                    }
+                    // Remove vault dir
+                    std::fs::remove_dir_all(&vault_dir)?;
+                    count += 1;
+                }
+            }
+        }
+
+        Ok(count)
     }
 }

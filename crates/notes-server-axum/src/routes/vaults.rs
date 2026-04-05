@@ -237,21 +237,74 @@ pub async fn delete_server_vault(
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// Sync all vaults/notes for the current user's home to use the correct user_id.
-/// Rewrites .vault.json owner and every note's frontmatter author_id.
-pub async fn sync_personal_vaults(
+/// Scan ALL homes on disk, compare directory name (home_slug) with
+/// vault/note author_ids, and rewrite author_ids to the correct user_id
+/// from .home.json.
+pub async fn sync_all_homes(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser,
 ) -> Result<Json<serde_json::Value>, AppError> {
-    let owner = user_home_owner(&user.username);
-    let user_id = user.id.clone();
-    let count = state
-        .storage
-        .sync_owner_author_id(owner, user_id.clone())
-        .await?;
+    if !matches!(user.role, ServerRole::Admin) {
+        return Err(AppError::Forbidden);
+    }
+
+    let result = state.storage.sync_all_homes_author_id().await?;
 
     Ok(Json(serde_json::json!({
-        "updated": count,
-        "user_id": user_id,
+        "homes_scanned": result.homes_scanned,
+        "vaults_fixed": result.vaults_fixed,
+        "notes_fixed": result.notes_fixed,
     })))
+}
+
+pub async fn remove_all_notes(
+    State(state): State<AppState>,
+    AuthenticatedUser(user): AuthenticatedUser,
+) -> Result<Json<serde_json::Value>, AppError> {
+    if !matches!(user.role, ServerRole::Admin) {
+        return Err(AppError::Forbidden);
+    }
+
+    let count = state.storage.remove_all_notes().await?;
+
+    Ok(Json(serde_json::json!({ "removed": count })))
+}
+
+pub async fn remove_all_vaults(
+    State(state): State<AppState>,
+    AuthenticatedUser(user): AuthenticatedUser,
+) -> Result<Json<serde_json::Value>, AppError> {
+    if !matches!(user.role, ServerRole::Admin) {
+        return Err(AppError::Forbidden);
+    }
+
+    let count = state.storage.remove_all_vaults().await?;
+
+    Ok(Json(serde_json::json!({ "removed": count })))
+}
+
+pub async fn remove_all_homes(
+    State(state): State<AppState>,
+    AuthenticatedUser(user): AuthenticatedUser,
+) -> Result<Json<serde_json::Value>, AppError> {
+    if !matches!(user.role, ServerRole::Admin) {
+        return Err(AppError::Forbidden);
+    }
+
+    let count = state.storage.remove_all_homes().await?;
+
+    Ok(Json(serde_json::json!({ "removed": count })))
+}
+
+pub async fn remove_all_server_vaults(
+    State(state): State<AppState>,
+    AuthenticatedUser(user): AuthenticatedUser,
+) -> Result<Json<serde_json::Value>, AppError> {
+    if !matches!(user.role, ServerRole::Admin) {
+        return Err(AppError::Forbidden);
+    }
+
+    let count = state.storage.remove_all_server_vaults().await?;
+
+    Ok(Json(serde_json::json!({ "removed": count })))
 }

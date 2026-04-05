@@ -61,7 +61,12 @@ pub fn router() -> Router<AppState> {
             get(vaults::list_vaults).post(vaults::create_vault),
         )
         .route("/api/vaults/personal", get(vaults::list_personal_vaults))
-        .route("/api/vaults/personal/sync", post(vaults::sync_personal_vaults))
+        // Admin-only sync and cleanup operations
+        .route("/api/admin/sync-homes", post(vaults::sync_all_homes))
+        .route("/api/admin/remove-all-notes", post(vaults::remove_all_notes))
+        .route("/api/admin/remove-all-vaults", post(vaults::remove_all_vaults))
+        .route("/api/admin/remove-all-homes", post(vaults::remove_all_homes))
+        .route("/api/admin/remove-all-server-vaults", post(vaults::remove_all_server_vaults))
         .route(
             "/api/vaults/:vault_id",
             patch(vaults::patch_vault).delete(vaults::delete_vault),

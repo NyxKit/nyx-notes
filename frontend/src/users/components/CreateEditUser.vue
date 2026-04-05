@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue'
 import { NyxButton, NyxForm, NyxFormField, NyxInput, NyxModal, NyxSelect } from 'nyx-kit/components'
-import { NyxInputType } from 'nyx-kit/types'
+import { NyxInputType, NyxTheme, NyxVariant } from 'nyx-kit/types'
 import type { ManagedUserSummary, ServerRole } from '@/shared/types'
 
 const props = defineProps<{
@@ -60,37 +60,37 @@ function submit() {
     <NyxForm class="create-edit-user" @submit.prevent="submit">
       <NyxFormField label="Username">
         <template #default="{ id }">
-          <NyxInput :id="id" v-model="form.username" :disabled="isEdit" />
+          <NyxInput :id="id" v-model="form.username" :variant="NyxVariant.Soft" :disabled="isEdit" />
         </template>
       </NyxFormField>
 
       <NyxFormField label="Email">
         <template #default="{ id }">
-          <NyxInput :id="id" v-model="form.email" />
+          <NyxInput :id="id" v-model="form.email" :variant="NyxVariant.Soft" />
         </template>
       </NyxFormField>
 
       <NyxFormField label="Display Name">
         <template #default="{ id }">
-          <NyxInput :id="id" v-model="form.display_name" />
+          <NyxInput :id="id" v-model="form.display_name" :variant="NyxVariant.Soft" />
         </template>
       </NyxFormField>
 
       <NyxFormField label="Role">
         <template #default="{ id }">
-          <NyxSelect :id="id" v-model="form.role" :options="roleOptions" :disabled="roleDisabled" />
+          <NyxSelect :id="id" v-model="form.role" :options="roleOptions" :disabled="roleDisabled" :variant="NyxVariant.Soft" />
         </template>
       </NyxFormField>
 
       <NyxFormField :label="isEdit ? 'New Password' : 'Password'" hint="At least 12 characters and 3 of 4 categories: lowercase, uppercase, digit, symbol.">
         <template #default="{ id }">
-          <NyxInput :id="id" v-model="form.password" :type="NyxInputType.Password" />
+          <NyxInput :id="id" v-model="form.password" :type="NyxInputType.Password" :variant="NyxVariant.Soft" />
         </template>
       </NyxFormField>
 
       <div class="create-edit-user__actions">
         <NyxButton type="button" @click="emit('update:open', false)">Cancel</NyxButton>
-        <NyxButton :gradient="true" type="submit" :disabled="saving">{{ isEdit ? 'Save' : 'Create' }}</NyxButton>
+        <NyxButton :gradient="true" type="submit" :disabled="saving" :theme="NyxTheme.Success" :variant="NyxVariant.Soft">{{ isEdit ? 'Save' : 'Create' }}</NyxButton>
       </div>
     </NyxForm>
   </NyxModal>

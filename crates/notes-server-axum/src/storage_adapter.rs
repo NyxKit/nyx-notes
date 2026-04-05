@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
 use notes_core::{
-    Comment, Note, NoteMeta, NotePermission, StorageBackend, StorageError, Vault, VaultOwner,
-    VaultUpdate,
+    Comment, Note, NoteMeta, NotePermission, StorageBackend, StorageError, SyncResult, Vault,
+    VaultOwner, VaultUpdate,
 };
 
 /// Async wrapper around `Arc<dyn StorageBackend>`.
@@ -142,13 +142,37 @@ impl AsyncStorageAdapter {
             .map_err(Self::wrap_join_err)?
     }
 
-    pub async fn sync_owner_author_id(
-        &self,
-        owner: VaultOwner,
-        new_user_id: String,
-    ) -> Result<usize, StorageError> {
+    pub async fn sync_all_homes_author_id(&self) -> Result<SyncResult, StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.sync_owner_author_id(&owner, &new_user_id))
+        tokio::task::spawn_blocking(move || s.sync_all_homes_author_id())
+            .await
+            .map_err(Self::wrap_join_err)?
+    }
+
+    pub async fn remove_all_notes(&self) -> Result<usize, StorageError> {
+        let s = Arc::clone(&self.0);
+        tokio::task::spawn_blocking(move || s.remove_all_notes())
+            .await
+            .map_err(Self::wrap_join_err)?
+    }
+
+    pub async fn remove_all_vaults(&self) -> Result<usize, StorageError> {
+        let s = Arc::clone(&self.0);
+        tokio::task::spawn_blocking(move || s.remove_all_vaults())
+            .await
+            .map_err(Self::wrap_join_err)?
+    }
+
+    pub async fn remove_all_homes(&self) -> Result<usize, StorageError> {
+        let s = Arc::clone(&self.0);
+        tokio::task::spawn_blocking(move || s.remove_all_homes())
+            .await
+            .map_err(Self::wrap_join_err)?
+    }
+
+    pub async fn remove_all_server_vaults(&self) -> Result<usize, StorageError> {
+        let s = Arc::clone(&self.0);
+        tokio::task::spawn_blocking(move || s.remove_all_server_vaults())
             .await
             .map_err(Self::wrap_join_err)?
     }

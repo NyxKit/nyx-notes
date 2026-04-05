@@ -77,13 +77,13 @@ async function confirmDelete(user: ManagedUserSummary) {
     <header class="users-view__header">
       <div>
         <h1>Users</h1>
-        <p>Manage server users for this secret_key server.</p>
+        <p>Manage server users for this server.</p>
       </div>
       <NyxButton v-if="canManageUsers && !canTeleportHeaderActions" :gradient="true" @click="openCreate">Add user</NyxButton>
     </header>
 
     <div v-if="!canManageUsers" class="users-view__empty">
-      <p>User management is available only to administrators in secret_key mode.</p>
+      <p>User management is available only to administrators.</p>
     </div>
 
     <div v-else-if="loading" class="users-view__empty">
@@ -121,8 +121,6 @@ async function confirmDelete(user: ManagedUserSummary) {
 <style scoped>
 .users-view {
   padding: 1.5rem;
-  display: grid;
-  gap: 1rem;
 }
 
 .users-view__header h1 {

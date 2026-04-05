@@ -18,6 +18,13 @@ pub enum StorageError {
     ParseError(String),
 }
 
+#[derive(Debug, Clone, Default)]
+pub struct SyncResult {
+    pub homes_scanned: usize,
+    pub vaults_fixed: usize,
+    pub notes_fixed: usize,
+}
+
 pub trait StorageBackend: Send + Sync {
     // Vault management
     fn list_vaults(&self, owner: &VaultOwner) -> Result<Vec<Vault>, StorageError>;
@@ -69,11 +76,14 @@ pub trait StorageBackend: Send + Sync {
         comments: &[Comment],
     ) -> Result<(), StorageError>;
 
-    // Sync: rewrite author_id across all vaults/notes for a given owner.
-    // Used when migrating from a server where the user had a different user_id.
-    fn sync_owner_author_id(
-        &self,
-        owner: &VaultOwner,
-        new_user_id: &str,
-    ) -> Result<usize, StorageError>;
+    // Sync: scan all homes on disk, compare directory name (home_slug) with
+    // vault/note author_ids, and rewrite author_ids to the correct user_id
+    // from .home.json. Returns (homes_scanned, notes_fixed, vaults_fixed).
+    fn sync_all_homes_author_id(&self) -> Result<SyncResult, StorageError>;
+
+    // Destructive cleanup operations (admin-only, no undo)
+    fn remove_all_notes(&self) -> Result<usize, StorageError>;
+    fn remove_all_vaults(&self) -> Result<usize, StorageError>;
+    fn remove_all_homes(&self) -> Result<usize, StorageError>;
+    fn remove_all_server_vaults(&self) -> Result<usize, StorageError>;
 }
