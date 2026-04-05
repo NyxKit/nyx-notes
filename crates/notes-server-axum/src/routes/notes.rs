@@ -70,15 +70,22 @@ pub async fn list_notes(
     let all = state.storage.list_notes(owner, vault_id).await?;
 
     // Filter to notes this user can view.
-    // The vault-level permission floor is implicitly enforced: the caller must have
-    // access to the vault before reaching this handler (enforced by the route layer
-    // once team-vault access checks are added to the vault middleware).
+    // Match by user ID or username (supports migrated notes where author_id
+    // may be a username instead of a UUID).
     let visible = all
         .into_iter()
-        .filter(|n| n.author_id == user.id || n.permission != NotePermission::Restricted)
+        .filter(|n| {
+            let is_author = n.author_id == user.id || n.author_id == user.username;
+            is_author || n.permission != NotePermission::Restricted
+        })
         .collect();
 
     Ok(Json(visible))
+}
+
+/// Check if the note's author matches the current user (by ID or username).
+fn is_note_author(user: &notes_core::User, note: &notes_core::Note) -> bool {
+    note.meta.author_id == user.id || note.meta.author_id == user.username
 }
 
 pub async fn get_note(
@@ -89,7 +96,7 @@ pub async fn get_note(
     let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
     let note = state.storage.load_note(owner, vault_id, id).await?;
 
-    if note.meta.author_id != user.id && note.meta.permission == NotePermission::Restricted {
+    if !is_note_author(&user, &note) && note.meta.permission == NotePermission::Restricted {
         return Err(AppError::Forbidden);
     }
 
@@ -121,7 +128,7 @@ pub async fn create_note(
             vault_id: vault_id.clone(),
             title: body.title,
             description: distill_markdown_description(&body.content),
-            author_id: user.id,
+            author_id: user.id.clone(),
             tags: body.tags,
             category: body.category,
             created_at: now,
@@ -146,7 +153,7 @@ pub async fn update_note(
     let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
     let mut note = state.storage.load_note(owner.clone(), vault_id.clone(), id).await?;
 
-    if note.meta.author_id != user.id && note.meta.permission != NotePermission::Edit {
+    if !is_note_author(&user, &note) && note.meta.permission != NotePermission::Edit {
         return Err(AppError::Forbidden);
     }
 
@@ -170,7 +177,7 @@ pub async fn delete_note(
     let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
     let note = state.storage.load_note(owner.clone(), vault_id.clone(), id.clone()).await?;
 
-    if note.meta.author_id != user.id {
+    if !is_note_author(&user, &note) {
         // The vault/team owner may also delete notes they don't author.
         let vault = state.storage.load_vault(owner.clone(), vault_id.clone()).await?;
         let is_owner = match &vault.owner {
@@ -196,7 +203,7 @@ pub async fn patch_note_permission(
     let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
     let mut note = state.storage.load_note(owner.clone(), vault_id, id).await?;
 
-    if note.meta.author_id != user.id {
+    if !is_note_author(&user, &note) {
         return Err(AppError::Forbidden);
     }
 
