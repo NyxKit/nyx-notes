@@ -125,14 +125,14 @@ watch(
 .app-shell__sidebar {
   grid-column: 1;
   grid-row: 1 / -1;
-  width: max(288px, 20dvw);
+  width: max(288px, 15dvw);
   min-width: 0;
   max-height: 100dvh;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app-shell__sidebar-inner {
-  width: 288px;
+  width: 100%;
   height: 100%;
   background: var(--nyx-c-bg-soft);
   display: flex;
