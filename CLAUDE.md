@@ -42,6 +42,8 @@ Do not add a new Rust crate, npm package, or external service without flagging i
 - Filesystem-backed notes through the existing backend APIs; browser local storage for workspace profiles, sessions, and favorites persistence (012-global-note-browsing)
 - Rust stable workspace, TypeScript 5, Vue 3 Composition API + `axum`, `tokio`, `serde`, `serde_yaml`, `serde_json`, `chrono`, `clap`, `dialoguer`, `comfy-table`, Vue Router, Pinia, `ofetch`, `nyx-kit` (013-file-system)
 - Local filesystem under `NOTES_ROOT` with Markdown notes, YAML frontmatter, JSON metadata sidecars, and JSON namespace metadata files (013-file-system)
+- Rust 2021 workspace crates, TypeScript 5.x, Vue 3 Composition API + Axum, notes-core/auth/storage crates, Argon2 password hashing, Vue Router, Pinia, ofetch, nyx-kit (014-user-management)
+- Filesystem for notes remains unchanged; user credentials move to a server-local embedded SQLite store with non-reversible password hashes (014-user-management)
 
 ## Recent Changes
 - 001-route-domains: Added TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5

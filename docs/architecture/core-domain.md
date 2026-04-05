@@ -170,6 +170,32 @@ pub struct User {
     pub id: String,
     pub email: String,
     pub display_name: String,
+    pub role: ServerRole,
+}
+
+pub struct ManagedUserSummary {
+    pub id: String,
+    pub username: String,
+    pub email: String,
+    pub display_name: String,
+    pub role: ServerRole,
+    pub can_edit: bool,
+    pub can_delete: bool,
+}
+
+pub struct CreateUserInput {
+    pub username: String,
+    pub email: String,
+    pub display_name: String,
+    pub role: ServerRole,
+    pub password: String,
+}
+
+pub struct UpdateUserInput {
+    pub email: String,
+    pub display_name: String,
+    pub role: ServerRole,
+    pub password: Option<String>,
 }
 
 /// Returned by `AuthStore::login` on success.
@@ -185,6 +211,18 @@ pub trait AuthStore: Send + Sync {
     /// Authenticate with username + password. Only `secret_key` mode implements this.
     /// Default returns `AuthError::ServiceError("login not supported")`.
     fn login(&self, username: &str, password: &str) -> Result<LoginToken, AuthError> { ... }
+
+    /// List all managed users visible to an administrator. MVP support is `secret_key` only.
+    fn list_users(&self, actor: &User) -> Result<Vec<ManagedUserSummary>, AuthError> { ... }
+
+    /// Create a managed user. MVP support is `secret_key` only.
+    fn create_user(&self, actor: &User, input: CreateUserInput) -> Result<ManagedUserSummary, AuthError> { ... }
+
+    /// Update a managed user. MVP support is `secret_key` only.
+    fn update_user(&self, actor: &User, user_id: &str, input: UpdateUserInput) -> Result<ManagedUserSummary, AuthError> { ... }
+
+    /// Delete a managed user. MVP support is `secret_key` only.
+    fn delete_user(&self, actor: &User, user_id: &str) -> Result<(), AuthError> { ... }
 }
 ```
 

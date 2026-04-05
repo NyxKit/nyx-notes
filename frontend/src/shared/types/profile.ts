@@ -49,6 +49,7 @@ export interface ProfileSession {
   state: ProfileSessionState
   auth_mode?: AuthMode
   token?: string
+  username?: string
   expires_at?: string
   last_error?: string
 }

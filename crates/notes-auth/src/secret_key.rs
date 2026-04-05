@@ -1,15 +1,13 @@
-use std::{
-    path::Path,
-    sync::{Arc, RwLock},
-};
+use std::path::Path;
 
 use chrono::Utc;
 use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
-use notes_core::{AuthError, AuthStore, LoginToken, ServerRole, User};
+use notes_core::{
+    AuthError, AuthStore, CreateUserInput, LoginToken, ManagedUserSummary, UpdateUserInput, User,
+};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::user_store::{load_users, save_users, LocalUser};
+use crate::sqlite_user_store::SqliteUserStore;
 
 const TOKEN_TTL_SECS: u64 = 86_400; // 24 hours
 
@@ -24,66 +22,29 @@ struct Claims {
 /// `AuthStore` implementation for `AUTH_MODE=secret_key`.
 ///
 /// Signs HS256 JWTs with a server-managed key. Users are stored in
-/// `$NOTES_ROOT/.users.json` with Argon2-hashed passwords.
+/// a local SQLite database with Argon2-hashed passwords.
 pub struct SecretKeyAuthStore {
     encoding_key: EncodingKey,
     decoding_key: DecodingKey,
-    users: Arc<RwLock<Vec<LocalUser>>>,
+    users: SqliteUserStore,
 }
 
 impl SecretKeyAuthStore {
     /// Construct from a raw 32-byte (256-bit) key and load users from `notes_root`.
-    ///
-    /// If `notes_root/.users.json` is missing or empty and `admin_password` is provided,
-    /// an initial admin user is created automatically.
-    pub fn new(
-        notes_root: &Path,
-        key_bytes: &[u8],
-        admin_password: Option<&str>,
-    ) -> Result<Self, AuthError> {
-        let mut users = load_users(notes_root)?;
-
-        if users.is_empty() {
-            match admin_password {
-                Some(password) => {
-                    let admin = LocalUser::new(
-                        Uuid::new_v4().to_string(),
-                        "admin".into(),
-                        "admin@localhost".into(),
-                        "Admin".into(),
-                        password,
-                    )?;
-                    users.push(LocalUser {
-                        role: ServerRole::Admin,
-                        ..admin
-                    });
-                    save_users(notes_root, &users)?;
-                    eprintln!("Created initial admin user.");
-                }
-                None => {
-                    eprintln!(
-                        "Warning: no users in .users.json and NOTES_ADMIN_PASSWORD is not set. \
-                         Login will fail until a user is created."
-                    );
-                }
-            }
-        }
+    pub fn new(notes_root: &Path, key_bytes: &[u8], server_slug: &str) -> Result<Self, AuthError> {
+        let users = SqliteUserStore::new(notes_root, server_slug)?;
 
         Ok(Self {
             encoding_key: EncodingKey::from_secret(key_bytes),
             decoding_key: DecodingKey::from_secret(key_bytes),
-            users: Arc::new(RwLock::new(users)),
+            users,
         })
     }
 }
 
 impl AuthStore for SecretKeyAuthStore {
     fn find_user(&self, user_id: &str) -> Result<Option<User>, AuthError> {
-        let users = self
-            .users
-            .read()
-            .map_err(|_| AuthError::ServiceError("user store lock poisoned".into()))?;
-        Ok(users.iter().find(|u| u.id == user_id).map(to_user))
+        self.users.find_user(user_id)
     }
 
     fn verify_token(&self, token: &str) -> Result<User, AuthError> {
@@ -95,23 +56,10 @@ impl AuthStore for SecretKeyAuthStore {
     }
 
     fn login(&self, username: &str, password: &str) -> Result<LoginToken, AuthError> {
-        let users = self
-            .users
-            .read()
-            .map_err(|_| AuthError::ServiceError("user store lock poisoned".into()))?;
-
-        let local_user = users
-            .iter()
-            .find(|u| u.username == username)
-            .ok_or(AuthError::InvalidCredentials)?;
-
-        local_user.verify_password(password)?;
+        let user = self.users.login_user(username, password)?;
 
         let exp = (Utc::now().timestamp() as u64 + TOKEN_TTL_SECS) as usize;
-        let claims = Claims {
-            sub: local_user.id.clone(),
-            exp,
-        };
+        let claims = Claims { sub: user.id, exp };
         let token = encode(&Header::default(), &claims, &self.encoding_key)
             .map_err(|e| AuthError::ServiceError(e.to_string()))?;
 
@@ -120,14 +68,52 @@ impl AuthStore for SecretKeyAuthStore {
             expires_in: TOKEN_TTL_SECS,
         })
     }
-}
 
-fn to_user(u: &LocalUser) -> User {
-    User {
-        id: u.id.clone(),
-        email: u.email.clone(),
-        display_name: u.display_name.clone(),
-        role: u.role.clone(),
+    fn list_users(&self, actor: &User) -> Result<Vec<ManagedUserSummary>, AuthError> {
+        self.users.list_users(actor)
+    }
+
+    fn create_user(
+        &self,
+        actor: &User,
+        input: CreateUserInput,
+    ) -> Result<ManagedUserSummary, AuthError> {
+        self.users.create_user(actor, input)
+    }
+
+    fn update_user(
+        &self,
+        actor: &User,
+        user_id: &str,
+        input: UpdateUserInput,
+    ) -> Result<ManagedUserSummary, AuthError> {
+        self.users.update_user(actor, user_id, input)
+    }
+
+    fn delete_user(&self, actor: &User, user_id: &str) -> Result<(), AuthError> {
+        self.users.delete_user(actor, user_id)
+    }
+
+    fn is_initialized(&self) -> Result<bool, AuthError> {
+        Ok(self.users.user_count()? > 0)
+    }
+
+    fn setup_initial_user(&self, input: CreateUserInput) -> Result<LoginToken, AuthError> {
+        if self.users.user_count()? > 0 {
+            return Err(AuthError::Conflict("system already initialized".into()));
+        }
+
+        let user = self.users.create_initial_user(input)?;
+
+        let exp = (Utc::now().timestamp() as u64 + TOKEN_TTL_SECS) as usize;
+        let claims = Claims { sub: user.id, exp };
+        let token = encode(&Header::default(), &claims, &self.encoding_key)
+            .map_err(|e| AuthError::ServiceError(e.to_string()))?;
+
+        Ok(LoginToken {
+            token,
+            expires_in: TOKEN_TTL_SECS,
+        })
     }
 }
 

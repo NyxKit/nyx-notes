@@ -1,5 +1,5 @@
 [package]
-name = "notes-auth-local"
+name = "notes-auth"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,6 +9,10 @@ argon2 = "0.5"
 jsonwebtoken = "9"
 rand = "0.8"
 uuid = { version = "1", features = ["v4"] }
-serde = { version = "1", features = ["derive"] }
+serde = { workspace = true }
 serde_json = "1"
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { workspace = true }
+rusqlite = { version = "0.32", features = ["bundled", "chrono"] }
+
+[dev-dependencies]
+tempfile = "3"

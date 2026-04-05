@@ -17,7 +17,7 @@ import type { Vault } from '@/shared/types'
 const route = useRoute()
 const vaultStore = useVaultStore()
 const notesStore = useNotesStore()
-const { apiEpoch, isAuthenticated } = useAuth()
+const { apiEpoch, isAuthenticated, authMode, serverMetadata } = useAuth()
 const { activeProfile } = useWorkspaceProfiles()
 const { vaults } = storeToRefs(vaultStore)
 const { load } = vaultStore
@@ -70,6 +70,15 @@ watch(
         <SidebarNav />
         <NoteList />
         <SidebarNavItem
+          v-if="authMode === 'secret_key' && serverMetadata?.role === 'admin'"
+          :to="{ name: RouteName.Users }"
+          icon="users"
+          class="app-shell__settings-link app-shell__users-link"
+          :active="route.name === RouteName.Users"
+        >
+          Users
+        </SidebarNavItem>
+        <SidebarNavItem
           :to="{ name: RouteName.Settings }"
           icon="settings"
           class="app-shell__settings-link"
@@ -97,6 +106,10 @@ watch(
   flex-shrink: 0;
 }
 
+.app-shell__users-link {
+  margin-bottom: 0.5rem;
+}
+
 .app-shell {
   --app-shell-header-height: 3.25rem;
 
@@ -112,14 +125,14 @@ watch(
 .app-shell__sidebar {
   grid-column: 1;
   grid-row: 1 / -1;
-  width: max(288px, 20dvw);
+  width: max(288px, 15dvw);
   min-width: 0;
   max-height: 100dvh;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .app-shell__sidebar-inner {
-  width: 288px;
+  width: 100%;
   height: 100%;
   background: var(--nyx-c-bg-soft);
   display: flex;

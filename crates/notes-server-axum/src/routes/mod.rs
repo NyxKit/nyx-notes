@@ -2,6 +2,7 @@ pub mod auth;
 pub mod comments;
 pub mod notes;
 pub mod server;
+pub mod users;
 pub mod vaults;
 
 use axum::{
@@ -15,7 +16,11 @@ pub fn router() -> Router<AppState> {
     Router::new()
         // Auth (unauthenticated)
         .route("/api/auth/mode", get(auth::get_mode))
+        .route("/api/auth/initialized", get(auth::get_initialized))
+        .route("/api/auth/setup", post(auth::setup))
         .route("/api/auth/login", post(auth::login))
+        .route("/api/users", get(users::list_users).post(users::create_user))
+        .route("/api/users/:user_id", patch(users::update_user).delete(users::delete_user))
         .route("/api/server", get(server::get_server))
         .route("/api/server/vaults", get(vaults::list_server_vaults).post(vaults::create_server_vault))
         // Notes (vault-scoped)
@@ -56,6 +61,12 @@ pub fn router() -> Router<AppState> {
             get(vaults::list_vaults).post(vaults::create_vault),
         )
         .route("/api/vaults/personal", get(vaults::list_personal_vaults))
+        // Admin-only sync and cleanup operations
+        .route("/api/admin/sync-homes", post(vaults::sync_all_homes))
+        .route("/api/admin/remove-all-notes", post(vaults::remove_all_notes))
+        .route("/api/admin/remove-all-vaults", post(vaults::remove_all_vaults))
+        .route("/api/admin/remove-all-homes", post(vaults::remove_all_homes))
+        .route("/api/admin/remove-all-server-vaults", post(vaults::remove_all_server_vaults))
         .route(
             "/api/vaults/:vault_id",
             patch(vaults::patch_vault).delete(vaults::delete_vault),

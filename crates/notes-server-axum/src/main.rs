@@ -1,6 +1,6 @@
 use std::{path::Path, sync::Arc};
 
-use notes_auth_local::{load_or_generate_key, LocalAuthStore, SecretKeyAuthStore};
+use notes_auth::{load_or_generate_key, LocalAuthStore, SecretKeyAuthStore};
 use notes_core::AuthStore;
 use notes_server_axum::{
     routes,
@@ -13,11 +13,13 @@ use notes_storage_fs::FsStorage;
 #[tokio::main]
 async fn main() {
     let _ = dotenvy::dotenv();
-    let notes_root_raw = std::env::var("NOTES_ROOT").unwrap_or_else(|_| "./notes".into());
+    let server_name = std::env::var("SERVER_NAME").unwrap_or_else(|_| "Nyx Server".into());
+    let server_slug = notes_core::slugify(&server_name);
     let port = std::env::var("PORT").unwrap_or_else(|_| "8080".into());
     let auth_mode = std::env::var("AUTH_MODE").unwrap_or_else(|_| "local".into());
 
     // Expand a leading `~/` so that .env files can use tilde paths portably.
+    let notes_root_raw = std::env::var("NYX_ROOT").unwrap_or_else(|_| "./nyx-server".into());
     let notes_root = if let Some(rest) = notes_root_raw.strip_prefix("~/") {
         let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
         format!("{home}/{rest}")
@@ -26,20 +28,19 @@ async fn main() {
     };
 
     let notes_root_path = Path::new(&notes_root);
-    std::fs::create_dir_all(notes_root_path).expect("failed to create NOTES_ROOT");
+    std::fs::create_dir_all(notes_root_path).expect("failed to create NYX_ROOT");
 
     let (auth, auth_config): (Arc<dyn AuthStore>, AuthConfig) = match auth_mode.as_str() {
         "local" => {
-            let user_id = std::env::var("NOTES_USER_ID").unwrap_or_else(|_| "local".into());
+            let user_id = std::env::var("LOCAL_USER_ID").unwrap_or_else(|_| "local".into());
             let name =
                 std::env::var("NOTES_LOCAL_USER_NAME").unwrap_or_else(|_| "Local User".into());
             (Arc::new(LocalAuthStore::new(user_id, name)), AuthConfig::Local)
         }
         "secret_key" => {
             let key = load_or_generate_key();
-            let admin_password = std::env::var("NOTES_ADMIN_PASSWORD").ok();
             let store =
-                SecretKeyAuthStore::new(notes_root_path, &key, admin_password.as_deref())
+                SecretKeyAuthStore::new(notes_root_path, &key, &server_slug)
                     .expect("failed to initialise secret_key auth store");
             (Arc::new(store), AuthConfig::SecretKey)
         }

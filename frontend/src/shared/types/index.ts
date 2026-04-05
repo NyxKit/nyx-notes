@@ -21,6 +21,7 @@ export interface ServerMetadata {
   slug: string
   name: string
   current_user_id: string
+  current_user_username: string
   role: ServerRole
   root_path?: string
 }
@@ -35,6 +36,33 @@ export interface User {
   email: string
   display_name: string
   role?: ServerRole
+}
+
+export interface ManagedUserSummary {
+  id: string
+  username: string
+  email: string
+  display_name: string
+  role: ServerRole
+  created_at: string
+  updated_at: string
+  can_edit: boolean
+  can_delete: boolean
+}
+
+export interface CreateUserRequest {
+  username: string
+  email: string
+  display_name: string
+  role: ServerRole
+  password: string
+}
+
+export interface UpdateUserRequest {
+  email: string
+  display_name: string
+  role: ServerRole
+  password?: string
 }
 
 // ─── Permissions ─────────────────────────────────────────────────────────────

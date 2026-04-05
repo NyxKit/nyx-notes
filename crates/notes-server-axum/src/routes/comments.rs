@@ -6,31 +6,72 @@ use axum::{
 use chrono::Utc;
 use notes_core::{
     Comment, CommentAnchor, CommentAttachment, CommentReply, CommentVisibility, NotePermission,
+    ServerRole, User, VaultOwner, slugify,
 };
 use uuid::Uuid;
 
 use crate::{
     auth_extractor::AuthenticatedUser,
     error::AppError,
+    storage_adapter::AsyncStorageAdapter,
     types::{CreateCommentRequest, CreateReplyRequest, PatchCommentRequest},
     AppState,
 };
 
+fn current_server_slug() -> String {
+    slugify(&std::env::var("SERVER_NAME").unwrap_or_else(|_| "Main Server".into()))
+}
+
+fn user_home_owner(username: &str) -> VaultOwner {
+    VaultOwner::Home {
+        server_slug: current_server_slug(),
+        home_slug: username.to_string(),
+    }
+}
+
+fn server_owner() -> VaultOwner {
+    VaultOwner::Server {
+        server_slug: current_server_slug(),
+    }
+}
+
+async fn resolve_vault_owner(
+    storage: &AsyncStorageAdapter,
+    vault_id: &str,
+    username: &str,
+    is_admin: bool,
+) -> Result<VaultOwner, AppError> {
+    let owner = user_home_owner(username);
+    if storage.load_vault(owner.clone(), vault_id.to_string()).await.is_ok() {
+        return Ok(owner);
+    }
+
+    if is_admin {
+        let owner = server_owner();
+        if storage.load_vault(owner.clone(), vault_id.to_string()).await.is_ok() {
+            return Ok(owner);
+        }
+    }
+
+    Err(AppError::NotFound)
+}
+
 // Helper: assert the caller can read the note (not restricted, or is author).
 async fn assert_can_read(
     state: &AppState,
+    user: &User,
     vault_id: &str,
     note_id: &str,
-    user_id: &str,
-) -> Result<notes_core::Note, AppError> {
+) -> Result<(notes_core::Note, VaultOwner), AppError> {
+    let owner = resolve_vault_owner(&state.storage, vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
     let note = state
         .storage
-        .load_note(vault_id.to_string(), note_id.to_string())
+        .load_note(owner.clone(), vault_id.to_string(), note_id.to_string())
         .await?;
-    if note.meta.author_id != user_id && note.meta.permission == NotePermission::Restricted {
+    if note.meta.author_id != user.id && note.meta.permission == NotePermission::Restricted {
         return Err(AppError::Forbidden);
     }
-    Ok(note)
+    Ok((note, owner))
 }
 
 pub async fn list_comments(
@@ -38,10 +79,10 @@ pub async fn list_comments(
     AuthenticatedUser(user): AuthenticatedUser,
     Path((vault_id, note_id)): Path<(String, String)>,
 ) -> Result<Json<Vec<Comment>>, AppError> {
-    assert_can_read(&state, &vault_id, &note_id, &user.id).await?;
+    let (_, owner) = assert_can_read(&state, &user, &vault_id, &note_id).await?;
     let comments = state
         .storage
-        .load_comments(vault_id, note_id)
+        .load_comments(owner, vault_id, note_id)
         .await?;
     Ok(Json(
         comments
@@ -57,7 +98,7 @@ pub async fn create_comment(
     Path((vault_id, note_id)): Path<(String, String)>,
     Json(body): Json<CreateCommentRequest>,
 ) -> Result<(StatusCode, Json<Comment>), AppError> {
-    let note = assert_can_read(&state, &vault_id, &note_id, &user.id).await?;
+    let (note, owner) = assert_can_read(&state, &user, &vault_id, &note_id).await?;
 
     // Must have comment or edit permission (or be the author) to post.
     if note.meta.author_id != user.id && note.meta.permission == NotePermission::Restricted {
@@ -66,7 +107,7 @@ pub async fn create_comment(
 
     let mut comments = state
         .storage
-        .load_comments(vault_id.clone(), note_id.clone())
+        .load_comments(owner.clone(), vault_id.clone(), note_id.clone())
         .await?;
 
     let now = Utc::now();
@@ -96,7 +137,7 @@ pub async fn create_comment(
     comments.push(comment.clone());
     state
         .storage
-        .save_comments(vault_id, note_id, comments)
+        .save_comments(owner, vault_id, note_id, comments)
         .await?;
 
     Ok((StatusCode::CREATED, Json(comment)))
@@ -107,11 +148,11 @@ pub async fn delete_comment(
     AuthenticatedUser(user): AuthenticatedUser,
     Path((vault_id, note_id, comment_id)): Path<(String, String, String)>,
 ) -> Result<StatusCode, AppError> {
-    let note = assert_can_read(&state, &vault_id, &note_id, &user.id).await?;
+    let (note, owner) = assert_can_read(&state, &user, &vault_id, &note_id).await?;
 
     let mut comments = state
         .storage
-        .load_comments(vault_id.clone(), note_id.clone())
+        .load_comments(owner.clone(), vault_id.clone(), note_id.clone())
         .await?;
 
     let pos = comments
@@ -127,7 +168,7 @@ pub async fn delete_comment(
     comments.remove(pos);
     state
         .storage
-        .save_comments(vault_id, note_id, comments)
+        .save_comments(owner, vault_id, note_id, comments)
         .await?;
 
     Ok(StatusCode::NO_CONTENT)
@@ -139,7 +180,7 @@ pub async fn patch_comment(
     Path((vault_id, note_id, comment_id)): Path<(String, String, String)>,
     Json(body): Json<PatchCommentRequest>,
 ) -> Result<Json<Comment>, AppError> {
-    let note = assert_can_read(&state, &vault_id, &note_id, &user.id).await?;
+    let (note, owner) = assert_can_read(&state, &user, &vault_id, &note_id).await?;
 
     // Only the note author may resolve/unresolve.
     if note.meta.author_id != user.id {
@@ -148,7 +189,7 @@ pub async fn patch_comment(
 
     let mut comments = state
         .storage
-        .load_comments(vault_id.clone(), note_id.clone())
+        .load_comments(owner.clone(), vault_id.clone(), note_id.clone())
         .await?;
 
     let comment = comments
@@ -162,7 +203,7 @@ pub async fn patch_comment(
 
     state
         .storage
-        .save_comments(vault_id, note_id, comments)
+        .save_comments(owner, vault_id, note_id, comments)
         .await?;
 
     Ok(Json(updated))
@@ -174,7 +215,7 @@ pub async fn create_reply(
     Path((vault_id, note_id, comment_id)): Path<(String, String, String)>,
     Json(body): Json<CreateReplyRequest>,
 ) -> Result<(StatusCode, Json<CommentReply>), AppError> {
-    let note = assert_can_read(&state, &vault_id, &note_id, &user.id).await?;
+    let (note, owner) = assert_can_read(&state, &user, &vault_id, &note_id).await?;
 
     if note.meta.author_id != user.id && note.meta.permission == NotePermission::Restricted {
         return Err(AppError::Forbidden);
@@ -182,7 +223,7 @@ pub async fn create_reply(
 
     let mut comments = state
         .storage
-        .load_comments(vault_id.clone(), note_id.clone())
+        .load_comments(owner.clone(), vault_id.clone(), note_id.clone())
         .await?;
 
     let comment = comments
@@ -203,7 +244,7 @@ pub async fn create_reply(
 
     state
         .storage
-        .save_comments(vault_id, note_id, comments)
+        .save_comments(owner, vault_id, note_id, comments)
         .await?;
 
     Ok((StatusCode::CREATED, Json(reply)))
@@ -214,11 +255,11 @@ pub async fn delete_reply(
     AuthenticatedUser(user): AuthenticatedUser,
     Path((vault_id, note_id, comment_id, reply_id)): Path<(String, String, String, String)>,
 ) -> Result<StatusCode, AppError> {
-    let note = assert_can_read(&state, &vault_id, &note_id, &user.id).await?;
+    let (note, owner) = assert_can_read(&state, &user, &vault_id, &note_id).await?;
 
     let mut comments = state
         .storage
-        .load_comments(vault_id.clone(), note_id.clone())
+        .load_comments(owner.clone(), vault_id.clone(), note_id.clone())
         .await?;
 
     let comment = comments
@@ -242,7 +283,7 @@ pub async fn delete_reply(
 
     state
         .storage
-        .save_comments(vault_id, note_id, comments)
+        .save_comments(owner, vault_id, note_id, comments)
         .await?;
 
     Ok(StatusCode::NO_CONTENT)

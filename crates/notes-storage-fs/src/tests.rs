@@ -40,6 +40,7 @@ fn update_vault_persists_description_to_vault_json() {
     storage.create_vault(&vault).unwrap();
     storage
         .update_vault(
+            &vault.owner,
             &vault.id,
             &VaultUpdate {
                 name: None,
@@ -77,6 +78,7 @@ fn update_vault_can_clear_description_in_vault_json() {
     storage.create_vault(&vault).unwrap();
     storage
         .update_vault(
+            &vault.owner,
             &vault.id,
             &VaultUpdate {
                 name: None,
@@ -143,10 +145,11 @@ fn save_and_load_comments_round_trip_with_structured_anchor() {
         }],
     }];
 
+    let owner = vault.owner.clone();
     storage
-        .save_comments(&vault.id, "note-1", &comments)
+        .save_comments(&owner, &vault.id, "note-1", &comments)
         .unwrap();
-    let loaded = storage.load_comments(&vault.id, "note-1").unwrap();
+    let loaded = storage.load_comments(&owner, &vault.id, "note-1").unwrap();
 
     assert_eq!(loaded.len(), 1);
     assert_eq!(loaded[0].anchor.text, "selected phrase");
@@ -199,7 +202,8 @@ fn load_comments_converts_legacy_quote_only_records_to_hidden_legacy() {
     )
     .unwrap();
 
-    let loaded = storage.load_comments(&vault.id, "note-1").unwrap();
+    let owner = vault.owner.clone();
+    let loaded = storage.load_comments(&owner, &vault.id, "note-1").unwrap();
 
     assert_eq!(loaded.len(), 1);
     assert!(matches!(

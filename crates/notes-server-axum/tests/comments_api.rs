@@ -1,7 +1,7 @@
 use std::{path::PathBuf, sync::Arc, time::{SystemTime, UNIX_EPOCH}};
 
 use axum::{body::{to_bytes, Body}, http::{Request, StatusCode}};
-use notes_auth_local::LocalAuthStore;
+use notes_auth::LocalAuthStore;
 use notes_core::{
     Comment, CommentAnchor, CommentAttachment, CommentVisibility, Note, NoteMeta,
     NotePermission, StorageBackend, Vault, VaultOwner,

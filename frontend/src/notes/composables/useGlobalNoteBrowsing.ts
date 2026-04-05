@@ -126,17 +126,19 @@ export function useGlobalNoteBrowsing() {
     const contexts: EligibleProfileContext[] = []
 
     for (const profile of profiles.value) {
-      if (profile.type === 'local') {
-        contexts.push({ profile, client: makeProfileClient(profile) })
-        continue
-      }
-
       const session = sessions.value[profile.id]
-      if (session?.state !== 'signed_in' || !session.token) {
+      const sessionToken = session?.state === 'signed_in' ? session.token : undefined
+
+      if (profile.type === 'local') {
+        contexts.push({ profile, client: makeProfileClient(profile, sessionToken) })
         continue
       }
 
-      contexts.push({ profile, client: makeProfileClient(profile, session.token) })
+      if (!sessionToken) {
+        continue
+      }
+
+      contexts.push({ profile, client: makeProfileClient(profile, sessionToken) })
     }
 
     return contexts

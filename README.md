@@ -7,7 +7,7 @@ A self-hosted, Markdown-first notes app.
 - Frontend: Vue 3 SPA using [nyx-kit](https://github.com/nyxkit/nyx-kit) and TipTap, with one local workspace profile plus multiple remote server profiles per client, global search/favorites across reachable profiles, and note cards that show source server and vault
 - Review: line-based discussion threads anchored to exact selected text, with comment history stored in `.comments.json` sidecars
 - CLI: terminal-first workflows, operates directly on the filesystem with no server required
-- Auth: pluggable on the server — `local` (no auth), `secret_key` (self-hosted JWT), or `oidc` (any OIDC provider); the multi-profile client flow in this feature supports local profiles and remote `secret_key` username/password sign-in
+- Auth: pluggable on the server — `local` (no auth), `secret_key` (self-hosted JWT plus backend-managed users), or `oidc` (any OIDC provider); the multi-profile client flow in this feature supports local profiles and remote `secret_key` username/password sign-in
 - Native app: Tauri desktop app for macOS, Windows, and Linux
 - Future: optional end-to-end encryption and optional AI assistant (never required)
 
@@ -31,7 +31,7 @@ nyx-notes/
   crates/
     notes-core/           # domain types and traits — no IO or frameworks
     notes-storage-fs/     # filesystem implementation of StorageBackend
-    notes-auth-local/     # LocalAuthStore + SecretKeyAuthStore (no external deps)
+    notes-auth/     # LocalAuthStore + SecretKeyAuthStore (no external deps)
     notes-auth-oidc/      # OidcAuthStore
     notes-server-axum/    # Axum HTTP API server
     notes-cli/            # CLI — direct filesystem access, no server required

@@ -10,15 +10,16 @@ path = "src/main.rs"
 [dependencies]
 notes-core = { path = "../notes-core" }
 notes-storage-fs = { path = "../notes-storage-fs" }
-notes-auth-local = { path = "../notes-auth-local" }
+notes-auth = { path = "../notes-auth" }
 async-trait = "0.1"
 axum = { version = "0.7", features = ["json", "macros"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
-serde = { version = "1", features = ["derive"] }
+serde = { workspace = true }
 serde_json = "1"
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { workspace = true }
 uuid = { version = "1", features = ["v4"] }
 dotenvy = "0.15"
 
 [dev-dependencies]
 tower = "0.5"
+tempfile = "3"

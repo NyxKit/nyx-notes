@@ -106,7 +106,7 @@ fn main() {
     let config = CliConfig::load();
 
     std::fs::create_dir_all(config.notes_root_path())
-        .expect("failed to create NOTES_ROOT directory");
+        .expect("failed to create NYX_ROOT directory");
 
     let storage = FsStorage::new(config.notes_root_path());
 

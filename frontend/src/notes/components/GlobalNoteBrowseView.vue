@@ -40,7 +40,7 @@ const sortValue = computed({
       />
     </Teleport>
 
-    <div v-if="excludedProfilesCount > 0" class="browse-view__notice">
+    <div v-if="excludedProfilesCount > 0 && false" class="browse-view__notice">
       {{ excludedProfilesCount }} profile<span v-if="excludedProfilesCount !== 1">s</span> excluded.
     </div>
 

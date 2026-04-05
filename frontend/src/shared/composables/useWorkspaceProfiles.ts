@@ -17,8 +17,28 @@ import {
 import { clearProfilePassword, storeProfilePassword } from '@/shared/utils'
 
 const stored = readStoredProfiles()
-const profiles = ref<AnyWorkspaceProfile[]>(sortProfiles(stored.profiles))
-const activeProfileId = ref<string | null>(stored.active_profile_id)
+
+// Auto-activate local profile if none exists (MVP: single local server)
+let initialProfiles = sortProfiles(stored.profiles)
+let initialActiveId = stored.active_profile_id
+
+if (!initialActiveId || !initialProfiles.some(p => p.id === initialActiveId)) {
+  const existingLocal = initialProfiles.find(p => p.id === LOCAL_PROFILE_ID)
+  if (!existingLocal) {
+    initialProfiles = sortProfiles([
+      ...initialProfiles,
+      { id: LOCAL_PROFILE_ID, type: 'local', display_name: 'Main Server' },
+    ])
+  }
+  initialActiveId = LOCAL_PROFILE_ID
+  writeStoredProfiles({
+    active_profile_id: initialActiveId,
+    profiles: initialProfiles,
+  })
+}
+
+const profiles = ref<AnyWorkspaceProfile[]>(initialProfiles)
+const activeProfileId = ref<string | null>(initialActiveId)
 
 function persist() {
   writeStoredProfiles({

@@ -11,6 +11,7 @@ pub enum AppError {
     NotFound,
     Forbidden,
     Unauthorized(String),
+    Conflict(String),
     UnprocessableEntity(String),
     Internal(String),
 }
@@ -21,6 +22,7 @@ impl IntoResponse for AppError {
             AppError::NotFound => (StatusCode::NOT_FOUND, "not found".into()),
             AppError::Forbidden => (StatusCode::FORBIDDEN, "forbidden".into()),
             AppError::Unauthorized(msg) => (StatusCode::UNAUTHORIZED, msg),
+            AppError::Conflict(msg) => (StatusCode::CONFLICT, msg),
             AppError::UnprocessableEntity(msg) => (StatusCode::UNPROCESSABLE_ENTITY, msg),
             AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
         };
@@ -49,6 +51,9 @@ impl From<AuthError> for AppError {
             AuthError::InvalidToken => AppError::Unauthorized("invalid token".into()),
             AuthError::UserNotFound => AppError::Unauthorized("user not found".into()),
             AuthError::InvalidCredentials => AppError::Unauthorized("invalid credentials".into()),
+            AuthError::Forbidden => AppError::Forbidden,
+            AuthError::Conflict(msg) => AppError::Conflict(msg),
+            AuthError::Validation(msg) => AppError::UnprocessableEntity(msg),
             AuthError::ServiceError(msg) => AppError::Internal(msg),
         }
     }

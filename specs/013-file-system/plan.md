@@ -67,7 +67,7 @@ crates/
 ├── notes-server-axum/
 │   ├── src/
 │   └── tests/
-├── notes-auth-local/
+├── notes-auth/
 │   └── src/
 └── notes-cli/
     └── src/

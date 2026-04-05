@@ -3,7 +3,7 @@ use notes_core::{distill_markdown_description, Note, NoteMeta, NotePermission, S
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-struct DiskNoteMeta {
+pub struct DiskNoteMeta {
     id: String,
     title: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -86,4 +86,34 @@ pub fn serialize_note_file(note: &Note) -> Result<String, StorageError> {
     };
     let yaml = serde_yaml::to_string(&meta).map_err(|e| StorageError::ParseError(e.to_string()))?;
     Ok(format!("---\n{}---\n{}", yaml, note.content))
+}
+
+/// Rewrite the author_id in a note file's frontmatter to the given value.
+/// Returns true if the author_id was changed.
+pub fn rewrite_author_id(
+    content: &str,
+    new_author_id: &str,
+) -> Result<Option<String>, StorageError> {
+    let rest = content
+        .strip_prefix("---\n")
+        .ok_or_else(|| StorageError::ParseError("missing opening frontmatter delimiter".into()))?;
+
+    let end = rest
+        .find("\n---\n")
+        .ok_or_else(|| StorageError::ParseError("missing closing frontmatter delimiter".into()))?;
+
+    let yaml = &rest[..end];
+    let body = &rest[end + 5..];
+
+    let mut meta: DiskNoteMeta =
+        serde_yaml::from_str(yaml).map_err(|e| StorageError::ParseError(e.to_string()))?;
+
+    if meta.author_id == new_author_id {
+        return Ok(None);
+    }
+
+    meta.author_id = new_author_id.to_string();
+    let updated_yaml =
+        serde_yaml::to_string(&meta).map_err(|e| StorageError::ParseError(e.to_string()))?;
+    Ok(Some(format!("---\n{}---\n{}", updated_yaml, body)))
 }
