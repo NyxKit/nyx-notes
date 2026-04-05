@@ -34,18 +34,23 @@ fn server_owner() -> VaultOwner {
     }
 }
 
-/// Resolve the vault owner for a given vault_id, trying user's home first, then server.
+/// Resolve the vault owner for a given vault_id, trying user's home first,
+/// then server vaults. FsStorage's vault_dir_from_owner scans all home
+/// directories as fallback, so migrated vaults are found even when the
+/// owner's home_slug doesn't match.
 async fn resolve_vault_owner(
     storage: &AsyncStorageAdapter,
     vault_id: &str,
     username: &str,
     is_admin: bool,
 ) -> Result<VaultOwner, AppError> {
+    // Try user's home — FsStorage will scan all homes as fallback
     let owner = user_home_owner(username);
     if storage.load_vault(owner.clone(), vault_id.to_string()).await.is_ok() {
         return Ok(owner);
     }
 
+    // Try server vault (only if admin)
     if is_admin {
         let owner = server_owner();
         if storage.load_vault(owner.clone(), vault_id.to_string()).await.is_ok() {

@@ -270,7 +270,7 @@ impl FsStorage {
 
         // For Home owner, also scan all other home directories (migrated vaults
         // from old UUID-based home slugs).
-        if let VaultOwner::Home { server_slug, .. } = owner {
+        if let VaultOwner::Home { .. } = owner {
             let homes_dir = self.homes_dir();
             if homes_dir.is_dir() {
                 for home_entry in std::fs::read_dir(&homes_dir)? {
@@ -556,9 +556,44 @@ impl StorageBackend for FsStorage {
         for entry in std::fs::read_dir(&vault_dir)? {
             let path = entry?.path();
             if path.extension().map_or(false, |ext| ext == "md") {
-                let content = std::fs::read_to_string(&path)?;
-                let meta = frontmatter::parse_frontmatter_only(&content, vault_id)?;
-                metas.push(meta);
+                let content = match std::fs::read_to_string(&path) {
+                    Ok(c) => c,
+                    Err(_) => continue,
+                };
+                match frontmatter::parse_frontmatter_only(&content, vault_id) {
+                    Ok(meta) => metas.push(meta),
+                    Err(_) => {
+                        // Fallback: create a minimal NoteMeta from the file.
+                        // This handles notes migrated from old servers that may
+                        // have slightly different frontmatter formats.
+                        let note_id = path
+                            .file_stem()
+                            .and_then(|s| s.to_str())
+                            .unwrap_or("unknown")
+                            .to_string();
+                        let title = content
+                            .lines()
+                            .skip_while(|l| l.starts_with("---") || l.is_empty())
+                            .next()
+                            .map(|l| l.trim_start_matches('#').trim().to_string())
+                            .filter(|l| !l.is_empty())
+                            .unwrap_or_else(|| note_id.clone());
+                        let now = chrono::Utc::now();
+                        metas.push(NoteMeta {
+                            id: note_id,
+                            vault_id: vault_id.to_string(),
+                            title,
+                            description: None,
+                            author_id: String::new(),
+                            tags: Vec::new(),
+                            category: None,
+                            created_at: now,
+                            updated_at: now,
+                            is_encrypted: false,
+                            permission: NotePermission::Restricted,
+                        });
+                    }
+                }
             }
         }
 
@@ -580,11 +615,40 @@ impl StorageBackend for FsStorage {
         }
 
         let content = std::fs::read_to_string(&note_path)?;
-        let (meta, body) = frontmatter::parse_note_file(&content, vault_id)?;
-        Ok(Note {
-            meta,
-            content: body,
-        })
+        match frontmatter::parse_note_file(&content, vault_id) {
+            Ok((meta, body)) => Ok(Note {
+                meta,
+                content: body,
+            }),
+            Err(_) => {
+                // Fallback: treat entire file as content for migrated notes
+                // that may have incompatible frontmatter formats.
+                let title = content
+                    .lines()
+                    .skip_while(|l| l.starts_with("---") || l.is_empty())
+                    .next()
+                    .map(|l| l.trim_start_matches('#').trim().to_string())
+                    .filter(|l| !l.is_empty())
+                    .unwrap_or_else(|| id.to_string());
+                let now = chrono::Utc::now();
+                Ok(Note {
+                    meta: NoteMeta {
+                        id: id.to_string(),
+                        vault_id: vault_id.to_string(),
+                        title,
+                        description: None,
+                        author_id: String::new(),
+                        tags: Vec::new(),
+                        category: None,
+                        created_at: now,
+                        updated_at: now,
+                        is_encrypted: false,
+                        permission: NotePermission::Restricted,
+                    },
+                    content,
+                })
+            }
+        }
     }
 
     fn save_note(&self, owner: &VaultOwner, note: &Note) -> Result<(), StorageError> {
