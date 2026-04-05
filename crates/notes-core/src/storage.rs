@@ -68,4 +68,12 @@ pub trait StorageBackend: Send + Sync {
         note_id: &str,
         comments: &[Comment],
     ) -> Result<(), StorageError>;
+
+    // Sync: rewrite author_id across all vaults/notes for a given owner.
+    // Used when migrating from a server where the user had a different user_id.
+    fn sync_owner_author_id(
+        &self,
+        owner: &VaultOwner,
+        new_user_id: &str,
+    ) -> Result<usize, StorageError>;
 }

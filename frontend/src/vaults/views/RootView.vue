@@ -4,8 +4,10 @@ import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { NyxButton, NyxCard, NyxForm, NyxFormField, NyxGrid, NyxInput, NyxTextarea } from 'nyx-kit/components'
 import { NyxGridMode } from 'nyx-kit/types'
+import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { vaultRoute } from '@/shared/utils'
+import { api } from '@/shared/api'
 import { createServerVault, fetchPersonalVaults, fetchServerVaults } from '@/vaults/api'
 import { VaultCard, VaultIconPicker } from '@/vaults/components'
 import { useVaultStore } from '@/vaults/stores'
@@ -16,6 +18,7 @@ const props = withDefaults(defineProps<{ scope?: 'personal' | 'server' }>(), {
 })
 
 const router = useRouter()
+const { isAuthenticated } = useAuth()
 const { activeProfile } = useWorkspaceProfiles()
 const vaultStore = useVaultStore()
 const { loading } = storeToRefs(vaultStore)
@@ -28,6 +31,7 @@ const newDescription = ref('')
 const newIcon = ref<string | undefined>(undefined)
 const creating = ref(false)
 const overviewVaults = ref<Vault[]>([])
+const syncing = ref(false)
 
 async function loadOverview() {
   await loadVaults()
@@ -56,6 +60,22 @@ const canCreate = computed(() => true)
 watch(() => props.scope, () => {
   void loadOverview()
 }, { immediate: true })
+
+async function syncVaults() {
+  if (syncing.value) return
+  syncing.value = true
+  try {
+    const result = await api<{ updated: number }>(
+      '/api/vaults/personal/sync',
+      { method: 'POST' },
+    )
+    if (result.updated > 0) {
+      await loadOverview()
+    }
+  } finally {
+    syncing.value = false
+  }
+}
 
 async function submitCreate() {
   if (!newSlug.value.trim() || !newName.value.trim()) return
@@ -91,6 +111,10 @@ function cancelCreate() {
   <div class="home-view">
     <Teleport v-if="canCreate" to="#layout-header-actions" defer>
       <NyxButton :gradient="true" @click="showCreateForm = true">New Vault</NyxButton>
+    </Teleport>
+
+    <Teleport v-if="props.scope === 'personal' && isAuthenticated" to="#layout-header-actions" defer>
+      <NyxButton :loading="syncing" @click="syncVaults">Sync Vaults</NyxButton>
     </Teleport>
 
     <main class="home-view__body">

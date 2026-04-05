@@ -141,4 +141,15 @@ impl AsyncStorageAdapter {
             .await
             .map_err(Self::wrap_join_err)?
     }
+
+    pub async fn sync_owner_author_id(
+        &self,
+        owner: VaultOwner,
+        new_user_id: String,
+    ) -> Result<usize, StorageError> {
+        let s = Arc::clone(&self.0);
+        tokio::task::spawn_blocking(move || s.sync_owner_author_id(&owner, &new_user_id))
+            .await
+            .map_err(Self::wrap_join_err)?
+    }
 }

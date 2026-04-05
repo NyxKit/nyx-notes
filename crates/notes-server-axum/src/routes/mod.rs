@@ -61,6 +61,7 @@ pub fn router() -> Router<AppState> {
             get(vaults::list_vaults).post(vaults::create_vault),
         )
         .route("/api/vaults/personal", get(vaults::list_personal_vaults))
+        .route("/api/vaults/personal/sync", post(vaults::sync_personal_vaults))
         .route(
             "/api/vaults/:vault_id",
             patch(vaults::patch_vault).delete(vaults::delete_vault),

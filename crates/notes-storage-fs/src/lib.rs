@@ -573,4 +573,47 @@ impl StorageBackend for FsStorage {
         std::fs::write(&path, content)?;
         Ok(())
     }
+
+    fn sync_owner_author_id(
+        &self,
+        owner: &VaultOwner,
+        new_user_id: &str,
+    ) -> Result<usize, StorageError> {
+        let vaults = self.list_vaults(owner)?;
+        let mut total_updated = 0;
+
+        for vault in &vaults {
+            // Rewrite .vault.json
+            let vault_dir = self.vault_dir_from_owner(owner, &vault.slug)?;
+            let vault_json_path = vault_dir.join(".vault.json");
+            if vault_json_path.is_file() {
+                let content = std::fs::read_to_string(&vault_json_path)?;
+                let mut meta: VaultJson = serde_json::from_str(&content)
+                    .map_err(|e| StorageError::ParseError(e.to_string()))?;
+
+                // Update the owner in .vault.json to reflect the correct owner
+                meta.owner = owner.clone();
+
+                let updated_content = serde_json::to_string_pretty(&meta)
+                    .map_err(|e| StorageError::ParseError(e.to_string()))?;
+                std::fs::write(&vault_json_path, updated_content)?;
+            }
+
+            // Rewrite every note's frontmatter
+            for entry in std::fs::read_dir(&vault_dir)? {
+                let path = entry?.path();
+                if path.extension().map_or(false, |ext| ext == "md") {
+                    let content = std::fs::read_to_string(&path)?;
+                    if let Some(updated_content) =
+                        frontmatter::rewrite_author_id(&content, new_user_id)?
+                    {
+                        std::fs::write(&path, updated_content)?;
+                        total_updated += 1;
+                    }
+                }
+            }
+        }
+
+        Ok(total_updated)
+    }
 }

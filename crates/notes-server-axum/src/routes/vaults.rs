@@ -236,3 +236,22 @@ pub async fn delete_server_vault(
     state.storage.delete_vault(owner, vault_id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
+
+/// Sync all vaults/notes for the current user's home to use the correct user_id.
+/// Rewrites .vault.json owner and every note's frontmatter author_id.
+pub async fn sync_personal_vaults(
+    State(state): State<AppState>,
+    AuthenticatedUser(user): AuthenticatedUser,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let owner = user_home_owner(&user.username);
+    let user_id = user.id.clone();
+    let count = state
+        .storage
+        .sync_owner_author_id(owner, user_id.clone())
+        .await?;
+
+    Ok(Json(serde_json::json!({
+        "updated": count,
+        "user_id": user_id,
+    })))
+}
