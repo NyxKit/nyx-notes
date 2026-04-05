@@ -268,40 +268,6 @@ impl FsStorage {
             }
         }
 
-        // For Home owner, also scan all other home directories (migrated vaults
-        // from old UUID-based home slugs).
-        if let VaultOwner::Home { .. } = owner {
-            let homes_dir = self.homes_dir();
-            if homes_dir.is_dir() {
-                for home_entry in std::fs::read_dir(&homes_dir)? {
-                    let home_dir = home_entry?.path();
-                    if !home_dir.is_dir() {
-                        continue;
-                    }
-                    if home_dir == base_dir {
-                        continue; // already scanned
-                    }
-                    for entry in std::fs::read_dir(&home_dir)? {
-                        let vault_dir = entry?.path();
-                        if !vault_dir.is_dir() {
-                            continue;
-                        }
-                        let vault_json_path = vault_dir.join(".vault.json");
-                        if !vault_json_path.is_file() {
-                            continue;
-                        }
-                        if let Ok(content) = std::fs::read_to_string(&vault_json_path) {
-                            if let Ok(meta) = serde_json::from_str::<VaultJson>(&content) {
-                                if meta.id == vault_id || meta.slug == vault_id {
-                                    return Ok(vault_dir);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         Err(StorageError::NotFound)
     }
 
@@ -336,115 +302,39 @@ impl StorageBackend for FsStorage {
     // --- Vault management ---
 
     fn list_vaults(&self, owner: &VaultOwner) -> Result<Vec<Vault>, StorageError> {
-        match owner {
-            // For Home owner, scan ALL home directories (supports migrated vaults
-            // from old UUID-based home slugs).
-            VaultOwner::Home { server_slug, .. } => {
-                let homes_dir = self.homes_dir();
-                if !homes_dir.is_dir() {
-                    return Ok(Vec::new());
-                }
+        let owner_dir = match owner {
+            VaultOwner::Home { home_slug, .. } => self.home_dir(home_slug),
+            VaultOwner::Server { .. } => self.server_vaults_dir(),
+            VaultOwner::Local => self.local_dir(),
+        };
 
-                let mut vaults = Vec::new();
-                for home_entry in std::fs::read_dir(&homes_dir)? {
-                    let home_dir = home_entry?.path();
-                    if !home_dir.is_dir() {
-                        continue;
-                    }
-                    let home_slug = home_dir
-                        .file_name()
-                        .and_then(|n| n.to_str())
-                        .unwrap_or("")
-                        .to_string();
-
-                    for entry in std::fs::read_dir(&home_dir)? {
-                        let vault_dir = entry?.path();
-                        if !vault_dir.is_dir() {
-                            continue;
-                        }
-                        let vault_json_path = vault_dir.join(".vault.json");
-                        if !vault_json_path.is_file() {
-                            continue;
-                        }
-                        let meta = Self::read_vault_json(&vault_dir)?;
-                        vaults.push(Vault {
-                            id: meta.id,
-                            slug: meta.slug,
-                            name: meta.name,
-                            description: meta.description,
-                            owner: VaultOwner::Home {
-                                server_slug: server_slug.clone(),
-                                home_slug: home_slug.clone(),
-                            },
-                            permission: meta.permission.unwrap_or(NotePermission::Restricted),
-                            icon: meta.icon,
-                        });
-                    }
-                }
-
-                Ok(vaults)
-            }
-            VaultOwner::Server { .. } => {
-                let owner_dir = self.server_vaults_dir();
-                if !owner_dir.is_dir() {
-                    return Ok(Vec::new());
-                }
-
-                let mut vaults = Vec::new();
-                for entry in std::fs::read_dir(&owner_dir)? {
-                    let vault_dir = entry?.path();
-                    if !vault_dir.is_dir() {
-                        continue;
-                    }
-                    let vault_json_path = vault_dir.join(".vault.json");
-                    if !vault_json_path.is_file() {
-                        continue;
-                    }
-                    let meta = Self::read_vault_json(&vault_dir)?;
-                    vaults.push(Vault {
-                        id: meta.id,
-                        slug: meta.slug,
-                        name: meta.name,
-                        description: meta.description,
-                        owner: owner.clone(),
-                        permission: meta.permission.unwrap_or(NotePermission::Restricted),
-                        icon: meta.icon,
-                    });
-                }
-
-                Ok(vaults)
-            }
-            VaultOwner::Local => {
-                let owner_dir = self.local_dir();
-                if !owner_dir.is_dir() {
-                    return Ok(Vec::new());
-                }
-
-                let mut vaults = Vec::new();
-                for entry in std::fs::read_dir(&owner_dir)? {
-                    let vault_dir = entry?.path();
-                    if !vault_dir.is_dir() {
-                        continue;
-                    }
-                    let vault_json_path = vault_dir.join(".vault.json");
-                    if !vault_json_path.is_file() {
-                        continue;
-                    }
-                    let meta = Self::read_vault_json(&vault_dir)?;
-                    vaults.push(Vault {
-                        id: meta.id,
-                        slug: meta.slug,
-                        name: meta.name,
-                        description: meta.description,
-                        owner: owner.clone(),
-                        permission: meta.permission.unwrap_or(NotePermission::Restricted),
-                        icon: meta.icon,
-                    });
-                }
-
-                Ok(vaults)
-            }
+        if !owner_dir.is_dir() {
+            return Ok(Vec::new());
         }
+
+        let mut vaults = Vec::new();
+        for entry in std::fs::read_dir(&owner_dir)? {
+            let vault_dir = entry?.path();
+            if !vault_dir.is_dir() {
+                continue;
+            }
+            let vault_json_path = vault_dir.join(".vault.json");
+            if !vault_json_path.is_file() {
+                continue;
+            }
+            let meta = Self::read_vault_json(&vault_dir)?;
+            vaults.push(Vault {
+                id: meta.id,
+                slug: meta.slug,
+                name: meta.name,
+                description: meta.description,
+                owner: owner.clone(),
+                permission: meta.permission.unwrap_or(NotePermission::Restricted),
+                icon: meta.icon,
+            });
+        }
+
+        Ok(vaults)
     }
 
     fn load_vault(&self, owner: &VaultOwner, vault_id: &str) -> Result<Vault, StorageError> {
@@ -556,44 +446,9 @@ impl StorageBackend for FsStorage {
         for entry in std::fs::read_dir(&vault_dir)? {
             let path = entry?.path();
             if path.extension().map_or(false, |ext| ext == "md") {
-                let content = match std::fs::read_to_string(&path) {
-                    Ok(c) => c,
-                    Err(_) => continue,
-                };
-                match frontmatter::parse_frontmatter_only(&content, vault_id) {
-                    Ok(meta) => metas.push(meta),
-                    Err(_) => {
-                        // Fallback: create a minimal NoteMeta from the file.
-                        // This handles notes migrated from old servers that may
-                        // have slightly different frontmatter formats.
-                        let note_id = path
-                            .file_stem()
-                            .and_then(|s| s.to_str())
-                            .unwrap_or("unknown")
-                            .to_string();
-                        let title = content
-                            .lines()
-                            .skip_while(|l| l.starts_with("---") || l.is_empty())
-                            .next()
-                            .map(|l| l.trim_start_matches('#').trim().to_string())
-                            .filter(|l| !l.is_empty())
-                            .unwrap_or_else(|| note_id.clone());
-                        let now = chrono::Utc::now();
-                        metas.push(NoteMeta {
-                            id: note_id,
-                            vault_id: vault_id.to_string(),
-                            title,
-                            description: None,
-                            author_id: String::new(),
-                            tags: Vec::new(),
-                            category: None,
-                            created_at: now,
-                            updated_at: now,
-                            is_encrypted: false,
-                            permission: NotePermission::Restricted,
-                        });
-                    }
-                }
+                let content = std::fs::read_to_string(&path)?;
+                let meta = frontmatter::parse_frontmatter_only(&content, vault_id)?;
+                metas.push(meta);
             }
         }
 
@@ -615,40 +470,11 @@ impl StorageBackend for FsStorage {
         }
 
         let content = std::fs::read_to_string(&note_path)?;
-        match frontmatter::parse_note_file(&content, vault_id) {
-            Ok((meta, body)) => Ok(Note {
-                meta,
-                content: body,
-            }),
-            Err(_) => {
-                // Fallback: treat entire file as content for migrated notes
-                // that may have incompatible frontmatter formats.
-                let title = content
-                    .lines()
-                    .skip_while(|l| l.starts_with("---") || l.is_empty())
-                    .next()
-                    .map(|l| l.trim_start_matches('#').trim().to_string())
-                    .filter(|l| !l.is_empty())
-                    .unwrap_or_else(|| id.to_string());
-                let now = chrono::Utc::now();
-                Ok(Note {
-                    meta: NoteMeta {
-                        id: id.to_string(),
-                        vault_id: vault_id.to_string(),
-                        title,
-                        description: None,
-                        author_id: String::new(),
-                        tags: Vec::new(),
-                        category: None,
-                        created_at: now,
-                        updated_at: now,
-                        is_encrypted: false,
-                        permission: NotePermission::Restricted,
-                    },
-                    content,
-                })
-            }
-        }
+        let (meta, body) = frontmatter::parse_note_file(&content, vault_id)?;
+        Ok(Note {
+            meta,
+            content: body,
+        })
     }
 
     fn save_note(&self, owner: &VaultOwner, note: &Note) -> Result<(), StorageError> {
