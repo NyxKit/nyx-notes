@@ -247,7 +247,7 @@ impl FsStorage {
             return Ok(slug_path);
         }
 
-        // If not found by slug, scan for matching ID (fallback for stable IDs)
+        // If not found by slug, scan for matching ID in the same directory
         if base_dir.is_dir() {
             for entry in std::fs::read_dir(&base_dir)? {
                 let vault_dir = entry?.path();
@@ -262,6 +262,40 @@ impl FsStorage {
                     if let Ok(meta) = serde_json::from_str::<VaultJson>(&content) {
                         if meta.id == vault_id {
                             return Ok(vault_dir);
+                        }
+                    }
+                }
+            }
+        }
+
+        // For Home owner, also scan all other home directories (migrated vaults
+        // from old UUID-based home slugs).
+        if let VaultOwner::Home { server_slug, .. } = owner {
+            let homes_dir = self.homes_dir();
+            if homes_dir.is_dir() {
+                for home_entry in std::fs::read_dir(&homes_dir)? {
+                    let home_dir = home_entry?.path();
+                    if !home_dir.is_dir() {
+                        continue;
+                    }
+                    if home_dir == base_dir {
+                        continue; // already scanned
+                    }
+                    for entry in std::fs::read_dir(&home_dir)? {
+                        let vault_dir = entry?.path();
+                        if !vault_dir.is_dir() {
+                            continue;
+                        }
+                        let vault_json_path = vault_dir.join(".vault.json");
+                        if !vault_json_path.is_file() {
+                            continue;
+                        }
+                        if let Ok(content) = std::fs::read_to_string(&vault_json_path) {
+                            if let Ok(meta) = serde_json::from_str::<VaultJson>(&content) {
+                                if meta.id == vault_id || meta.slug == vault_id {
+                                    return Ok(vault_dir);
+                                }
+                            }
                         }
                     }
                 }
@@ -302,39 +336,115 @@ impl StorageBackend for FsStorage {
     // --- Vault management ---
 
     fn list_vaults(&self, owner: &VaultOwner) -> Result<Vec<Vault>, StorageError> {
-        let owner_dir = match owner {
-            VaultOwner::Home { home_slug, .. } => self.home_dir(home_slug),
-            VaultOwner::Server { .. } => self.server_vaults_dir(),
-            VaultOwner::Local => self.local_dir(),
-        };
+        match owner {
+            // For Home owner, scan ALL home directories (supports migrated vaults
+            // from old UUID-based home slugs).
+            VaultOwner::Home { server_slug, .. } => {
+                let homes_dir = self.homes_dir();
+                if !homes_dir.is_dir() {
+                    return Ok(Vec::new());
+                }
 
-        if !owner_dir.is_dir() {
-            return Ok(Vec::new());
-        }
+                let mut vaults = Vec::new();
+                for home_entry in std::fs::read_dir(&homes_dir)? {
+                    let home_dir = home_entry?.path();
+                    if !home_dir.is_dir() {
+                        continue;
+                    }
+                    let home_slug = home_dir
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .unwrap_or("")
+                        .to_string();
 
-        let mut vaults = Vec::new();
-        for entry in std::fs::read_dir(&owner_dir)? {
-            let vault_dir = entry?.path();
-            if !vault_dir.is_dir() {
-                continue;
+                    for entry in std::fs::read_dir(&home_dir)? {
+                        let vault_dir = entry?.path();
+                        if !vault_dir.is_dir() {
+                            continue;
+                        }
+                        let vault_json_path = vault_dir.join(".vault.json");
+                        if !vault_json_path.is_file() {
+                            continue;
+                        }
+                        let meta = Self::read_vault_json(&vault_dir)?;
+                        vaults.push(Vault {
+                            id: meta.id,
+                            slug: meta.slug,
+                            name: meta.name,
+                            description: meta.description,
+                            owner: VaultOwner::Home {
+                                server_slug: server_slug.clone(),
+                                home_slug: home_slug.clone(),
+                            },
+                            permission: meta.permission.unwrap_or(NotePermission::Restricted),
+                            icon: meta.icon,
+                        });
+                    }
+                }
+
+                Ok(vaults)
             }
-            let vault_json_path = vault_dir.join(".vault.json");
-            if !vault_json_path.is_file() {
-                continue;
-            }
-            let meta = Self::read_vault_json(&vault_dir)?;
-            vaults.push(Vault {
-                id: meta.id,
-                slug: meta.slug,
-                name: meta.name,
-                description: meta.description,
-                owner: meta.owner,
-                permission: meta.permission.unwrap_or(NotePermission::Restricted),
-                icon: meta.icon,
-            });
-        }
+            VaultOwner::Server { .. } => {
+                let owner_dir = self.server_vaults_dir();
+                if !owner_dir.is_dir() {
+                    return Ok(Vec::new());
+                }
 
-        Ok(vaults)
+                let mut vaults = Vec::new();
+                for entry in std::fs::read_dir(&owner_dir)? {
+                    let vault_dir = entry?.path();
+                    if !vault_dir.is_dir() {
+                        continue;
+                    }
+                    let vault_json_path = vault_dir.join(".vault.json");
+                    if !vault_json_path.is_file() {
+                        continue;
+                    }
+                    let meta = Self::read_vault_json(&vault_dir)?;
+                    vaults.push(Vault {
+                        id: meta.id,
+                        slug: meta.slug,
+                        name: meta.name,
+                        description: meta.description,
+                        owner: owner.clone(),
+                        permission: meta.permission.unwrap_or(NotePermission::Restricted),
+                        icon: meta.icon,
+                    });
+                }
+
+                Ok(vaults)
+            }
+            VaultOwner::Local => {
+                let owner_dir = self.local_dir();
+                if !owner_dir.is_dir() {
+                    return Ok(Vec::new());
+                }
+
+                let mut vaults = Vec::new();
+                for entry in std::fs::read_dir(&owner_dir)? {
+                    let vault_dir = entry?.path();
+                    if !vault_dir.is_dir() {
+                        continue;
+                    }
+                    let vault_json_path = vault_dir.join(".vault.json");
+                    if !vault_json_path.is_file() {
+                        continue;
+                    }
+                    let meta = Self::read_vault_json(&vault_dir)?;
+                    vaults.push(Vault {
+                        id: meta.id,
+                        slug: meta.slug,
+                        name: meta.name,
+                        description: meta.description,
+                        owner: owner.clone(),
+                        permission: meta.permission.unwrap_or(NotePermission::Restricted),
+                        icon: meta.icon,
+                    });
+                }
+
+                Ok(vaults)
+            }
+        }
     }
 
     fn load_vault(&self, owner: &VaultOwner, vault_id: &str) -> Result<Vault, StorageError> {
