@@ -137,7 +137,39 @@ export function useAuth() {
       if (response?.server_name) {
         updateProfileDisplayName(profile.id, response.server_name)
       }
-      applyApiContext(null, null)
+
+      if (authMode.value === 'local') {
+        applyApiContext(null, null)
+        await refreshServerMetadata()
+        bootstrapping.value = false
+        return profile
+      }
+
+      const storedSession = sessions.value[profile.id]
+      if (storedSession?.token) {
+        token.value = storedSession.token
+        applyApiContext(null, storedSession.token)
+        await refreshServerMetadata()
+        updateSession(profile.id, {
+          state: 'signed_in',
+          auth_mode: response?.mode ?? 'secret_key',
+        })
+        bootstrapping.value = false
+        return profile
+      }
+
+      const password = readProfilePassword(profile.id)
+      const storedUsername = storedSession?.username
+      if (password && storedUsername) {
+        await login(storedUsername, password)
+      } else {
+        applyApiContext(null, null)
+        updateSession(profile.id, {
+          state: 'signed_out',
+          auth_mode: response?.mode ?? 'secret_key',
+          last_error: undefined,
+        })
+      }
       await refreshServerMetadata()
       bootstrapping.value = false
       return profile
@@ -203,7 +235,8 @@ export function useAuth() {
 
   async function login(username: string, password: string, serverUrl?: string) {
     const profile = activeProfile.value
-    const isRemote = profile && profile.type === 'remote'
+    if (!profile) throw new Error('No active profile')
+    const isRemote = profile.type === 'remote'
     
     const targetServerUrl = serverUrl ?? (isRemote ? profile.server_url : null)
     
@@ -228,14 +261,15 @@ export function useAuth() {
           connection_status: 'reachable',
           last_error: undefined,
         })
-        updateSession(profile.id, {
-          state: 'signed_in',
-          auth_mode: 'secret_key',
-          token: res.token,
-          expires_at: expiresAt,
-          last_error: undefined,
-        })
       }
+      updateSession(profile.id, {
+        state: 'signed_in',
+        auth_mode: 'secret_key',
+        token: res.token,
+        username,
+        expires_at: expiresAt,
+        last_error: undefined,
+      })
       return res
     } catch (error) {
       token.value = null
@@ -245,11 +279,11 @@ export function useAuth() {
           connection_status: 'auth_failed',
           last_error: 'Invalid credentials',
         })
-        updateSession(profile.id, {
-          state: 'signed_out',
-          last_error: 'Invalid credentials',
-        })
       }
+      updateSession(profile.id, {
+        state: 'signed_out',
+        last_error: 'Invalid credentials',
+      })
       throw error
     }
   }
@@ -279,7 +313,11 @@ export function useAuth() {
       return
     }
 
-    clearSession(profile.id)
+    updateSession(profile.id, {
+      state: 'signed_out',
+      token: undefined,
+      expires_at: undefined,
+    })
     applyApiContext(null, null)
   }
 
