@@ -71,7 +71,7 @@ const router = createRouter({
         {
           path: 'settings',
           name: RouteName.Settings,
-          component: () => import('@/servers/views').then(({ SettingsView }) => SettingsView),
+          component: () => import('@/settings/views').then(({ SettingsView }) => SettingsView),
         },
         {
           path: 'users',

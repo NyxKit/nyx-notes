@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { NyxButton, NyxFormField, NyxInput } from 'nyx-kit/components'
+import { NyxActionItem, NyxFormField, NyxInput } from 'nyx-kit/components'
+import { NyxTheme } from 'nyx-kit/types'
 import { fetchAuthMode } from '@/auth/api'
 import { useAuth } from '@/auth/composables'
 import { api } from '@/shared/api'
 import type { ServerMetadata } from '@/shared/types'
-import { NyxTheme, NyxVariant } from 'nyx-kit/types'
 
 const auth = useAuth()
 
@@ -104,19 +104,12 @@ async function removeAllServerVaults() {
 </script>
 
 <template>
-  <div class="servers-page">
-    <div class="servers-page__inner">
-      <header class="servers-page__header">
-        <h1 class="servers-page__title">Settings</h1>
-      </header>
-
-      <div class="servers-page__content">
-        <section class="servers-section">
-          <div class="servers-section__header">
-            <h2>Server</h2>
-          </div>
-
-          <div class="servers-section__settings">
+  <div class="settings-page">
+    <div class="settings-page__inner">
+      <div class="settings-page__content">
+        <h2>Server</h2>
+        <section class="settings-section">
+          <div class="settings-section__settings">
             <NyxFormField label="Server Name">
               <template #default="{ id }">
                 <NyxInput :id="id" :model-value="serverMetadata?.name ?? 'Main Server'" disabled />
@@ -143,25 +136,25 @@ async function removeAllServerVaults() {
           </div>
         </section>
 
-        <section v-if="auth.isAuthenticated.value" class="servers-section">
-          <div class="servers-section__header">
-            <h2>Session</h2>
-          </div>
-          <div class="servers-section__actions">
-            <NyxButton @click="signOut">Sign Out</NyxButton>
-          </div>
+        <h2>Session</h2>
+        <section v-if="auth.isAuthenticated.value" class="settings-section">
+          <NyxActionItem
+            title="Sign out"
+            :theme="NyxTheme.Primary"
+            action="Sign Out"
+            @click="signOut"
+          >Sign out of your current session.</NyxActionItem>
         </section>
 
-        <section class="servers-section">
-          <div class="servers-section__header">
-            <h2>Sync</h2>
-          </div>
-          <p class="servers-section__desc">
-            Scan all home directories and fix author_id mismatches between the filesystem and note frontmatter.
-          </p>
-          <div class="servers-section__actions">
-            <NyxButton :loading="syncing" @click="syncHomes">Sync All Homes</NyxButton>
-          </div>
+        <h2>Sync</h2>
+        <section class="settings-section">
+          <NyxActionItem
+            title="Sync all homes"
+            :theme="NyxTheme.Warning"
+            action="Sync"
+            :loading="syncing"
+            @click="syncHomes"
+          >Scan all home directories and fix author_id mismatches between the filesystem and note frontmatter.</NyxActionItem>
           <div v-if="syncResult" class="sync-result">
             <span>{{ syncResult.homes_scanned }} homes scanned</span>
             <span>{{ syncResult.vaults_fixed }} vaults fixed</span>
@@ -169,46 +162,40 @@ async function removeAllServerVaults() {
           </div>
         </section>
 
-        <section class="servers-section servers-section--danger">
-          <div class="servers-section__header">
-            <h2 class="danger-title">Danger Zone</h2>
-          </div>
-          <p class="servers-section__desc">
+        <h2 class="danger-title">Danger Zone</h2>
+        <section class="settings-section settings-section--danger">
+          <p class="settings-section__desc">
             These actions are destructive and cannot be undone.
           </p>
 
           <div class="danger-grid">
-            <div class="danger-item">
-              <div class="danger-item__info">
-                <strong>Remove all notes</strong>
-                <span>Delete every note across all vaults. Vaults remain.</span>
-              </div>
-              <NyxButton :loading="removingNotes" :theme="NyxTheme.Danger" :variant="NyxVariant.Soft" @click="removeAllNotes">Remove Notes</NyxButton>
-            </div>
+            <NyxActionItem
+              title="Remove all notes"
+              :theme="NyxTheme.Danger"
+              action="Remove Notes"
+              @click="removeAllNotes"
+            >Delete every note across all vaults. Vaults remain.</NyxActionItem>
 
-            <div class="danger-item">
-              <div class="danger-item__info">
-                <strong>Remove all vaults</strong>
-                <span>Delete every vault and all notes inside them.</span>
-              </div>
-              <NyxButton :loading="removingVaults" :theme="NyxTheme.Danger" :variant="NyxVariant.Soft" @click="removeAllVaults">Remove Vaults</NyxButton>
-            </div>
+            <NyxActionItem
+              title="Remove all vaults"
+              :theme="NyxTheme.Danger"
+              action="Remove Vaults"
+              @click="removeAllVaults"
+            >Delete every vault and all notes inside them.</NyxActionItem>
 
-            <div class="danger-item">
-              <div class="danger-item__info">
-                <strong>Remove all homes</strong>
-                <span>Delete all user home directories (personal vaults and notes).</span>
-              </div>
-              <NyxButton :loading="removingHomes" :theme="NyxTheme.Danger" :variant="NyxVariant.Soft" @click="removeAllHomes">Remove Homes</NyxButton>
-            </div>
+            <NyxActionItem
+              title="Remove all homes"
+              :theme="NyxTheme.Danger"
+              action="Remove Homes"
+              @click="removeAllHomes"
+            >Delete all user home directories (personal vaults and notes).</NyxActionItem>
 
-            <div class="danger-item">
-              <div class="danger-item__info">
-                <strong>Remove all server vaults</strong>
-                <span>Delete all shared server vaults and their notes.</span>
-              </div>
-              <NyxButton :loading="removingServerVaults" :theme="NyxTheme.Danger" :variant="NyxVariant.Soft" @click="removeAllServerVaults">Remove Server Vaults</NyxButton>
-            </div>
+            <NyxActionItem
+              title="Remove all server vaults"
+              :theme="NyxTheme.Danger"
+              action="Remove Server Vaults"
+              @click="removeAllServerVaults"
+            >Delete all shared server vaults and their notes.</NyxActionItem>
           </div>
         </section>
       </div>
@@ -217,62 +204,67 @@ async function removeAllServerVaults() {
 </template>
 
 <style scoped>
-.servers-page {
+.settings-page {
   min-height: 100vh;
   padding: 2rem 1rem;
   overflow-y: auto;
 }
 
-.servers-page__header {
+.settings-page__inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.settings-page__header {
   margin-bottom: 2rem;
 }
 
-.servers-page__title {
+.settings-page__title {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0;
 }
 
-.servers-page__content {
+.settings-page__content {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.servers-section {
+.settings-section {
   background: var(--nyx-c-bg-soft);
   border-radius: var(--nyx-radius-lg);
   padding: 1.25rem;
 }
 
-.servers-section--danger {
+.settings-section--danger {
   border: 1px solid rgba(var(--nyx-rgb-danger), 0.3);
 }
 
-.servers-section__settings {
+.settings-section__settings {
   display: grid;
   gap: 1rem;
 }
 
-.servers-section__header {
+.settings-section__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.5rem;
 }
 
-.servers-section__header h2 {
+.settings-section__header h2 {
   font-size: 0.875rem;
   font-weight: 600;
   margin: 0;
 }
 
-.servers-section__actions {
+.settings-section__actions {
   display: flex;
   gap: 0.5rem;
 }
 
-.servers-section__desc {
+.settings-section__desc {
   font-size: 0.75rem;
   color: var(--nyx-c-text-3);
   margin: 0 0 1rem;
@@ -283,41 +275,8 @@ async function removeAllServerVaults() {
   color: var(--nyx-c-danger);
 }
 
-.danger-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.danger-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem;
-  /* background: rgba(237, 137, 54, 0.05); */
-  background: var(--nyx-c-bg-mute);
-  border-radius: var(--nyx-radius-md);
-  border: 1px solid rgba(237, 137, 54, 0.15);
-}
-
-.danger-item__info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.125rem;
-  min-width: 0;
-  flex: 1;
-}
-
-.danger-item__info strong {
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--nyx-c-text);
-}
-
-.danger-item__info span {
-  font-size: 0.6875rem;
-  color: var(--nyx-c-text-3);
+.nyx-action-item + .nyx-action-item {
+  margin-top: 0.75rem;
 }
 
 .sync-result {
