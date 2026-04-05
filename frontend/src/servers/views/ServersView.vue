@@ -1,27 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { NyxButton, NyxFormField, NyxIcon, NyxInput, NyxModal } from 'nyx-kit/components'
+import { ref } from 'vue'
+import { NyxFormField, NyxInput } from 'nyx-kit/components'
 import { fetchAuthMode } from '@/auth/api'
 import { useAuth } from '@/auth/composables'
-import { useWorkspaceProfiles } from '@/shared/composables'
 import { api } from '@/shared/api'
-import { RemoteProfileForm } from '@/auth'
-import { RouteName } from '@/shared/types'
-import type { RemoteProfileDraft, ServerMetadata } from '@/shared/types'
+import type { ServerMetadata } from '@/shared/types'
 
-const router = useRouter()
 const auth = useAuth()
-const profilesStore = useWorkspaceProfiles()
 
-const profiles = computed(() => profilesStore.profiles.value)
-const activeProfile = computed(() => profilesStore.activeProfile.value)
-const canAddLocal = computed(() => !profiles.value.some(profile => profile.type === 'local'))
-
-const showAddServerModal = ref(false)
-const showEditServerModal = ref(false)
-const editingProfile = ref<{ id: string; display_name: string; server_url: string } | null>(null)
-const connecting = ref(false)
 const serverMetadata = ref<ServerMetadata | null>(null)
 const authModeLabel = ref<string>('local')
 
@@ -38,43 +24,9 @@ void (async () => {
   }
 })()
 
-async function activateProfile(profileId: string) {
-  const result = profilesStore.setActiveProfile(profileId)
-  if (!result) return
-  await auth.bootstrapActiveProfile()
-  await router.push(result.profile.last_route || '/')
-}
-
-async function signOutActiveProfile() {
+function signOut() {
   auth.logout()
-}
-
-async function addLocalProfile() {
-  profilesStore.createLocalProfile()
-  await auth.bootstrapActiveProfile()
-  await router.push(auth.personalOverviewRoute.value)
-}
-
-async function handleAddServer(draft: RemoteProfileDraft) {
-  connecting.value = true
-  try {
-    profilesStore.addRemoteProfile(draft)
-    showAddServerModal.value = false
-  } finally {
-    connecting.value = false
-  }
-}
-
-async function handleEditServer(draft: RemoteProfileDraft) {
-  connecting.value = true
-  try {
-    if (editingProfile.value) {
-      profilesStore.updateRemoteProfile(editingProfile.value.id, draft)
-    }
-    showEditServerModal.value = false
-  } finally {
-    connecting.value = false
-  }
+  window.location.reload()
 }
 </script>
 
@@ -88,13 +40,13 @@ async function handleEditServer(draft: RemoteProfileDraft) {
       <div class="servers-page__content">
         <section class="servers-section">
           <div class="servers-section__header">
-            <h2>Server Settings</h2>
+            <h2>Server</h2>
           </div>
 
           <div class="servers-section__settings">
             <NyxFormField label="Server Name">
               <template #default="{ id }">
-                <NyxInput :id="id" :model-value="serverMetadata?.name ?? activeProfile?.display_name ?? 'Main Server'" disabled />
+                <NyxInput :id="id" :model-value="serverMetadata?.name ?? 'Main Server'" disabled />
               </template>
             </NyxFormField>
 
@@ -118,101 +70,19 @@ async function handleEditServer(draft: RemoteProfileDraft) {
           </div>
         </section>
 
-        <div class="servers-page__separator" />
-
-        <section class="servers-section">
+        <section v-if="auth.isAuthenticated.value" class="servers-section">
           <div class="servers-section__header">
-            <h2>Active Profile</h2>
+            <h2>Session</h2>
           </div>
-          <div v-if="activeProfile" class="servers-section__card">
-            <div class="profile-card">
-              <div class="profile-card__icon">
-                <NyxIcon v-if="activeProfile.type === 'local'" name="layout-grid" :size="24" />
-                <NyxIcon v-else name="server" :size="24" />
-              </div>
-              <div class="profile-card__info">
-                <span class="profile-card__name">{{ activeProfile.display_name }}</span>
-                <span v-if="activeProfile.type === 'remote'" class="profile-card__detail">{{ activeProfile.server_url }}</span>
-                <span v-if="activeProfile.type === 'local'" class="profile-card__detail">Built-in server</span>
-              </div>
-              <div class="profile-card__status">
-                <span v-if="auth.isAuthenticated.value" class="profile-card__badge profile-card__badge--success">Signed in</span>
-                <span v-else class="profile-card__badge profile-card__badge--warning">Signed out</span>
-              </div>
-            </div>
-            <div class="profile-card__actions">
-              <NyxButton v-if="activeProfile.type === 'remote' && !auth.isAuthenticated.value" @click="router.push({ name: RouteName.Login })">
-                Sign In
-              </NyxButton>
-              <NyxButton v-if="activeProfile.type === 'remote' && auth.isAuthenticated.value" @click="signOutActiveProfile">
-                Sign Out
-              </NyxButton>
-            </div>
-          </div>
-        </section>
-
-        <section class="servers-section">
-          <div class="servers-section__header">
-            <h2>All Profiles</h2>
-            <div class="servers-section__actions">
-              <NyxButton v-if="canAddLocal" @click="addLocalProfile">Add This Server</NyxButton>
-              <NyxButton @click="showAddServerModal = true">Add Server</NyxButton>
-            </div>
-          </div>
-
-          <div v-if="profiles.length === 0" class="servers-section__empty">
-            <p>No profiles yet. Add a local workspace or connect to a server.</p>
-          </div>
-
-          <div v-else class="servers-section__list">
-            <div
-              v-for="profile in profiles"
-              :key="profile.id"
-              class="servers-section__item"
-              :class="{ 'servers-section__item--active': profile.id === activeProfile?.id }"
-            >
-              <div class="profile-card" @click="activateProfile(profile.id)">
-                <div class="profile-card__icon">
-                  <NyxIcon v-if="profile.type === 'local'" name="layout-grid" :size="20" />
-                  <NyxIcon v-else name="server" :size="20" />
-                </div>
-                <div class="profile-card__info">
-                  <span class="profile-card__name">{{ profile.display_name }}</span>
-                  <span v-if="profile.type === 'remote'" class="profile-card__detail">{{ profile.server_url }}</span>
-                    <span v-else class="profile-card__detail">Built-in server</span>
-                </div>
-                <div v-if="profile.id === activeProfile?.id" class="profile-card__indicator">
-                  <NyxIcon name="check" :size="16" />
-                </div>
-              </div>
-              <div v-if="profile.type === 'remote'" class="profile-card__actions">
-                <NyxButton @click.stop="editingProfile = { id: profile.id, display_name: profile.display_name, server_url: profile.server_url }; showEditServerModal = true">Edit</NyxButton>
-              </div>
-            </div>
+          <div class="servers-section__actions">
+            <NyxButton @click="signOut">Sign Out</NyxButton>
           </div>
         </section>
       </div>
     </div>
   </div>
-
-  <NyxModal v-model="showAddServerModal" title="Add Server">
-    <RemoteProfileForm
-      submit-label="Add Server"
-      :loading="connecting"
-      @submit="handleAddServer"
-    />
-  </NyxModal>
-
-  <NyxModal v-model="showEditServerModal" title="Edit Server">
-    <RemoteProfileForm
-      v-if="editingProfile"
-      :initial-value="editingProfile"
-      submit-label="Save Changes"
-      :loading="connecting"
-      @submit="handleEditServer"
-    />
-  </NyxModal>
 </template>
+
 
 <style scoped>
 .servers-page {
