@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { NyxActionItem, NyxFormField, NyxInput } from 'nyx-kit/components'
 import { NyxTheme } from 'nyx-kit/types'
+import { NyxKit } from 'nyx-kit'
 import { fetchAuthMode } from '@/auth/api'
 import { useAuth } from '@/auth/composables'
 import { api } from '@/shared/api'
@@ -40,7 +41,13 @@ function signOut() {
 
 async function syncHomes() {
   if (syncing.value) return
-  if (!confirm('This will scan all home directories and fix author_id mismatches in vaults and notes. Continue?')) return
+  const result = await NyxKit.confirm({
+    title: 'Sync all homes',
+    message: 'This will scan all home directories and fix author_id mismatches in vaults and notes. Continue?',
+    confirmText: 'Sync',
+    theme: NyxTheme.Warning,
+  })
+  if (!result.isSuccess) return
   syncing.value = true
   syncResult.value = null
   try {
@@ -52,8 +59,20 @@ async function syncHomes() {
 
 async function removeAllNotes() {
   if (removingNotes.value) return
-  if (!confirm('Delete ALL notes across all vaults? This cannot be undone.')) return
-  if (!confirm('Are you absolutely sure? This will permanently delete every note.')) return
+  const result = await NyxKit.confirm({
+    title: 'Remove all notes',
+    message: 'Delete ALL notes across all vaults? This cannot be undone.',
+    confirmText: 'Remove Notes',
+    theme: NyxTheme.Danger,
+  })
+  if (!result.isSuccess) return
+  const doubleCheck = await NyxKit.confirm({
+    title: 'Are you absolutely sure?',
+    message: 'This will permanently delete every note.',
+    confirmText: 'Yes, delete everything',
+    theme: NyxTheme.Danger,
+  })
+  if (!doubleCheck.isSuccess) return
   removingNotes.value = true
   try {
     await api('/api/admin/remove-all-notes', { method: 'POST' })
@@ -65,8 +84,20 @@ async function removeAllNotes() {
 
 async function removeAllVaults() {
   if (removingVaults.value) return
-  if (!confirm('Delete ALL vaults and their notes? This cannot be undone.')) return
-  if (!confirm('Are you absolutely sure? This will permanently delete every vault and note.')) return
+  const result = await NyxKit.confirm({
+    title: 'Remove all vaults',
+    message: 'Delete ALL vaults and their notes? This cannot be undone.',
+    confirmText: 'Remove Vaults',
+    theme: NyxTheme.Danger,
+  })
+  if (!result.isSuccess) return
+  const doubleCheck = await NyxKit.confirm({
+    title: 'Are you absolutely sure?',
+    message: 'This will permanently delete every vault and note.',
+    confirmText: 'Yes, delete everything',
+    theme: NyxTheme.Danger,
+  })
+  if (!doubleCheck.isSuccess) return
   removingVaults.value = true
   try {
     await api('/api/admin/remove-all-vaults', { method: 'POST' })
@@ -78,8 +109,20 @@ async function removeAllVaults() {
 
 async function removeAllHomes() {
   if (removingHomes.value) return
-  if (!confirm('Delete ALL home directories (users\' personal vaults and notes)? This cannot be undone.')) return
-  if (!confirm('Are you absolutely sure? This will permanently delete every home directory.')) return
+  const result = await NyxKit.confirm({
+    title: 'Remove all homes',
+    message: "Delete ALL home directories (users' personal vaults and notes)? This cannot be undone.",
+    confirmText: 'Remove Homes',
+    theme: NyxTheme.Danger,
+  })
+  if (!result.isSuccess) return
+  const doubleCheck = await NyxKit.confirm({
+    title: 'Are you absolutely sure?',
+    message: 'This will permanently delete every home directory.',
+    confirmText: 'Yes, delete everything',
+    theme: NyxTheme.Danger,
+  })
+  if (!doubleCheck.isSuccess) return
   removingHomes.value = true
   try {
     await api('/api/admin/remove-all-homes', { method: 'POST' })
@@ -91,8 +134,20 @@ async function removeAllHomes() {
 
 async function removeAllServerVaults() {
   if (removingServerVaults.value) return
-  if (!confirm('Delete ALL server vaults and their notes? This cannot be undone.')) return
-  if (!confirm('Are you absolutely sure? This will permanently delete every server vault.')) return
+  const result = await NyxKit.confirm({
+    title: 'Remove all server vaults',
+    message: 'Delete ALL server vaults and their notes? This cannot be undone.',
+    confirmText: 'Remove Server Vaults',
+    theme: NyxTheme.Danger,
+  })
+  if (!result.isSuccess) return
+  const doubleCheck = await NyxKit.confirm({
+    title: 'Are you absolutely sure?',
+    message: 'This will permanently delete every server vault.',
+    confirmText: 'Yes, delete everything',
+    theme: NyxTheme.Danger,
+  })
+  if (!doubleCheck.isSuccess) return
   removingServerVaults.value = true
   try {
     await api('/api/admin/remove-all-server-vaults', { method: 'POST' })
