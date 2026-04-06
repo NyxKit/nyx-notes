@@ -6,6 +6,7 @@ import { useAuth } from '@/auth/composables'
 import { NyxButton, NyxInput, NyxSelect, NyxTextarea } from 'nyx-kit/components'
 import { NyxTheme } from 'nyx-kit/types'
 import type { NyxSelectOption } from 'nyx-kit/types'
+import { NyxKit } from 'nyx-kit'
 import { VaultIconPicker } from '@/vaults/components'
 import { useVaultStore } from '@/vaults/stores'
 
@@ -20,7 +21,6 @@ const vaultId = computed(() => route.params.vault_id as string)
 const vault = computed(() => vaults.value.find(v => v.slug === vaultId.value) ?? null)
 
 const deleteError = ref<string | null>(null)
-const confirmDelete = ref(false)
 const iconError = ref<string | null>(null)
 const detailsError = ref<string | null>(null)
 const detailsSaved = ref(false)
@@ -65,7 +65,16 @@ async function onIconChange(slug: string | undefined) {
 }
 
 async function onDelete() {
+  if (!vault.value) return
   deleteError.value = null
+  const result = await NyxKit.confirm({
+    title: 'Delete Vault',
+    message: `Are you sure you want to delete "${vault.value.name}"? This cannot be undone.`,
+    confirmText: 'Yes, Delete Vault',
+    cancelText: 'Cancel',
+    theme: NyxTheme.Danger,
+  })
+  if (result.isFailure) return
   try {
     if (vault.value?.owner.type === 'server') {
       await removeServerVault(vaultId.value)
@@ -75,7 +84,6 @@ async function onDelete() {
     router.push(auth.personalOverviewRoute.value)
   } catch (e) {
     deleteError.value = String(e)
-    confirmDelete.value = false
   }
 }
 
@@ -171,23 +179,10 @@ const permissionOptions: NyxSelectOption[] = [
           <p class="settings-section__description">
             Deleting a vault is permanent. The vault must be empty (no notes) before it can be deleted.
           </p>
-          <div v-if="!confirmDelete">
-            <NyxButton :theme="NyxTheme.Danger" @click="confirmDelete = true">
-              Delete vault
-            </NyxButton>
-          </div>
-          <div v-else class="settings-confirm">
-            <p class="settings-confirm__warning">
-              Are you sure you want to delete <strong>{{ vault.name }}</strong>? This cannot be undone.
-            </p>
-            <div class="settings-confirm__actions">
-              <NyxButton @click="confirmDelete = false">Cancel</NyxButton>
-              <NyxButton :theme="NyxTheme.Danger" @click="onDelete">
-                Yes, delete vault
-              </NyxButton>
-            </div>
-            <p v-if="deleteError" class="settings-error">{{ deleteError }}</p>
-          </div>
+          <NyxButton :theme="NyxTheme.Danger" @click="onDelete">
+            Delete vault
+          </NyxButton>
+          <p v-if="deleteError" class="settings-error">{{ deleteError }}</p>
         </section>
       </template>
     </div>
@@ -298,23 +293,6 @@ const permissionOptions: NyxSelectOption[] = [
 .settings-success {
   font-size: 0.8125rem;
   color: var(--nyx-c-primary);
-}
-
-
-.settings-confirm {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.settings-confirm__warning {
-  font-size: 0.875rem;
-  margin: 0;
-}
-
-.settings-confirm__actions {
-  display: flex;
-  gap: 0.5rem;
 }
 
 .settings-error {
