@@ -13,7 +13,7 @@ A developer runs a single lint command from the frontend directory and gets a cl
 
 **Why this priority**: Without a passing baseline, lint is noise rather than a gate. Every subsequent story depends on this working first.
 
-**Independent Test**: Run `pnpm lint` in `frontend/` and observe zero errors and zero warnings.
+**Independent Test**: Run `pnpm lint` in `app/` and observe zero errors and zero warnings.
 
 **Acceptance Scenarios**:
 
@@ -25,7 +25,7 @@ A developer runs a single lint command from the frontend directory and gets a cl
 
 ### User Story 2 — Existing code is adjusted to comply with the rule set (Priority: P2)
 
-All existing `.ts` and `.vue` files in `frontend/src/` are updated to satisfy the rules the shared config introduces. No pre-existing violations remain after the adjustment pass.
+All existing `.ts` and `.vue` files in `app/src/` are updated to satisfy the rules the shared config introduces. No pre-existing violations remain after the adjustment pass.
 
 **Why this priority**: A lint config with known suppressions or ignored violations is misleading. The baseline must be clean so future violations stand out.
 
@@ -41,7 +41,7 @@ All existing `.ts` and `.vue` files in `frontend/src/` are updated to satisfy th
 
 ### User Story 3 — Lint is integrated into the dev workflow (Priority: P3)
 
-The lint command is part of the standard scripts in `frontend/package.json`, consistent with how the build and type-check commands are registered.
+The lint command is part of the standard scripts in `app/package.json`, consistent with how the build and type-check commands are registered.
 
 **Why this priority**: Discoverability matters. Developers should find lint the same way they find `dev`, `build`, and `type-check`.
 
@@ -58,7 +58,7 @@ The lint command is part of the standard scripts in `frontend/package.json`, con
 ### Edge Cases
 
 - What happens when a rule conflict exists between the nyx-kit config and a project-level override? Project-level overrides appended after the shared config take precedence — this is the standard flat-config composition model.
-- How does the system handle files under `frontend/src/`? The lint script targets `./src` explicitly, so all committed source files — including `vite-env.d.ts` — are subject to the rule set. Only `dist/`, `dist-ssr/`, and `coverage/` are excluded via the nyx-kit config's built-in ignore patterns.
+- How does the system handle files under `app/src/`? The lint script targets `./src` explicitly, so all committed source files — including `vite-env.d.ts` — are subject to the rule set. Only `dist/`, `dist-ssr/`, and `coverage/` are excluded via the nyx-kit config's built-in ignore patterns.
 - What happens if a peer dependency required by the ESLint config is not yet installed? The install step must be completed before the config is loaded; missing peers produce a clear module-not-found error.
 
 ## Requirements *(mandatory)*
@@ -67,8 +67,8 @@ The lint command is part of the standard scripts in `frontend/package.json`, con
 
 - **FR-001**: The frontend MUST have an ESLint flat config that extends the nyx-kit shared rule set.
 - **FR-002**: All required peer dependencies for the shared ESLint config MUST be installed as dev dependencies.
-- **FR-003**: A `lint` script MUST be added to `frontend/package.json` that runs ESLint over all TypeScript and Vue source files. A companion `lint:fix` script MUST also be provided that runs ESLint with auto-fix enabled, applying safe mechanical fixes and reporting residual violations.
-- **FR-004**: All existing source files in `frontend/src/` MUST pass the rule set with zero errors and zero warnings.
+- **FR-003**: A `lint` script MUST be added to `app/package.json` that runs ESLint over all TypeScript and Vue source files. A companion `lint:fix` script MUST also be provided that runs ESLint with auto-fix enabled, applying safe mechanical fixes and reporting residual violations.
+- **FR-004**: All existing source files in `app/src/` MUST pass the rule set with zero errors and zero warnings.
 - **FR-005**: No ESLint suppression directives (`eslint-disable`) MUST be introduced — every violation must be resolved at the source.
 - **FR-006**: The ESLint config MUST allow project-level overrides to be appended after the shared config block, so future rules can be added without modifying the shared config.
 
@@ -76,7 +76,7 @@ The lint command is part of the standard scripts in `frontend/package.json`, con
 
 ### Measurable Outcomes
 
-- **SC-001**: `pnpm lint` completes with zero errors and zero warnings across all source files in `frontend/src/`.
+- **SC-001**: `pnpm lint` completes with zero errors and zero warnings across all source files in `app/src/`.
 - **SC-002**: Zero suppression directives are introduced anywhere in the codebase as part of this feature.
 - **SC-003**: Any new `.ts` or `.vue` file added after this feature ships that violates a rule causes `pnpm lint` to fail, confirming the gate is active.
 - **SC-004**: The lint command completes in under 30 seconds on the current source tree.

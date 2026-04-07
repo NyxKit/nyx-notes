@@ -13,7 +13,7 @@
 
 ## Path Conventions
 
-- Frontend source: `frontend/src/`
+- Frontend source: `app/src/`
 - Docs: `docs/interface/`
 
 ---
@@ -40,16 +40,16 @@
 
 **Independent Test**: Open every view. Inspect DOM — no native `<button>`, `<input>`, or `<textarea>` outside third-party output. All controls behave identically to before.
 
-- [x] T002 [P] [US1] Replace `<button>` New Note with `NyxButton :gradient="true"` in `frontend/src/components/SidebarNav.vue`; remove `.sidebar-nav__new-btn` scoped styles
-- [x] T003 [P] [US1] Replace `<button>`s in `frontend/src/components/NoteList.vue`: New Note button → `NyxButton`, note item buttons → `NyxButton variant="ghost"`; remove corresponding scoped styles
-- [x] T004 [P] [US1] Replace `<button>` Resolve and Delete in `frontend/src/components/CommentThread.vue` with `NyxButton variant="ghost" size="sm"` (Delete adds `theme="danger"`); remove scoped button styles
-- [x] T005 [P] [US1] Replace add-comment `<button>` in `frontend/src/components/CommentSidebar.vue` with `NyxButton`; remove scoped button styles
-- [x] T006 [P] [US1] Replace `<textarea>` in `frontend/src/components/CommentComposer.vue` with `NyxTextarea`; replace `<button>` Submit with `NyxButton type="submit"` and Cancel with `NyxButton variant="ghost"`; remove scoped textarea/button styles
-- [x] T007 [P] [US1] Replace all icon `<button>`s (sidebar toggle, source view, favorite, delete, comments) in `frontend/src/views/NoteView.vue` with `NyxButton variant="ghost" shape="square"`; delete button uses `theme="danger"`; remove scoped `.app-shell__icon-btn` styles
-- [x] T008 [P] [US1] Replace `<button>`s and `<input>`s in `frontend/src/views/HomeView.vue`: New Vault → `NyxButton`, vault cards → `NyxButton variant="ghost"`, Create/Cancel → `NyxButton`/`NyxButton variant="ghost"`, name/slug inputs → `NyxInput`; remove corresponding scoped styles
-- [x] T009 [P] [US1] Replace `<button>`s in `frontend/src/views/VaultView.vue`: New Note (header) → `NyxButton`, note cards → `NyxButton variant="ghost"`, New Note (empty CTA) → `NyxButton :gradient="true"`; remove scoped button styles
-- [x] T010 [P] [US1] Replace `<button>`s in `frontend/src/views/VaultSettingsView.vue`: Back → `NyxButton variant="ghost"`, Delete → `NyxButton theme="danger"`; remove scoped button styles
-- [x] T011 [P] [US1] Replace `<button>`s and `<input>`s in `frontend/src/views/TeamSettingsView.vue`: Back → `NyxButton variant="ghost"`, Remove member → `NyxButton variant="ghost" theme="danger" size="sm"`, Add member/vault submit → `NyxButton type="submit"`, Cancel → `NyxButton variant="ghost"`, Delete vault/team → `NyxButton theme="danger"`, all inputs → `NyxInput`; remove scoped button/input styles
+- [x] T002 [P] [US1] Replace `<button>` New Note with `NyxButton :gradient="true"` in `app/src/components/SidebarNav.vue`; remove `.sidebar-nav__new-btn` scoped styles
+- [x] T003 [P] [US1] Replace `<button>`s in `app/src/components/NoteList.vue`: New Note button → `NyxButton`, note item buttons → `NyxButton variant="ghost"`; remove corresponding scoped styles
+- [x] T004 [P] [US1] Replace `<button>` Resolve and Delete in `app/src/components/CommentThread.vue` with `NyxButton variant="ghost" size="sm"` (Delete adds `theme="danger"`); remove scoped button styles
+- [x] T005 [P] [US1] Replace add-comment `<button>` in `app/src/components/CommentSidebar.vue` with `NyxButton`; remove scoped button styles
+- [x] T006 [P] [US1] Replace `<textarea>` in `app/src/components/CommentComposer.vue` with `NyxTextarea`; replace `<button>` Submit with `NyxButton type="submit"` and Cancel with `NyxButton variant="ghost"`; remove scoped textarea/button styles
+- [x] T007 [P] [US1] Replace all icon `<button>`s (sidebar toggle, source view, favorite, delete, comments) in `app/src/views/NoteView.vue` with `NyxButton variant="ghost" shape="square"`; delete button uses `theme="danger"`; remove scoped `.app-shell__icon-btn` styles
+- [x] T008 [P] [US1] Replace `<button>`s and `<input>`s in `app/src/views/HomeView.vue`: New Vault → `NyxButton`, vault cards → `NyxButton variant="ghost"`, Create/Cancel → `NyxButton`/`NyxButton variant="ghost"`, name/slug inputs → `NyxInput`; remove corresponding scoped styles
+- [x] T009 [P] [US1] Replace `<button>`s in `app/src/views/VaultView.vue`: New Note (header) → `NyxButton`, note cards → `NyxButton variant="ghost"`, New Note (empty CTA) → `NyxButton :gradient="true"`; remove scoped button styles
+- [x] T010 [P] [US1] Replace `<button>`s in `app/src/views/VaultSettingsView.vue`: Back → `NyxButton variant="ghost"`, Delete → `NyxButton theme="danger"`; remove scoped button styles
+- [x] T011 [P] [US1] Replace `<button>`s and `<input>`s in `app/src/views/TeamSettingsView.vue`: Back → `NyxButton variant="ghost"`, Remove member → `NyxButton variant="ghost" theme="danger" size="sm"`, Add member/vault submit → `NyxButton type="submit"`, Cancel → `NyxButton variant="ghost"`, Delete vault/team → `NyxButton theme="danger"`, all inputs → `NyxInput`; remove scoped button/input styles
 
 **Checkpoint**: Zero native `<button>`, `<input>`, or `<textarea>` elements remain. All controls function identically.
 
@@ -61,9 +61,9 @@
 
 **Independent Test**: Open vault notes masonry and note editor toolbar. All tag chips render as `NyxBadge`. No `.note-tag`, `.vault__note-tag`, or equivalent span class exists in the DOM.
 
-- [x] T012 [P] [US2] Replace tag `<span>` elements in `frontend/src/views/VaultView.vue` with `<NyxBadge theme="primary" variant="soft">`; remove `.vault__note-tag` scoped styles
-- [x] T013 [P] [US2] Replace tag `<span>` elements in `frontend/src/components/NoteList.vue` with `<NyxBadge theme="primary" variant="soft">`; remove corresponding tag scoped styles
-- [x] T014 [US2] Replace tag `<span>` elements in `frontend/src/components/NoteToolbar.vue` with `<NyxBadge theme="primary" variant="soft" :hasClose="true" @close="removeTag(tag)">`; remove `.note-toolbar__tag` scoped styles
+- [x] T012 [P] [US2] Replace tag `<span>` elements in `app/src/views/VaultView.vue` with `<NyxBadge theme="primary" variant="soft">`; remove `.vault__note-tag` scoped styles
+- [x] T013 [P] [US2] Replace tag `<span>` elements in `app/src/components/NoteList.vue` with `<NyxBadge theme="primary" variant="soft">`; remove corresponding tag scoped styles
+- [x] T014 [US2] Replace tag `<span>` elements in `app/src/components/NoteToolbar.vue` with `<NyxBadge theme="primary" variant="soft" :hasClose="true" @close="removeTag(tag)">`; remove `.note-toolbar__tag` scoped styles
 
 **Checkpoint**: Zero hand-rolled tag spans remain. Tags render and dismiss correctly.
 
@@ -75,9 +75,9 @@
 
 **Independent Test**: Open vault creation form (HomeView), add-member form (TeamSettingsView), and comment composer. Component tree shows `NyxForm` at form root; labelled inputs use `NyxFormField`.
 
-- [x] T015 [P] [US3] Wrap vault creation form in `frontend/src/views/HomeView.vue` with `NyxForm @submit="submitCreate"`; wrap name and slug fields with `NyxFormField label="..."` using slot-scope `{ id }` pattern
-- [x] T016 [P] [US3] Wrap comment body form in `frontend/src/components/CommentComposer.vue` with `NyxForm @submit="submit"`; wrap textarea with `NyxFormField`
-- [x] T017 [US3] Wrap add-member and add-vault forms in `frontend/src/views/TeamSettingsView.vue` with `NyxForm`; wrap each input with `NyxFormField label="..."`
+- [x] T015 [P] [US3] Wrap vault creation form in `app/src/views/HomeView.vue` with `NyxForm @submit="submitCreate"`; wrap name and slug fields with `NyxFormField label="..."` using slot-scope `{ id }` pattern
+- [x] T016 [P] [US3] Wrap comment body form in `app/src/components/CommentComposer.vue` with `NyxForm @submit="submit"`; wrap textarea with `NyxFormField`
+- [x] T017 [US3] Wrap add-member and add-vault forms in `app/src/views/TeamSettingsView.vue` with `NyxForm`; wrap each input with `NyxFormField label="..."`
 
 **Checkpoint**: All forms use `NyxForm`. Submit handlers fire correctly. No bare form divs remain.
 
@@ -85,7 +85,7 @@
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [x] T018 [P] Replace hand-rolled tab buttons in `frontend/src/components/CommentSidebar.vue` with `NyxTabs v-model="activeTab" :tabs="['Open', 'Resolved']"`; slot comment thread lists under `#tab-Open` and `#tab-Resolved`; remove scoped tab button styles
+- [x] T018 [P] Replace hand-rolled tab buttons in `app/src/components/CommentSidebar.vue` with `NyxTabs v-model="activeTab" :tabs="['Open', 'Resolved']"`; slot comment thread lists under `#tab-Open` and `#tab-Resolved`; remove scoped tab button styles
 - [x] T019 [P] Audit all touched files for any remaining scoped CSS that styles replaced primitives; remove dead style blocks
 - [ ] T020 Manually verify all quickstart.md scenarios: every view opens without errors, controls interact correctly, v-model bindings update, disabled states respected, tags dismiss
 

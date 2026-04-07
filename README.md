@@ -35,7 +35,7 @@ nyx-notes/
     notes-auth-oidc/      # OidcAuthStore
     notes-server-axum/    # Axum HTTP API server
     notes-cli/            # CLI — direct filesystem access, no server required
-  frontend/               # Vue 3 SPA (nyx-kit + NyxEditor)
+  app/               # Vue 3 SPA (nyx-kit + NyxEditor)
     native/               # Tauri native app shell (embeds the Axum server)
   docs/                   # architecture, interface, conventions, and testing specs
 ```

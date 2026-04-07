@@ -49,7 +49,7 @@ specs/004-pinia-stores/
 ### Source Code Changes
 
 ```text
-frontend/src/
+app/src/
 ├── stores/
 │   ├── vaults.ts         # NEW — useVaultStore (replaces useVaults composable)
 │   └── notes.ts          # NEW — useNotesStore (replaces useNotes composable)

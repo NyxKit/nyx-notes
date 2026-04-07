@@ -223,7 +223,7 @@ const permissionOptions: NyxSelectOption[] = [
 .settings-section {
   margin-bottom: 2rem;
   padding: 1.25rem;
-  border: 1px solid var(--nyx-color-border, #e2e8f0);
+  border: 1px solid var(--nyx-c-divider, #e2e8f0);
   border-radius: 0.5rem;
 }
 
@@ -253,7 +253,7 @@ const permissionOptions: NyxSelectOption[] = [
   align-items: baseline;
   gap: 1rem;
   padding: 0.5rem 0;
-  border-bottom: 1px solid var(--nyx-color-border, #e2e8f0);
+  border-bottom: 1px solid var(--nyx-c-divider, #e2e8f0);
   font-size: 0.875rem;
 }
 

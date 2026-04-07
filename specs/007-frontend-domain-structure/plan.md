@@ -5,7 +5,7 @@
 
 ## Summary
 
-Reorganise `frontend/src/` from a flat, concern-based layout (separate `components/`, `stores/`, `views/`, `api/` directories) into a domain-based layout (`vaults/`, `notes/`, `comments/`, `auth/`, `teams/`, `shared/`). Each domain folder collocates its views, components, stores, composables, and API module. Cross-domain code moves to `shared/`. Entry point files (`main.ts`, `App.vue`, `vite-env.d.ts`) stay at the `src/` root.
+Reorganise `app/src/` from a flat, concern-based layout (separate `components/`, `stores/`, `views/`, `api/` directories) into a domain-based layout (`vaults/`, `notes/`, `comments/`, `auth/`, `teams/`, `shared/`). Each domain folder collocates its views, components, stores, composables, and API module. Cross-domain code moves to `shared/`. Entry point files (`main.ts`, `App.vue`, `vite-env.d.ts`) stay at the `src/` root.
 
 ## Technical Context
 
@@ -52,7 +52,7 @@ specs/007-frontend-domain-structure/
 ### Source Code — Target Layout
 
 ```text
-frontend/src/
+app/src/
 ├── main.ts                     # entry point (stays at root)
 ├── App.vue                     # app shell (stays at root)
 ├── vite-env.d.ts               # Vite env types (stays at root)
@@ -131,7 +131,7 @@ frontend/src/
         └── time.ts             # ← utils/time.ts
 ```
 
-**Structure Decision**: Single-project web application with domain-based `src/` layout. The `@/` alias continues to map to `frontend/src/`, so domain imports use `@/vaults/...`, `@/notes/...`, `@/shared/...`, etc. No alias changes required.
+**Structure Decision**: Single-project web application with domain-based `src/` layout. The `@/` alias continues to map to `app/src/`, so domain imports use `@/vaults/...`, `@/notes/...`, `@/shared/...`, etc. No alias changes required.
 
 ## Complexity Tracking
 

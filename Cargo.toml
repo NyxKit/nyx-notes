@@ -5,7 +5,7 @@ members = [
     "crates/notes-auth",
     "crates/notes-server-axum",
     "crates/notes-cli",
-    "frontend/native",
+    "app/native",
 ]
 default-members = [
     "crates/notes-core",

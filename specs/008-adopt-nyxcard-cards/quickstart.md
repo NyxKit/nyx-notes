@@ -8,11 +8,11 @@
 
 ## 2. Implement shared browse-card presentation
 
-- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/VaultCard.vue` so it uses `NyxCard`, wraps internally in a `RouterLink`, and renders title, slug, description, and oversized bottom-right icon.
-- Add `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/NoteCard.vue` as a dedicated note-card component that uses `NyxCard`, wraps internally in a `RouterLink`, and renders title, distilled description, and metadata.
-- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/HomeView.vue` so the inline create-vault surface uses the same card family and supports editing the vault description.
-- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/VaultView.vue` so it uses `NoteCard` instead of inline note-card markup.
-- Do not restyle `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/VaultSwitcher.vue`, empty-state cards, comment threads, settings/modals, or navigation chrome as part of this feature.
+- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/components/VaultCard.vue` so it uses `NyxCard`, wraps internally in a `RouterLink`, and renders title, slug, description, and oversized bottom-right icon.
+- Add `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/notes/components/NoteCard.vue` as a dedicated note-card component that uses `NyxCard`, wraps internally in a `RouterLink`, and renders title, distilled description, and metadata.
+- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/views/HomeView.vue` so the inline create-vault surface uses the same card family and supports editing the vault description.
+- Refactor `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/views/VaultView.vue` so it uses `NoteCard` instead of inline note-card markup.
+- Do not restyle `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/components/VaultSwitcher.vue`, empty-state cards, comment threads, settings/modals, or navigation chrome as part of this feature.
 
 ## 3. Preserve interaction semantics
 

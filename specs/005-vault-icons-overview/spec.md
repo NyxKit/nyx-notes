@@ -115,7 +115,7 @@ New optional `icon` field — backward compatible (missing = `None`):
 }
 ```
 
-### TypeScript (`frontend/src/types/index.ts`)
+### TypeScript (`app/src/types/index.ts`)
 
 ```typescript
 export interface Vault {
@@ -182,7 +182,7 @@ Add icon picker section above the rename form.
 
 ## Constraints
 
-- No new npm packages — icons are individual SVG files in `frontend/src/assets/icons/{slug}.svg`, imported via Vite's `?raw` suffix
+- No new npm packages — icons are individual SVG files in `app/src/assets/icons/{slug}.svg`, imported via Vite's `?raw` suffix
 - `icon` slug is free text in the API (no enum) — validated against the 20-slug allowlist in the server handler
 - Unknown slugs stored on disk are forwarded as-is; the frontend falls back to a default icon
 - Personal vault `.vault.json` did not previously include `permission` — `icon` follows the same pattern (optional, omitted when absent)

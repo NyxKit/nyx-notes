@@ -5,18 +5,18 @@
 
 ## What Is Being Done
 
-`frontend/src/` is reorganised from a flat concern-based layout into a domain-based layout. Files move; no new logic is introduced.
+`app/src/` is reorganised from a flat concern-based layout into a domain-based layout. Files move; no new logic is introduced.
 
 ## Developer Guide: Where Things Live After the Refactor
 
 ### Finding a feature
 
-If you want to change how **vaults** work → open `frontend/src/vaults/`
-If you want to change how **notes** work → open `frontend/src/notes/`
-If you want to change **comments** → open `frontend/src/comments/`
-If you want to change **auth/login** → open `frontend/src/auth/`
-If you want to change **teams** → open `frontend/src/teams/`
-If you want to change **layout, routing, shared types, or utilities** → open `frontend/src/shared/`
+If you want to change how **vaults** work → open `app/src/vaults/`
+If you want to change how **notes** work → open `app/src/notes/`
+If you want to change **comments** → open `app/src/comments/`
+If you want to change **auth/login** → open `app/src/auth/`
+If you want to change **teams** → open `app/src/teams/`
+If you want to change **layout, routing, shared types, or utilities** → open `app/src/shared/`
 
 ### Domain folder layout (consistent across all domains)
 
@@ -36,15 +36,15 @@ Subdirectories that have no files are **omitted** — don't create empty folders
 
 ### Adding a new file
 
-- New component for the notes domain → `frontend/src/notes/components/MyComponent.vue`
-- New API call for vaults → add to `frontend/src/vaults/api/vaults.ts`
-- New utility used by two or more domains → `frontend/src/shared/utils/myUtil.ts`
-- New type used by two or more domains → add to `frontend/src/shared/types/index.ts`
-- New Pinia store for comments → `frontend/src/comments/stores/comments.ts`
+- New component for the notes domain → `app/src/notes/components/MyComponent.vue`
+- New API call for vaults → add to `app/src/vaults/api/vaults.ts`
+- New utility used by two or more domains → `app/src/shared/utils/myUtil.ts`
+- New type used by two or more domains → add to `app/src/shared/types/index.ts`
+- New Pinia store for comments → `app/src/comments/stores/comments.ts`
 
 ### Import paths
 
-The `@/` alias maps to `frontend/src/`. Examples:
+The `@/` alias maps to `app/src/`. Examples:
 
 ```ts
 // Importing from within the same domain

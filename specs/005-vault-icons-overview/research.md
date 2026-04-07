@@ -9,7 +9,7 @@
 
 ### Icon delivery strategy
 
-**Decision**: Individual SVG files in `frontend/src/assets/icons/{slug}.svg`, imported into `VaultIcon.vue` as raw strings via Vite's `?raw` suffix and rendered inline with `v-html`.
+**Decision**: Individual SVG files in `app/src/assets/icons/{slug}.svg`, imported into `VaultIcon.vue` as raw strings via Vite's `?raw` suffix and rendered inline with `v-html`.
 
 **Rationale**: No icon library dependency — the 20 SVG files are project assets, not node_modules. Storing each icon as its own file (`home.svg`, `briefcase.svg`, etc.) keeps them version-controlled, editable without touching Vue source, and cleanly separated from component logic. Vite's `?raw` import returns the SVG markup as a string at build time (zero runtime cost); rendering via `v-html` preserves `currentColor` so the icon inherits CSS stroke/fill colour from its parent — consistent with the project's existing inline SVG icon style.
 

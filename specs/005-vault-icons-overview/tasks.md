@@ -38,9 +38,9 @@
 
 - [x] T006 Add `icon: Option<String>` to `Vault` struct; add `VaultUpdate` and `VaultIconUpdate` types; add `update_vault(&self, vault_id: &str, update: &VaultUpdate) -> Result<(), StorageError>` to `StorageBackend` trait in `crates/notes-core/src/domain.rs`
 - [x] T007 Update `VaultJson` serde struct to include optional `icon` field; implement `FsStorage::update_vault` (read `.vault.json`, apply name/icon update, write back); forward `icon` through `FsStorage::create_vault` in `crates/notes-storage-fs/src/lib.rs` — depends on T006
-- [x] T008 [P] Add `icon?: string` to `Vault` interface; add `icon?: string` to `CreateVaultRequest`; add `UpdateVaultRequest` interface in `frontend/src/types/index.ts`
-- [x] T009 [P] Create all 20 SVG icon files in `frontend/src/assets/icons/` — one file per slug: `home.svg`, `book.svg`, `star.svg`, `briefcase.svg`, `code.svg`, `pen.svg`, `heart.svg`, `globe.svg`, `lock.svg`, `rocket.svg`, `lightbulb.svg`, `music.svg`, `camera.svg`, `folder.svg`, `compass.svg`, `flask.svg`, `graduation-cap.svg`, `chart.svg`, `leaf.svg`, `diamond.svg` — all using `viewBox="0 0 24 24"`, `fill="none"`, `stroke="currentColor"`, `stroke-width="1.25"`, `stroke-linecap="round"`, `stroke-linejoin="round"`
-- [x] T010 Create `frontend/src/components/VaultIcon.vue` — accepts `slug: string | undefined` and `size: number` props; imports all 20 SVGs via Vite `?raw` suffix; selects by slug; falls back to `folder` for unknown/absent slugs; renders inline via `v-html`; sets width/height from `size` prop — depends on T008, T009
+- [x] T008 [P] Add `icon?: string` to `Vault` interface; add `icon?: string` to `CreateVaultRequest`; add `UpdateVaultRequest` interface in `app/src/types/index.ts`
+- [x] T009 [P] Create all 20 SVG icon files in `app/src/assets/icons/` — one file per slug: `home.svg`, `book.svg`, `star.svg`, `briefcase.svg`, `code.svg`, `pen.svg`, `heart.svg`, `globe.svg`, `lock.svg`, `rocket.svg`, `lightbulb.svg`, `music.svg`, `camera.svg`, `folder.svg`, `compass.svg`, `flask.svg`, `graduation-cap.svg`, `chart.svg`, `leaf.svg`, `diamond.svg` — all using `viewBox="0 0 24 24"`, `fill="none"`, `stroke="currentColor"`, `stroke-width="1.25"`, `stroke-linecap="round"`, `stroke-linejoin="round"`
+- [x] T010 Create `app/src/components/VaultIcon.vue` — accepts `slug: string | undefined` and `size: number` props; imports all 20 SVGs via Vite `?raw` suffix; selects by slug; falls back to `folder` for unknown/absent slugs; renders inline via `v-html`; sets width/height from `size` prop — depends on T008, T009
 
 **Checkpoint**: Domain model updated, SVG assets ready, `VaultIcon` renderable — user story work can begin.
 
@@ -53,10 +53,10 @@
 **Independent test**: Create a vault with `icon: "briefcase"` via `POST /api/vaults`; confirm `.vault.json` on disk contains `"icon": "briefcase"`; confirm `GET /api/vaults` returns the vault with `icon: "briefcase"`; confirm vault card in HomeView shows the briefcase icon.
 
 - [x] T011 [P] [US1] Update `CreateVaultBody` struct in `crates/notes-server-axum/src/routes/vaults.rs` to include `icon: Option<String>`; validate icon against `VALID_ICONS` allowlist; pass icon through to `storage.create_vault` — depends on T007
-- [x] T012 [P] [US1] Update `createVault(body: CreateVaultRequest)` in `frontend/src/api/vaults.ts` to include `icon` in the POST request body — depends on T008
-- [x] T013 [US1] Update `create(body)` action in `frontend/src/stores/vaults.ts` to forward `icon` from the request body through to `createVault()` — depends on T012
-- [x] T014 [P] [US1] Create `frontend/src/components/VaultIconPicker.vue` — 5-column CSS grid of 40×40px icon buttons; accepts `modelValue: string | undefined` prop; emits `update:modelValue` with selected slug; active icon uses `primary-container` background; uses `VaultIcon` internally; selection is optional (no icon = valid) — depends on T010
-- [x] T015 [US1] Add `VaultIconPicker` to the inline create form card in `frontend/src/views/HomeView.vue` — add `newIcon` ref; bind to `VaultIconPicker`; pass `newIcon.value` to `createVault`; place picker between name field and form actions — depends on T013, T014
+- [x] T012 [P] [US1] Update `createVault(body: CreateVaultRequest)` in `app/src/api/vaults.ts` to include `icon` in the POST request body — depends on T008
+- [x] T013 [US1] Update `create(body)` action in `app/src/stores/vaults.ts` to forward `icon` from the request body through to `createVault()` — depends on T012
+- [x] T014 [P] [US1] Create `app/src/components/VaultIconPicker.vue` — 5-column CSS grid of 40×40px icon buttons; accepts `modelValue: string | undefined` prop; emits `update:modelValue` with selected slug; active icon uses `primary-container` background; uses `VaultIcon` internally; selection is optional (no icon = valid) — depends on T010
+- [x] T015 [US1] Add `VaultIconPicker` to the inline create form card in `app/src/views/HomeView.vue` — add `newIcon` ref; bind to `VaultIconPicker`; pass `newIcon.value` to `createVault`; place picker between name field and form actions — depends on T013, T014
 
 **Checkpoint**: Vault can be created with an icon via the UI and the API; icon persists to disk and is returned by `GET /api/vaults`.
 
@@ -68,8 +68,8 @@
 
 **Independent test**: Navigate to `/`; all vault cards are square (width === height); each card shows an icon at opacity ~0.12 on the right; vault name and slug are visible at the bottom-left; cards with no assigned icon show the `folder` icon.
 
-- [x] T016 [US2] Redesign vault card in `frontend/src/views/HomeView.vue` — add `aspect-ratio: 1 / 1` and `position: relative; overflow: hidden` to `.home__vault-card`; move text (name + slug) to bottom-left with `justify-content: flex-end; align-items: flex-start`; add `VaultIcon` absolutely positioned at right side, vertically centred, `width: 70%`, `opacity: 0.12`, `pointer-events: none`; slug `|| 'folder'` as fallback — depends on T010, T015
-- [x] T017 [US2] Update `.home__skeleton-card` dimensions in `frontend/src/views/HomeView.vue` to use `aspect-ratio: 1 / 1` instead of fixed `height: 100px` — depends on T016
+- [x] T016 [US2] Redesign vault card in `app/src/views/HomeView.vue` — add `aspect-ratio: 1 / 1` and `position: relative; overflow: hidden` to `.home__vault-card`; move text (name + slug) to bottom-left with `justify-content: flex-end; align-items: flex-start`; add `VaultIcon` absolutely positioned at right side, vertically centred, `width: 70%`, `opacity: 0.12`, `pointer-events: none`; slug `|| 'folder'` as fallback — depends on T010, T015
+- [x] T017 [US2] Update `.home__skeleton-card` dimensions in `app/src/views/HomeView.vue` to use `aspect-ratio: 1 / 1` instead of fixed `height: 100px` — depends on T016
 
 **Checkpoint**: Vault overview displays a visually consistent grid of square tiles with icon backgrounds.
 
@@ -82,9 +82,9 @@
 **Independent test**: `PATCH /api/vaults/:id` with `{ "icon": "book" }` returns 200 with updated vault; subsequent `GET /api/vaults` reflects the new icon; `PATCH` with `{ "icon": null }` clears the icon; `PATCH` on a team vault by a non-admin returns 403; icon picker in `VaultSettingsView` reflects current icon and saves on confirm.
 
 - [x] T018 [P] [US3] Add `patch_vault` handler to `crates/notes-server-axum/src/routes/vaults.rs` — parse `UpdateVaultRequest` body (at least one field required, 400 if empty); personal vault: check `VaultOwner::User(caller_uid)`, 403 otherwise; team vault: load team, check `TeamRole::Owner` or `Admin`, 403 otherwise; validate icon slug against `VALID_ICONS`; call `storage.update_vault`; return 200 with updated vault JSON; wire to `PATCH /api/vaults/:vault_id` route — depends on T007
-- [x] T019 [P] [US3] Add `updateVault(vaultId: string, body: UpdateVaultRequest)` function in `frontend/src/api/vaults.ts` — PATCH to `/api/vaults/${vaultId}`, returns updated `Vault` — depends on T008
-- [x] T020 [US3] Add `update(vaultId: string, body: UpdateVaultRequest)` action to `useVaultStore` in `frontend/src/stores/vaults.ts` — calls `updateVault`, replaces matching vault in `vaults` array, updates `activeVault` if it matches — depends on T019
-- [x] T021 [US3] Add icon picker section to `frontend/src/views/VaultSettingsView.vue` (create the view file if it does not yet exist) — show `VaultIconPicker` bound to active vault's current icon; on change call `vaultStore.update(vaultId, { icon })` with `null` for clear; place section above the rename form — depends on T014, T020
+- [x] T019 [P] [US3] Add `updateVault(vaultId: string, body: UpdateVaultRequest)` function in `app/src/api/vaults.ts` — PATCH to `/api/vaults/${vaultId}`, returns updated `Vault` — depends on T008
+- [x] T020 [US3] Add `update(vaultId: string, body: UpdateVaultRequest)` action to `useVaultStore` in `app/src/stores/vaults.ts` — calls `updateVault`, replaces matching vault in `vaults` array, updates `activeVault` if it matches — depends on T019
+- [x] T021 [US3] Add icon picker section to `app/src/views/VaultSettingsView.vue` (create the view file if it does not yet exist) — show `VaultIconPicker` bound to active vault's current icon; on change call `vaultStore.update(vaultId, { icon })` with `null` for clear; place section above the rename form — depends on T014, T020
 
 **Checkpoint**: Icon can be changed and cleared post-creation; team vault icon respects owner/admin permission; vault settings UI reflects changes immediately.
 

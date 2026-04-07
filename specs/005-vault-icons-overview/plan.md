@@ -70,7 +70,7 @@ crates/
       vaults.rs            # patch_vault handler, CreateVaultBody.icon, route wiring
 
 # Frontend
-frontend/src/
+app/src/
   types/
     index.ts               # Vault.icon, UpdateVaultRequest, CreateVaultRequest.icon
   api/
@@ -100,7 +100,7 @@ docs/interface/
   frontend.md
 ```
 
-**Structure Decision**: Single project — shared Rust workspace + Vue frontend in `frontend/`. No new packages or workspace members needed.
+**Structure Decision**: Single project — shared Rust workspace + Vue frontend in `app/`. No new packages or workspace members needed.
 
 ---
 
@@ -130,7 +130,7 @@ Completed. See:
 
 ### `VaultIcon.vue`
 
-Accepts a `slug: string | undefined` prop. Each icon is a standalone SVG file in `frontend/src/assets/icons/{slug}.svg`. The component imports all 20 via Vite's `?raw` suffix (returns SVG markup as a string at build time) and selects the correct one by slug, falling back to `folder` for unknown or absent slugs. Rendered inline with `v-html` so `currentColor` works.
+Accepts a `slug: string | undefined` prop. Each icon is a standalone SVG file in `app/src/assets/icons/{slug}.svg`. The component imports all 20 via Vite's `?raw` suffix (returns SVG markup as a string at build time) and selects the correct one by slug, falling back to `folder` for unknown or absent slugs. Rendered inline with `v-html` so `currentColor` works.
 
 ```vue
 <VaultIcon slug="briefcase" size="80" class="vault-card__icon" />

@@ -51,7 +51,7 @@ specs/002-nyx-kit-primitives/
 ### Source Code (affected files only)
 
 ```text
-frontend/src/
+app/src/
 ├── components/
 │   ├── SidebarNav.vue          # <button> → NyxButton gradient
 │   ├── NoteList.vue            # <button>s + tag spans → NyxButton, NyxBadge

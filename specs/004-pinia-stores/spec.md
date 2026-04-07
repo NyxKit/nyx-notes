@@ -60,8 +60,8 @@ Same developer ergonomics as US1 but for `useNotesStore`.
 
 ### Functional Requirements
 
-- **FR-001**: `useVaults` MUST be replaced by `useVaultStore` (Pinia setup store) in `frontend/src/stores/vaults.ts`
-- **FR-002**: `useNotes` MUST be replaced by `useNotesStore` (Pinia setup store) in `frontend/src/stores/notes.ts`
+- **FR-001**: `useVaults` MUST be replaced by `useVaultStore` (Pinia setup store) in `app/src/stores/vaults.ts`
+- **FR-002**: `useNotes` MUST be replaced by `useNotesStore` (Pinia setup store) in `app/src/stores/notes.ts`
 - **FR-003**: Both stores MUST expose a `$reset()` action that restores initial state
 - **FR-004**: `useNotesStore` MUST use a `notesByVault: Record<string, NoteMeta[]>` cache so per-vault note lists are not clobbered when switching vaults
 - **FR-005**: `useVaultStore.setActive()` MUST accept `Vault | null`; `HomeView` MUST call `setActive(null)` on mount

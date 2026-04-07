@@ -48,7 +48,7 @@ specs/003-sidebar-recent-notes/
 ### Source Code Changes
 
 ```text
-frontend/src/
+app/src/
 ├── components/
 │   ├── AppLayout.vue               # NEW — persistent authenticated shell; calls loadAll on mount
 │   ├── NoteList.vue                # MODIFIED — reads from notesByVault cache; sort+limit; active state via route param

@@ -12,15 +12,15 @@ This guide summarises what is changing, what to build, and the order to build it
 
 | Area | Change |
 |------|--------|
-| `frontend/src/composables/useNotes.ts` | Replace flat `notes` ref with `notesByVault` cache; add `notesFor()` and `loadAll()` |
-| `frontend/src/composables/useVaults.ts` | Widen `setActive()` to accept `Vault \| null` |
-| `frontend/src/components/AppLayout.vue` | **NEW** — persistent authenticated shell; calls `loadAll` on mount |
-| `frontend/src/components/NoteList.vue` | Read from cache; sort by `updated_at`; limit to 20; active state from route param |
-| `frontend/src/components/VaultSwitcher.vue` | Note count via `notesFor()` |
-| `frontend/src/router/index.ts` | Authenticated routes become children of the `AppLayout` parent route |
-| `frontend/src/views/HomeView.vue` | Remove sidebar; call `setActive(null)` on mount |
-| `frontend/src/views/VaultView.vue` | Remove sidebar; use `notesFor()` for masonry |
-| `frontend/src/views/NoteView.vue` | Remove left sidebar and toggle logic |
+| `app/src/composables/useNotes.ts` | Replace flat `notes` ref with `notesByVault` cache; add `notesFor()` and `loadAll()` |
+| `app/src/composables/useVaults.ts` | Widen `setActive()` to accept `Vault \| null` |
+| `app/src/components/AppLayout.vue` | **NEW** — persistent authenticated shell; calls `loadAll` on mount |
+| `app/src/components/NoteList.vue` | Read from cache; sort by `updated_at`; limit to 20; active state from route param |
+| `app/src/components/VaultSwitcher.vue` | Note count via `notesFor()` |
+| `app/src/router/index.ts` | Authenticated routes become children of the `AppLayout` parent route |
+| `app/src/views/HomeView.vue` | Remove sidebar; call `setActive(null)` on mount |
+| `app/src/views/VaultView.vue` | Remove sidebar; use `notesFor()` for masonry |
+| `app/src/views/NoteView.vue` | Remove left sidebar and toggle logic |
 | `docs/interface/frontend.md` | Update component table, routing section, composables section |
 
 No new types. No new composable files. `SidebarNav.vue` is unchanged.
@@ -41,7 +41,7 @@ Update `docs/interface/frontend.md` to document:
 
 ### Step 1: Extend `useNotes.ts`
 
-File: `frontend/src/composables/useNotes.ts`
+File: `app/src/composables/useNotes.ts`
 
 - Replace `const notes = ref<NoteMeta[]>([])` with `const notesByVault = ref<Record<string, NoteMeta[]>>({})`
 - Add `notesFor(vaultId: string): NoteMeta[]` — returns `notesByVault.value[vaultId] ?? []`
@@ -51,13 +51,13 @@ File: `frontend/src/composables/useNotes.ts`
 
 ### Step 2: Widen `useVaults.setActive`
 
-File: `frontend/src/composables/useVaults.ts`
+File: `app/src/composables/useVaults.ts`
 
 Change signature from `setActive(vault: Vault)` to `setActive(vault: Vault | null)`.
 
 ### Step 3: Create `AppLayout.vue`
 
-File: `frontend/src/components/AppLayout.vue`
+File: `app/src/components/AppLayout.vue`
 
 Key behaviours:
 - On `onMounted`: `await loadVaults()` then `await loadAll(vaults.value.map(v => v.id))`

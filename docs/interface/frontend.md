@@ -1,4 +1,4 @@
-# Frontend (`frontend/`)
+# Frontend (`app/`)
 
 ## Purpose
 
@@ -27,7 +27,7 @@ directory path (`@/notes/components`, `@/shared/api`, `@/vaults/views`) rather t
 individual files.
 
 ```
-frontend/src/
+app/src/
   main.ts
   App.vue
   vite-env.d.ts
@@ -372,7 +372,7 @@ A navigation guard redirects unauthenticated remote profiles to `/login`. `meta:
 
 ## Component Library (`nyx-kit`)
 
-Use `nyx-kit` components for all UI primitives. **No native `<button>`, `<input>`, `<textarea>`, or badge `<span>` elements are permitted in `.vue` files inside `frontend/src/`.** Use the corresponding nyx-kit equivalent in every case.
+Use `nyx-kit` components for all UI primitives. **No native `<button>`, `<input>`, `<textarea>`, or badge `<span>` elements are permitted in `.vue` files inside `app/src/`.** Use the corresponding nyx-kit equivalent in every case.
 
 | Primitive | nyx-kit replacement |
 |-----------|---------------------|

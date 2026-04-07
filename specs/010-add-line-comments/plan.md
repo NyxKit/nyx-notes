@@ -61,7 +61,7 @@ crates/
         ├── routes/comments.rs
         └── types.rs
 
-frontend/
+app/
 └── src/
     ├── comments/
     │   ├── api/
@@ -82,7 +82,7 @@ docs/
     └── frontend.md
 ```
 
-**Structure Decision**: Use the existing full-stack Rust + Vue structure. The feature spans domain types, sidecar storage, comment routes, frontend shared types, the note editor integration, and comment composables/components. Shared annotation mapping logic should live under `frontend/src/comments/` or `frontend/src/shared/` only if reused by multiple domains.
+**Structure Decision**: Use the existing full-stack Rust + Vue structure. The feature spans domain types, sidecar storage, comment routes, frontend shared types, the note editor integration, and comment composables/components. Shared annotation mapping logic should live under `app/src/comments/` or `app/src/shared/` only if reused by multiple domains.
 
 ## Phase 0 Research Outcomes
 

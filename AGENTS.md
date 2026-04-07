@@ -75,8 +75,8 @@ The stack:
 | Storage | Rust (`notes-storage-fs`) | `crates/notes-storage-fs/` | ✅ built |
 | HTTP API | Rust/Axum (`notes-server-axum`) | `crates/notes-server-axum/` | ✅ built |
 | CLI | Rust (`notes-cli`) | `crates/notes-cli/` | ✅ built |
-| Frontend | Vue 3 + nyx-kit | `frontend/src/` | 🚧 in progress |
-| Native app | Tauri (embeds Axum server) | `frontend/native/` | 🔜 planned |
+| Frontend | Vue 3 + nyx-kit | `app/src/` | 🚧 in progress |
+| Native app | Tauri (embeds Axum server) | `app/native/` | 🔜 planned |
 | Auth | Pluggable (`local`, `secret_key`, `oidc`) | — | 🔜 planned |
 | Content storage | Plain `.md` files on disk | `$NOTES_ROOT/` | ✅ built |
 
@@ -93,7 +93,7 @@ nyx-notes/
   CLAUDE.md           # Claude Code behaviour settings
   Cargo.toml          # workspace manifest (not yet written)
   crates/             # Rust crates (not yet implemented)
-  frontend/           # Vue 3 SPA (not yet implemented)
+  app/           # Vue 3 SPA (not yet implemented)
   docs/
     architecture/     # system design, backend layers, data model
       README.md       # layer diagram + key design decisions
@@ -242,4 +242,4 @@ When you notice that something in the codebase or docs is out of sync, record it
 
 | Noticed | Location | Description | Status |
 |---|---|---|---|
-| 2026-04-03 | docs/architecture/*, README.md, crates/*, frontend/src/* | The new storage source of truth in `docs/architecture/file-system.md` diverged from the active docs and implementation, which still assumed `users/<uid>/` and `teams/<team-id>/` layout plus team-based MVP sharing. | In progress |
+| 2026-04-03 | docs/architecture/*, README.md, crates/*, app/src/* | The new storage source of truth in `docs/architecture/file-system.md` diverged from the active docs and implementation, which still assumed `users/<uid>/` and `teams/<team-id>/` layout plus team-based MVP sharing. | In progress |

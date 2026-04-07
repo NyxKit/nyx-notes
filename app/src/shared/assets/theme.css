@@ -71,11 +71,11 @@
    * Shadows — ambient only, no muddy black drops
    * blur 24px, spread -4px, on-surface color at 6% opacity
    * ------------------------------------------------------------------------- */
-  --nyx-shadow-xs: 0 0 24px -4px rgba(230, 228, 236, 0.04);
+  /* --nyx-shadow-xs: 0 0 24px -4px rgba(230, 228, 236, 0.04);
   --nyx-shadow-sm: 0 0 24px -4px rgba(230, 228, 236, 0.06);
   --nyx-shadow-md: 0 0 32px -4px rgba(230, 228, 236, 0.08);
   --nyx-shadow-lg: 0 0 40px -4px rgba(230, 228, 236, 0.10);
-  --nyx-shadow-xl: 0 0 48px -4px rgba(230, 228, 236, 0.12);
+  --nyx-shadow-xl: 0 0 48px -4px rgba(230, 228, 236, 0.12); */
 
   /* -------------------------------------------------------------------------
    * Motion — "sliding silk" feel
@@ -96,7 +96,6 @@
  * App-level aliases used in component scoped styles
  * ------------------------------------------------------------------------- */
 :root {
-  --nyx-color-border:         var(--nyx-c-divider);
   --nyx-color-muted:          var(--nyx-c-text-3);
   --nyx-color-surface-raised: var(--nyx-c-bg-soft);
   --nyx-color-surface-hover:  var(--nyx-c-bg-mute);
@@ -116,35 +115,6 @@
 .nyx-editor__body,
 .nyx-editor [contenteditable] {
   font-family: 'Newsreader', Georgia, 'Times New Roman', serif;
-  font-size: 1rem;
+  font-size: 1.125rem;
   line-height: 1.75;
-}
-
-/* -------------------------------------------------------------------------
- * Component overrides
- * ------------------------------------------------------------------------- */
-
-/* Buttons — primary uses the signature gradient */
-.nyx-button--primary,
-.nyx-button--variant-primary {
-  --nyx-c-button: #cbc2e4;
-  --nyx-c-button-text: #1a1821;
-  background: linear-gradient(135deg, #cbc2e4, #49435f) !important;
-  border: none;
-}
-
-/* Input / Editor borders — ghost borders only */
-.nyx-input,
-.nyx-textarea,
-.nyx-editor {
-  --nyx-border-size-input:    0;
-  --nyx-border-size-textarea: 0;
-  --nyx-border-size-editor:   0;
-}
-
-/* Focused inputs — ghost border via outline */
-.nyx-input:focus-within,
-.nyx-textarea:focus-within {
-  outline: 1px solid rgba(71, 71, 77, 0.20);
-  outline-offset: 0;
 }

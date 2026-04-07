@@ -1,5 +1,7 @@
 use std::{path::Path, sync::Arc};
 
+use tower_http::services::{ServeDir, ServeFile};
+
 use notes_auth::{load_or_generate_key, LocalAuthStore, SecretKeyAuthStore};
 use notes_core::AuthStore;
 use notes_server_axum::{
@@ -69,7 +71,13 @@ async fn main() {
         auth_config,
     };
 
-    let app = routes::router().with_state(state);
+    let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| "./dist".into());
+    let serve_dir = ServeDir::new(&static_dir)
+        .fallback(ServeFile::new(format!("{static_dir}/index.html")));
+
+    let app = routes::router()
+        .with_state(state)
+        .fallback_service(serve_dir);
     let addr = format!("0.0.0.0:{port}");
     let listener = tokio::net::TcpListener::bind(&addr)
         .await

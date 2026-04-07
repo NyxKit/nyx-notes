@@ -19,7 +19,7 @@
 
 - [X] T001 Update user-management docs in `docs/architecture/core-domain.md`, `docs/architecture/authentication.md`, `docs/architecture/backend-api.md`, `docs/interface/frontend.md`, `docs/testing/README.md`, and `README.md` for `secret_key`-only MVP scope, required unique email, and self-management restrictions
 - [X] T002 Add embedded user-store dependencies and configuration notes in `Cargo.toml`, `crates/notes-auth/Cargo.toml`, `crates/notes-server-axum/Cargo.toml`, and `.env.example`
-- [X] T003 [P] Create the top-level users domain barrel files in `frontend/src/users/index.ts`, `frontend/src/users/api/index.ts`, `frontend/src/users/components/index.ts`, `frontend/src/users/composables/index.ts`, and `frontend/src/users/views/index.ts`
+- [X] T003 [P] Create the top-level users domain barrel files in `app/src/users/index.ts`, `app/src/users/api/index.ts`, `app/src/users/components/index.ts`, `app/src/users/composables/index.ts`, and `app/src/users/views/index.ts`
 
 ---
 
@@ -33,7 +33,7 @@
 - [X] T005 [P] Add SQLite-backed user store scaffolding in `crates/notes-auth/src/sqlite_user_store.rs` and export it from `crates/notes-auth/src/lib.rs`
 - [X] T006 [P] Wire `SecretKeyAuthStore` bootstrap and storage lifecycle to the embedded store in `crates/notes-auth/src/secret_key.rs` and `crates/notes-server-axum/src/main.rs`
 - [X] T007 [P] Add user-management request/response types and route registration scaffolding in `crates/notes-server-axum/src/types.rs`, `crates/notes-server-axum/src/routes/mod.rs`, and `crates/notes-server-axum/src/lib.rs`
-- [X] T008 [P] Add frontend users route scaffolding in `frontend/src/shared/types/router.ts`, `frontend/src/shared/router/index.ts`, and `frontend/src/users/views/UsersView.vue`
+- [X] T008 [P] Add frontend users route scaffolding in `app/src/shared/types/router.ts`, `app/src/shared/router/index.ts`, and `app/src/users/views/UsersView.vue`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -49,15 +49,15 @@
 
 - [X] T009 [P] [US1] Add embedded-store list and bootstrap tests in `crates/notes-auth/tests/sqlite_user_store.rs` for `secret_key`-mode user listing metadata
 - [X] T010 [P] [US1] Add admin-only list API tests in `crates/notes-server-axum/tests/users_api.rs`
-- [X] T011 [P] [US1] Add users navigation and list rendering tests in `frontend/src/users/views/UsersView.spec.ts` and `frontend/src/shared/components/SidebarNav.spec.ts`
+- [X] T011 [P] [US1] Add users navigation and list rendering tests in `app/src/users/views/UsersView.spec.ts` and `app/src/shared/components/SidebarNav.spec.ts`
 
 ### Implementation for User Story 1
 
 - [X] T012 [US1] Implement user listing and summary mapping in `crates/notes-core/src/auth.rs` and `crates/notes-auth/src/sqlite_user_store.rs` including required email and allowed-action metadata
 - [X] T013 [US1] Implement `GET /api/users` and admin authorization in `crates/notes-server-axum/src/routes/users.rs` and `crates/notes-server-axum/src/routes/mod.rs`
-- [X] T014 [US1] Implement users API client and list composable in `frontend/src/users/api/users.ts` and `frontend/src/users/composables/useUsers.ts`
-- [X] T015 [US1] Build the users table view with `NyxTable` plus loading, empty, and error states in `frontend/src/users/views/UsersView.vue` and `frontend/src/users/components/UsersTable.vue`
-- [X] T016 [US1] Add the `Users` sidebar entry and route integration in `frontend/src/shared/components/SidebarNav.vue`, `frontend/src/shared/router/index.ts`, `frontend/src/shared/types/router.ts`, and `frontend/src/users/views/index.ts`
+- [X] T014 [US1] Implement users API client and list composable in `app/src/users/api/users.ts` and `app/src/users/composables/useUsers.ts`
+- [X] T015 [US1] Build the users table view with `NyxTable` plus loading, empty, and error states in `app/src/users/views/UsersView.vue` and `app/src/users/components/UsersTable.vue`
+- [X] T016 [US1] Add the `Users` sidebar entry and route integration in `app/src/shared/components/SidebarNav.vue`, `app/src/shared/router/index.ts`, `app/src/shared/types/router.ts`, and `app/src/users/views/index.ts`
 
 **Checkpoint**: User Story 1 should now be fully functional and independently testable.
 
@@ -73,14 +73,14 @@
 
 - [X] T017 [P] [US2] Add create/update validation tests for required email, unique email, duplicate username, and the 12-character plus 3-of-4-category password policy in `crates/notes-auth/tests/sqlite_user_store.rs`
 - [X] T018 [P] [US2] Add `POST /api/users` and `PATCH /api/users/:user_id` contract tests for required email, duplicate email, the 12-character plus 3-of-4-category password policy, and self-demotion blocking in `crates/notes-server-axum/tests/users_api.rs` and `crates/notes-server-axum/tests/auth_api.rs`
-- [X] T019 [P] [US2] Add create/edit modal workflow tests for required email, validation feedback, and self-demotion blocking in `frontend/src/users/components/CreateEditUser.spec.ts` and `frontend/src/users/views/UsersView.spec.ts`
+- [X] T019 [P] [US2] Add create/edit modal workflow tests for required email, validation feedback, and self-demotion blocking in `app/src/users/components/CreateEditUser.spec.ts` and `app/src/users/views/UsersView.spec.ts`
 
 ### Implementation for User Story 2
 
 - [X] T020 [US2] Implement create/update mutations with required email, duplicate-username, duplicate-email, and 12-character plus 3-of-4-category password-policy validation in `crates/notes-core/src/auth.rs` and `crates/notes-auth/src/sqlite_user_store.rs`
 - [X] T021 [US2] Implement `POST /api/users` and `PATCH /api/users/:user_id` handlers with safe validation errors for required email, duplicate email, and self-demotion blocking in `crates/notes-server-axum/src/routes/users.rs`, `crates/notes-server-axum/src/types.rs`, and `crates/notes-server-axum/src/error.rs`
-- [X] T022 [US2] Implement the shared create/edit modal using `NyxModal`, `NyxButton`, and nyx-kit form primitives in `frontend/src/users/components/CreateEditUser.vue` and `frontend/src/users/components/index.ts` with required email input, explicit 12-character plus 3-of-4-category password validation messaging, and self-demotion blocking
-- [X] T023 [US2] Wire add/edit actions, modal state, and list refresh behavior in `frontend/src/users/views/UsersView.vue` and `frontend/src/users/composables/useUsers.ts`
+- [X] T022 [US2] Implement the shared create/edit modal using `NyxModal`, `NyxButton`, and nyx-kit form primitives in `app/src/users/components/CreateEditUser.vue` and `app/src/users/components/index.ts` with required email input, explicit 12-character plus 3-of-4-category password validation messaging, and self-demotion blocking
+- [X] T023 [US2] Wire add/edit actions, modal state, and list refresh behavior in `app/src/users/views/UsersView.vue` and `app/src/users/composables/useUsers.ts`
 - [X] T024 [US2] Ensure sign-in uses newly created users and rotated passwords in `crates/notes-auth/src/secret_key.rs` and `crates/notes-server-axum/tests/auth_api.rs`
 
 **Checkpoint**: User Stories 1 and 2 should both work independently.
@@ -97,13 +97,13 @@
 
 - [X] T025 [P] [US3] Add protected-account, self-delete, and delete mutation tests in `crates/notes-auth/tests/sqlite_user_store.rs`
 - [X] T026 [P] [US3] Add `DELETE /api/users/:user_id` protection tests for self-delete and last-admin conflicts in `crates/notes-server-axum/tests/users_api.rs`
-- [X] T027 [P] [US3] Add delete confirmation, self-delete blocking, and protected-account UI tests in `frontend/src/users/views/UsersView.spec.ts`
+- [X] T027 [P] [US3] Add delete confirmation, self-delete blocking, and protected-account UI tests in `app/src/users/views/UsersView.spec.ts`
 
 ### Implementation for User Story 3
 
 - [X] T028 [US3] Implement delete mutations and last-admin/self-delete safeguards in `crates/notes-core/src/auth.rs` and `crates/notes-auth/src/sqlite_user_store.rs`
 - [X] T029 [US3] Implement `DELETE /api/users/:user_id` conflict handling for self-delete and protected-account failures in `crates/notes-server-axum/src/routes/users.rs` and `crates/notes-server-axum/src/error.rs`
-- [X] T030 [US3] Implement delete confirmation UX, disabled self-delete states, and protected-account messaging in `frontend/src/users/views/UsersView.vue` and `frontend/src/users/composables/useUsers.ts`
+- [X] T030 [US3] Implement delete confirmation UX, disabled self-delete states, and protected-account messaging in `app/src/users/views/UsersView.vue` and `app/src/users/composables/useUsers.ts`
 
 **Checkpoint**: All user stories should now be independently functional.
 
@@ -113,9 +113,9 @@
 
 **Purpose**: Finish validation, broad coverage, and feature-level hardening that spans multiple stories.
 
-- [X] T031 [P] Add end-to-end admin user-management coverage in `frontend/tests/e2e/users-management.spec.ts`
+- [X] T031 [P] Add end-to-end admin user-management coverage in `app/tests/e2e/users-management.spec.ts`
 - [X] T032 [P] Add cross-story backend auth and authorization edge-case coverage for auth-mode scope, duplicate email, self-demotion, and protected-account failures in `crates/notes-server-axum/tests/users_api.rs` and `crates/notes-server-axum/tests/auth_api.rs`
-- [X] T033 Run full feature validation using `Cargo.toml`, `frontend/package.json`, and `specs/014-user-management/quickstart.md`
+- [X] T033 Run full feature validation using `Cargo.toml`, `app/package.json`, and `specs/014-user-management/quickstart.md`
 
 ---
 
@@ -159,11 +159,11 @@
 # Parallel test work for US1
 Task: "Add embedded-store list and bootstrap tests in crates/notes-auth/tests/sqlite_user_store.rs"
 Task: "Add admin-only list API tests in crates/notes-server-axum/tests/users_api.rs"
-Task: "Add users navigation and list rendering tests in frontend/src/users/views/UsersView.spec.ts and frontend/src/shared/components/SidebarNav.spec.ts"
+Task: "Add users navigation and list rendering tests in app/src/users/views/UsersView.spec.ts and app/src/shared/components/SidebarNav.spec.ts"
 
 # Parallel implementation work for US1 after shared listing contracts exist
 Task: "Implement GET /api/users in crates/notes-server-axum/src/routes/users.rs and crates/notes-server-axum/src/routes/mod.rs"
-Task: "Implement users API client and list composable in frontend/src/users/api/users.ts and frontend/src/users/composables/useUsers.ts"
+Task: "Implement users API client and list composable in app/src/users/api/users.ts and app/src/users/composables/useUsers.ts"
 ```
 
 ## Parallel Example: User Story 2
@@ -172,11 +172,11 @@ Task: "Implement users API client and list composable in frontend/src/users/api/
 # Parallel test work for US2
 Task: "Add create/update validation tests in crates/notes-auth/tests/sqlite_user_store.rs"
 Task: "Add POST/PATCH contract tests in crates/notes-server-axum/tests/users_api.rs and crates/notes-server-axum/tests/auth_api.rs"
-Task: "Add create/edit modal workflow tests in frontend/src/users/components/CreateEditUser.spec.ts and frontend/src/users/views/UsersView.spec.ts"
+Task: "Add create/edit modal workflow tests in app/src/users/components/CreateEditUser.spec.ts and app/src/users/views/UsersView.spec.ts"
 
 # Parallel implementation work for US2 after mutation contracts exist
 Task: "Implement POST/PATCH handlers in crates/notes-server-axum/src/routes/users.rs, crates/notes-server-axum/src/types.rs, and crates/notes-server-axum/src/error.rs"
-Task: "Implement CreateEditUser modal in frontend/src/users/components/CreateEditUser.vue and frontend/src/users/components/index.ts"
+Task: "Implement CreateEditUser modal in app/src/users/components/CreateEditUser.vue and app/src/users/components/index.ts"
 ```
 
 ## Parallel Example: User Story 3
@@ -185,11 +185,11 @@ Task: "Implement CreateEditUser modal in frontend/src/users/components/CreateEdi
 # Parallel test work for US3
 Task: "Add protected-account delete tests in crates/notes-auth/tests/sqlite_user_store.rs"
 Task: "Add DELETE protection tests in crates/notes-server-axum/tests/users_api.rs"
-Task: "Add delete confirmation UI tests in frontend/src/users/views/UsersView.spec.ts"
+Task: "Add delete confirmation UI tests in app/src/users/views/UsersView.spec.ts"
 
 # Parallel implementation work for US3 after delete mutation contracts exist
 Task: "Implement DELETE /api/users/:user_id handling in crates/notes-server-axum/src/routes/users.rs and crates/notes-server-axum/src/error.rs"
-Task: "Implement delete confirmation UX in frontend/src/users/views/UsersView.vue and frontend/src/users/composables/useUsers.ts"
+Task: "Implement delete confirmation UX in app/src/users/views/UsersView.vue and app/src/users/composables/useUsers.ts"
 ```
 
 ---

@@ -88,7 +88,7 @@ The Vue 3 frontend MUST follow the Composition API exclusively.
 - `nyx-kit` MUST be used for all UI primitives; no additional component libraries are permitted.
 - TypeScript types MUST match the Rust types (field names, nullability, optional fields).
 - No semicolons in frontend TypeScript/Vue files; single quotes for strings.
-- `frontend/src/` MUST use a domain-based layout (`vaults/`, `notes/`, `comments/`, `auth/`,
+- `app/src/` MUST use a domain-based layout (`vaults/`, `notes/`, `comments/`, `auth/`,
   `teams/`, `shared/`). A file belongs in its domain folder if used by one domain; in `shared/`
   if used by two or more. Direct imports between two domain folders are NOT permitted — extract
   shared code to `shared/` instead.

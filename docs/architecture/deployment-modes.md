@@ -20,7 +20,7 @@ PORT=8080
 
 ## Self-hosted
 
-Run the Rust server on a NAS, home server, or VPS.
+Run the Rust server on a NAS, home server, or VPS. For containerised deployments see [`docker.md`](./docker.md).
 
 ```text
 NOTES_ROOT=/data/notes

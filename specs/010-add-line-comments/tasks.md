@@ -33,10 +33,10 @@
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
 - [X] T007 Add canonical comment anchor, visibility state, and hidden legacy comment domain types in `crates/notes-core/src/domain.rs`
-- [X] T008 [P] Extend shared frontend comment types to match the new anchor model in `frontend/src/shared/types/index.ts`
+- [X] T008 [P] Extend shared frontend comment types to match the new anchor model in `app/src/shared/types/index.ts`
 - [X] T009 [P] Update request/response payload types for comment routes in `crates/notes-server-axum/src/types.rs`
 - [X] T010 Implement backward-compatible sidecar read/write handling for visible anchored threads and hidden legacy comment records in `crates/notes-storage-fs/src/lib.rs`
-- [X] T011 [P] Add shared comment-to-annotation mapping utilities in `frontend/src/comments/composables/useCommentAnnotations.ts`
+- [X] T011 [P] Add shared comment-to-annotation mapping utilities in `app/src/comments/composables/useCommentAnnotations.ts`
 - [X] T012 [P] Add foundational storage coverage for structured anchors and hidden legacy records in `crates/notes-storage-fs/src/tests.rs`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel.
@@ -53,18 +53,18 @@
 
 - [X] T013 [P] [US1] Add domain tests for comment anchor validation in `crates/notes-core/src/domain.rs`
 - [X] T014 [P] [US1] Add HTTP integration tests for comment creation payloads in `crates/notes-server-axum/tests/comments_api.rs`
-- [X] T015 [P] [US1] Add Vitest coverage for comment-to-annotation mapping in `frontend/src/comments/composables/useCommentAnnotations.spec.ts`
-- [ ] T016 [P] [US1] Add Playwright coverage for creating a line-based comment in `frontend/e2e/line-comments.spec.ts`
+- [X] T015 [P] [US1] Add Vitest coverage for comment-to-annotation mapping in `app/src/comments/composables/useCommentAnnotations.spec.ts`
+- [ ] T016 [P] [US1] Add Playwright coverage for creating a line-based comment in `app/e2e/line-comments.spec.ts`
 
 ### Implementation for User Story 1
 
 - [X] T017 [US1] Implement structured anchor handling for comment creation in `crates/notes-server-axum/src/routes/comments.rs`
-- [X] T018 [P] [US1] Update frontend comment create API payloads in `frontend/src/comments/api/comments.ts`
-- [X] T019 [P] [US1] Extend comment composable create/load behavior in `frontend/src/comments/composables/useComments.ts`
-- [X] T020 [US1] Integrate `NyxEditor` annotation creation events in `frontend/src/notes/components/NoteEditor.vue`
-- [X] T021 [US1] Update comment composer flow for exact selected-text anchors in `frontend/src/comments/components/CommentComposer.vue`
-- [X] T022 [US1] Render new line-based threads with line context in `frontend/src/comments/components/CommentSidebar.vue`
-- [X] T023 [US1] Connect note editor and sidebar create flow in `frontend/src/notes/views/NoteView.vue`
+- [X] T018 [P] [US1] Update frontend comment create API payloads in `app/src/comments/api/comments.ts`
+- [X] T019 [P] [US1] Extend comment composable create/load behavior in `app/src/comments/composables/useComments.ts`
+- [X] T020 [US1] Integrate `NyxEditor` annotation creation events in `app/src/notes/components/NoteEditor.vue`
+- [X] T021 [US1] Update comment composer flow for exact selected-text anchors in `app/src/comments/components/CommentComposer.vue`
+- [X] T022 [US1] Render new line-based threads with line context in `app/src/comments/components/CommentSidebar.vue`
+- [X] T023 [US1] Connect note editor and sidebar create flow in `app/src/notes/views/NoteView.vue`
 
 **Checkpoint**: User Story 1 should now be fully functional and testable independently.
 
@@ -79,17 +79,17 @@
 ### Tests for User Story 2
 
 - [ ] T024 [P] [US2] Add HTTP integration tests for reply and resolve flows in `crates/notes-server-axum/tests/comments_api.rs`
-- [ ] T025 [P] [US2] Add Vitest coverage for focus and ordering behavior in `frontend/src/comments/composables/useComments.spec.ts`
-- [ ] T026 [P] [US2] Extend Playwright discussion-management scenarios in `frontend/e2e/line-comments.spec.ts`
+- [ ] T025 [P] [US2] Add Vitest coverage for focus and ordering behavior in `app/src/comments/composables/useComments.spec.ts`
+- [ ] T026 [P] [US2] Extend Playwright discussion-management scenarios in `app/e2e/line-comments.spec.ts`
 
 ### Implementation for User Story 2
 
 - [X] T027 [US2] Implement resolve and reply updates against the new thread shape in `crates/notes-server-axum/src/routes/comments.rs`
-- [ ] T028 [P] [US2] Update reply and resolve client calls in `frontend/src/comments/api/comments.ts`
-- [X] T029 [P] [US2] Track active/focused annotations and stable ordering in `frontend/src/comments/composables/useComments.ts`
-- [X] T030 [US2] Add active thread and resolved state handling in `frontend/src/comments/components/CommentThread.vue`
-- [X] T031 [US2] Synchronize sidebar focus with editor annotation focus in `frontend/src/comments/components/CommentSidebar.vue`
-- [X] T032 [US2] Wire annotation focus and blur events in `frontend/src/notes/components/NoteEditor.vue`
+- [ ] T028 [P] [US2] Update reply and resolve client calls in `app/src/comments/api/comments.ts`
+- [X] T029 [P] [US2] Track active/focused annotations and stable ordering in `app/src/comments/composables/useComments.ts`
+- [X] T030 [US2] Add active thread and resolved state handling in `app/src/comments/components/CommentThread.vue`
+- [X] T031 [US2] Synchronize sidebar focus with editor annotation focus in `app/src/comments/components/CommentSidebar.vue`
+- [X] T032 [US2] Wire annotation focus and blur events in `app/src/notes/components/NoteEditor.vue`
 
 **Checkpoint**: User Stories 1 and 2 should both work independently.
 
@@ -105,16 +105,16 @@
 
 - [X] T033 [P] [US3] Add storage tests for legacy comment retention and hidden visibility in `crates/notes-storage-fs/src/tests.rs`
 - [X] T034 [P] [US3] Add HTTP integration tests for hidden legacy filtering in `crates/notes-server-axum/tests/comments_api.rs`
-- [X] T035 [P] [US3] Add Vitest coverage for detached and hidden legacy annotation mapping in `frontend/src/comments/composables/useCommentAnnotations.spec.ts`
-- [ ] T036 [P] [US3] Extend Playwright restore and legacy scenarios in `frontend/e2e/line-comments.spec.ts`
+- [X] T035 [P] [US3] Add Vitest coverage for detached and hidden legacy annotation mapping in `app/src/comments/composables/useCommentAnnotations.spec.ts`
+- [ ] T036 [P] [US3] Extend Playwright restore and legacy scenarios in `app/e2e/line-comments.spec.ts`
 
 ### Implementation for User Story 3
 
 - [X] T037 [US3] Implement legacy filtering and detached-thread response handling in `crates/notes-server-axum/src/routes/comments.rs`
 - [X] T038 [P] [US3] Finalize sidecar migration behavior for hidden legacy comments in `crates/notes-storage-fs/src/lib.rs`
-- [X] T039 [P] [US3] Update annotation mapping for detached and hidden legacy states in `frontend/src/comments/composables/useCommentAnnotations.ts`
-- [X] T040 [US3] Render detached visible threads and omit hidden legacy threads in `frontend/src/comments/components/CommentSidebar.vue`
-- [X] T041 [US3] Refresh note load behavior for restored annotations in `frontend/src/notes/views/NoteView.vue`
+- [X] T039 [P] [US3] Update annotation mapping for detached and hidden legacy states in `app/src/comments/composables/useCommentAnnotations.ts`
+- [X] T040 [US3] Render detached visible threads and omit hidden legacy threads in `app/src/comments/components/CommentSidebar.vue`
+- [X] T041 [US3] Refresh note load behavior for restored annotations in `app/src/notes/views/NoteView.vue`
 
 **Checkpoint**: All user stories should now be independently functional.
 
@@ -124,8 +124,8 @@
 
 **Purpose**: Final validation and cleanup across all user stories.
 
-- [X] T042 [P] Export new comment composables from `frontend/src/comments/composables/index.ts`
-- [ ] T043 [P] Export new comment components from `frontend/src/comments/components/index.ts`
+- [X] T042 [P] Export new comment composables from `app/src/comments/composables/index.ts`
+- [ ] T043 [P] Export new comment components from `app/src/comments/components/index.ts`
 - [ ] T044 Run end-to-end validation steps from `specs/010-add-line-comments/quickstart.md`
 
 ---
@@ -166,12 +166,12 @@
 ```bash
 # Launch US1 test work together:
 Task: "Add HTTP integration tests for comment creation payloads in crates/notes-server-axum/tests/comments_api.rs"
-Task: "Add Vitest coverage for comment-to-annotation mapping in frontend/src/comments/composables/useCommentAnnotations.spec.ts"
-Task: "Add Playwright coverage for creating a line-based comment in frontend/e2e/line-comments.spec.ts"
+Task: "Add Vitest coverage for comment-to-annotation mapping in app/src/comments/composables/useCommentAnnotations.spec.ts"
+Task: "Add Playwright coverage for creating a line-based comment in app/e2e/line-comments.spec.ts"
 
 # Launch US1 client-side support together after backend contract work starts:
-Task: "Update frontend comment create API payloads in frontend/src/comments/api/comments.ts"
-Task: "Extend comment composable create/load behavior in frontend/src/comments/composables/useComments.ts"
+Task: "Update frontend comment create API payloads in app/src/comments/api/comments.ts"
+Task: "Extend comment composable create/load behavior in app/src/comments/composables/useComments.ts"
 ```
 
 ## Parallel Example: User Story 2
@@ -179,11 +179,11 @@ Task: "Extend comment composable create/load behavior in frontend/src/comments/c
 ```bash
 # Launch US2 tests together:
 Task: "Add HTTP integration tests for reply and resolve flows in crates/notes-server-axum/tests/comments_api.rs"
-Task: "Add Vitest coverage for focus and ordering behavior in frontend/src/comments/composables/useComments.spec.ts"
+Task: "Add Vitest coverage for focus and ordering behavior in app/src/comments/composables/useComments.spec.ts"
 
 # Launch US2 frontend behavior together:
-Task: "Track active/focused annotations and stable ordering in frontend/src/comments/composables/useComments.ts"
-Task: "Update reply and resolve client calls in frontend/src/comments/api/comments.ts"
+Task: "Track active/focused annotations and stable ordering in app/src/comments/composables/useComments.ts"
+Task: "Update reply and resolve client calls in app/src/comments/api/comments.ts"
 ```
 
 ## Parallel Example: User Story 3
@@ -192,11 +192,11 @@ Task: "Update reply and resolve client calls in frontend/src/comments/api/commen
 # Launch US3 regression tests together:
 Task: "Add storage tests for legacy comment retention and hidden visibility in crates/notes-storage-fs/src/tests.rs"
 Task: "Add HTTP integration tests for hidden legacy filtering in crates/notes-server-axum/tests/comments_api.rs"
-Task: "Add Vitest coverage for detached and hidden legacy annotation mapping in frontend/src/comments/composables/useCommentAnnotations.spec.ts"
+Task: "Add Vitest coverage for detached and hidden legacy annotation mapping in app/src/comments/composables/useCommentAnnotations.spec.ts"
 
 # Launch US3 implementation pieces together:
 Task: "Finalize sidecar migration behavior for hidden legacy comments in crates/notes-storage-fs/src/lib.rs"
-Task: "Update annotation mapping for detached and hidden legacy states in frontend/src/comments/composables/useCommentAnnotations.ts"
+Task: "Update annotation mapping for detached and hidden legacy states in app/src/comments/composables/useCommentAnnotations.ts"
 ```
 
 ---

@@ -3,7 +3,7 @@
 **Feature**: 007-frontend-domain-structure
 **Date**: 2026-03-25
 
-This document is the authoritative migration map for the `frontend/src/` restructure. Every file in the current flat layout is mapped to its new domain location.
+This document is the authoritative migration map for the `app/src/` restructure. Every file in the current flat layout is mapped to its new domain location.
 
 ---
 

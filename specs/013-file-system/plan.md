@@ -72,7 +72,7 @@ crates/
 └── notes-cli/
     └── src/
 
-frontend/
+app/
 └── src/
     ├── auth/
     ├── comments/

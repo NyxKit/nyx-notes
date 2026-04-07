@@ -28,7 +28,7 @@ Add administrator-managed user accounts for the `secret_key` authentication mode
 - **Filesystem is the content source of truth**: PASS. Note and vault storage stay filesystem-backed; the embedded database is limited to auth/user metadata and does not replace content storage.
 - **Test coverage per layer**: PASS. Plan adds auth-store integration coverage, server HTTP contract tests, frontend unit tests for the new users domain, and E2E coverage for admin flows.
 - **Security by design**: PASS. Plan requires Argon2 hashing, backend-only credential access, protected admin deletion rules, and sanitized error mapping.
-- **Frontend constraints**: PASS. Plan uses a new `frontend/src/users/` domain, composable-driven API access, nyx-kit primitives, and barrel-based imports.
+- **Frontend constraints**: PASS. Plan uses a new `app/src/users/` domain, composable-driven API access, nyx-kit primitives, and barrel-based imports.
 
 ## Phase 0: Research
 
@@ -81,7 +81,7 @@ crates/
 ├── notes-storage-fs/
 └── notes-cli/
 
-frontend/
+app/
 └── src/
     ├── auth/
     ├── users/
@@ -98,7 +98,7 @@ docs/
 └── testing/
 ```
 
-**Structure Decision**: This feature spans `notes-core` for shared auth/user abstractions, `notes-auth` for the embedded credential store implementation used by `secret_key` mode, `notes-server-axum` for admin-only user-management routes and auth integration, and `frontend/src/users/` plus `frontend/src/shared/` for the management UI and navigation wiring. `notes-storage-fs` remains untouched unless docs uncover a cross-layer mismatch.
+**Structure Decision**: This feature spans `notes-core` for shared auth/user abstractions, `notes-auth` for the embedded credential store implementation used by `secret_key` mode, `notes-server-axum` for admin-only user-management routes and auth integration, and `app/src/users/` plus `app/src/shared/` for the management UI and navigation wiring. `notes-storage-fs` remains untouched unless docs uncover a cross-layer mismatch.
 
 ## Complexity Tracking
 

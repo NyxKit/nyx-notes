@@ -95,14 +95,14 @@
 
 ### Tests for User Story 3
 
-- [X] T025 [P] [US3] Update frontend unit tests affected by owner/type and route changes in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/auth/composables/useAuth.spec.ts`, `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/VaultSettingsView.spec.ts`, and related spec files under `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/`
+- [X] T025 [P] [US3] Update frontend unit tests affected by owner/type and route changes in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/auth/composables/useAuth.spec.ts`, `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/views/VaultSettingsView.spec.ts`, and related spec files under `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/`
 
 ### Implementation for User Story 3
 
 - [X] T026 [P] [US3] Rewrite the frontend interface spec in `/home/arnedecant/Projects/nyxkit/nyx-notes/docs/interface/frontend.md` for server/home/server-vault navigation and retirement of team settings from the MVP
-- [X] T027 [US3] Update shared frontend domain types and route names in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/types/index.ts`, `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/types/router.ts`, and `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/router/index.ts`
-- [X] T028 [P] [US3] Remove team-specific frontend API and composable contracts in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/teams/api/teams.ts`, `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/teams/composables/useTeams.ts`, and `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/teams/views/TeamSettingsView.vue`
-- [X] T029 [US3] Update vault UI state and API usage for server-owned vaults in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/api/vaults.ts`, `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/stores/vaults.ts`, `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/VaultSwitcher.vue`, and `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/VaultSettingsView.vue`
+- [X] T027 [US3] Update shared frontend domain types and route names in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/shared/types/index.ts`, `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/shared/types/router.ts`, and `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/shared/router/index.ts`
+- [X] T028 [P] [US3] Remove team-specific frontend API and composable contracts in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/teams/api/teams.ts`, `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/teams/composables/useTeams.ts`, and `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/teams/views/TeamSettingsView.vue`
+- [X] T029 [US3] Update vault UI state and API usage for server-owned vaults in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/api/vaults.ts`, `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/stores/vaults.ts`, `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/components/VaultSwitcher.vue`, and `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/views/VaultSettingsView.vue`
 
 **Checkpoint**: Frontend contracts, docs, and tests align with the new MVP architecture.
 
@@ -185,10 +185,10 @@ Task: "Update CLI integration tests under crates/notes-cli/tests/"
 ```bash
 # Update the US3 contracts in parallel:
 Task: "Rewrite docs/interface/frontend.md"
-Task: "Remove team-specific frontend API/composable contracts under frontend/src/teams/"
+Task: "Remove team-specific frontend API/composable contracts under app/src/teams/"
 
 # Update the US3 tests in parallel:
-Task: "Update frontend unit tests under frontend/src/ for owner/type and route changes"
+Task: "Update frontend unit tests under app/src/ for owner/type and route changes"
 ```
 
 ---

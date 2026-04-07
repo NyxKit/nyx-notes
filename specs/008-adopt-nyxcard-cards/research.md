@@ -2,7 +2,7 @@
 
 ## Decision 1: Limit the shared card family to the clarified in-scope surfaces
 
-**Decision**: The shared card family applies only to `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/VaultCard.vue`, the inline create-vault card in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/HomeView.vue`, and note cards in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/views/VaultView.vue`.
+**Decision**: The shared card family applies only to `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/components/VaultCard.vue`, the inline create-vault card in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/views/HomeView.vue`, and note cards in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/views/VaultView.vue`.
 
 **Rationale**: These three surfaces were explicitly clarified in the spec, are browse-and-select peers, and can share one card family without flattening distinct interface patterns.
 
@@ -39,7 +39,7 @@
 
 ## Decision 4: Keep card components standalone within their domains
 
-**Decision**: `VaultCard` remains in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/`, and a dedicated `NoteCard` should live in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/`.
+**Decision**: `VaultCard` remains in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/components/`, and a dedicated `NoteCard` should live in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/notes/components/`.
 
 **Rationale**: The user explicitly does not want a shared `BrowseCardSurface` abstraction. Keeping each card component in its own domain preserves domain boundaries while still allowing both to follow the same documented design language.
 

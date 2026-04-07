@@ -13,7 +13,7 @@
 
 ## Path Conventions
 
-- Frontend source: `frontend/src/`
+- Frontend source: `app/src/`
 - Docs: `docs/interface/`
 
 ---
@@ -23,7 +23,7 @@
 **Purpose**: Documentation gate (constitution) + route registration that blocks all story work.
 
 - [x] T001 Update routing table and add `VaultView` description in `docs/interface/frontend.md`
-- [x] T002 Register `/vaults/:vault_id` route (→ `VaultView.vue`, `requiresAuth: true`) in `frontend/src/router/index.ts`
+- [x] T002 Register `/vaults/:vault_id` route (→ `VaultView.vue`, `requiresAuth: true`) in `app/src/router/index.ts`
 
 **Checkpoint**: Docs updated and route slot ready — user story implementation can now begin.
 
@@ -35,7 +35,7 @@
 
 **Independent Test**: Navigate to `/vaults/:vault_id` with notes → masonry renders. Navigate to `/vaults/:vault_id` with empty vault → getting-started prompt + "New Note" CTA visible.
 
-- [x] T003 [US1] Create `frontend/src/views/VaultView.vue` with script setup: load vaults, set active vault, load notes for `vault_id` route param using `useVaults` and `useNotes`
+- [x] T003 [US1] Create `app/src/views/VaultView.vue` with script setup: load vaults, set active vault, load notes for `vault_id` route param using `useVaults` and `useNotes`
 - [x] T004 [US1] Add masonry notes grid to `VaultView.vue` (reuse `home__masonry` + `home__note-card` pattern from `HomeView.vue`) — renders when `notes.length > 0`
 - [x] T005 [US1] Add getting-started empty state to `VaultView.vue` — renders when `notes.length === 0` and not loading; include "New Note" CTA that calls `useNotes().create()` and pushes to `/vaults/:vault_id/notes/:id`
 - [x] T006 [US1] Add header bar to `VaultView.vue` showing vault name and a "New Note" action button; add loading skeleton state while `listLoading` is true
@@ -64,7 +64,7 @@
 
 **Purpose**: Auth guard verification, dead-code removal, and quickstart validation.
 
-- [x] T012 [P] Verify `/vaults/:vault_id` route in `frontend/src/router/index.ts` carries `meta: { requiresAuth: true }` and is covered by the existing `beforeEach` guard
+- [x] T012 [P] Verify `/vaults/:vault_id` route in `app/src/router/index.ts` carries `meta: { requiresAuth: true }` and is covered by the existing `beforeEach` guard
 - [x] T013 [P] Remove any note-masonry dead code from `HomeView.vue` that is now exclusively owned by `VaultView.vue` (e.g. `loadList`, `recentNotes`, note-card styles if fully moved)
 - [ ] T014 Manually validate all quickstart.md scenarios: single-vault redirect, multi-vault masonry, vault empty state, note navigation round-trip
 

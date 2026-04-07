@@ -17,8 +17,8 @@
 
 **Purpose**: Install tooling and create the ESLint config. Nothing else can proceed until this is done.
 
-- [x] T001 Install ESLint peer devDependencies in `frontend/package.json`: `eslint ^9.18.0`, `eslint-plugin-vue ^9.32.0`, `@vue/eslint-config-typescript ^14.3.0`, `eslint-plugin-oxlint ^0.15.6` (run `pnpm add -D` in `frontend/`)
-- [x] T002 Create `frontend/eslint.config.mjs` — import and spread nyx-kit shared config from `nyx-kit/eslint`, then add a project-level override block for `**/*.{ts,vue}` that sets `semi: ['error', 'never']` and `quotes: ['error', 'single', { avoidEscape: true }]` (base rules; `@typescript-eslint/semi`/`quotes` were removed in typescript-eslint v8)
+- [x] T001 Install ESLint peer devDependencies in `app/package.json`: `eslint ^9.18.0`, `eslint-plugin-vue ^9.32.0`, `@vue/eslint-config-typescript ^14.3.0`, `eslint-plugin-oxlint ^0.15.6` (run `pnpm add -D` in `app/`)
+- [x] T002 Create `app/eslint.config.mjs` — import and spread nyx-kit shared config from `nyx-kit/eslint`, then add a project-level override block for `**/*.{ts,vue}` that sets `semi: ['error', 'never']` and `quotes: ['error', 'single', { avoidEscape: true }]` (base rules; `@typescript-eslint/semi`/`quotes` were removed in typescript-eslint v8)
 
 ---
 
@@ -28,7 +28,7 @@
 
 **⚠️ CRITICAL**: All user story verification depends on `pnpm lint` and `pnpm lint:fix` being available.
 
-- [x] T003 Add `"lint": "eslint ./src"` and `"lint:fix": "eslint ./src --fix"` to the `scripts` block in `frontend/package.json`
+- [x] T003 Add `"lint": "eslint ./src"` and `"lint:fix": "eslint ./src --fix"` to the `scripts` block in `app/package.json`
 
 **Checkpoint**: Run `pnpm lint --version` to confirm ESLint resolves. Foundation ready.
 
@@ -38,12 +38,12 @@
 
 **Goal**: Confirm the ESLint config loads correctly and the linter runs end-to-end, producing actionable output.
 
-**Independent Test**: `pnpm lint` in `frontend/` executes without crashing, resolves the nyx-kit shared config, and reports violations (or exits 0 if none). Exit code confirms the gate is active.
+**Independent Test**: `pnpm lint` in `app/` executes without crashing, resolves the nyx-kit shared config, and reports violations (or exits 0 if none). Exit code confirms the gate is active.
 
 ### Implementation
 
-- [x] T004 [US1] Run `pnpm lint` in `frontend/` for the first time and capture the full output — confirm the config loads without module-not-found errors and that rules from the nyx-kit shared config are active (e.g. a Vue or TypeScript rule fires or the run completes cleanly)
-- [x] T005 [US1] If the `@typescript-eslint/semi` or `@typescript-eslint/quotes` overrides in `frontend/eslint.config.mjs` are silenced by the oxlint shim, switch those overrides to the base `semi` and `quotes` rules instead (verify by temporarily introducing a semicolon in any `.ts` file and confirming lint catches it, then revert)
+- [x] T004 [US1] Run `pnpm lint` in `app/` for the first time and capture the full output — confirm the config loads without module-not-found errors and that rules from the nyx-kit shared config are active (e.g. a Vue or TypeScript rule fires or the run completes cleanly)
+- [x] T005 [US1] If the `@typescript-eslint/semi` or `@typescript-eslint/quotes` overrides in `app/eslint.config.mjs` are silenced by the oxlint shim, switch those overrides to the base `semi` and `quotes` rules instead (verify by temporarily introducing a semicolon in any `.ts` file and confirming lint catches it, then revert)
 
 **Checkpoint**: `pnpm lint` runs to completion. Config is confirmed working. US1 is independently verified.
 
@@ -51,19 +51,19 @@
 
 ## Phase 4: User Story 2 — Existing code adjusted to comply (Priority: P2)
 
-**Goal**: All source files in `frontend/src/` pass the rule set with zero errors and zero warnings. No suppression comments introduced.
+**Goal**: All source files in `app/src/` pass the rule set with zero errors and zero warnings. No suppression comments introduced.
 
-**Independent Test**: `pnpm lint` exits 0. Zero `eslint-disable` directives anywhere in `frontend/src/`.
+**Independent Test**: `pnpm lint` exits 0. Zero `eslint-disable` directives anywhere in `app/src/`.
 
 ### Implementation
 
-- [x] T006 [US2] Run `pnpm lint:fix` in `frontend/` — apply all safe auto-fixes (quotes, semicolons, simple import ordering). Commit the auto-fixed changes as a single atomic commit before proceeding to manual fixes
-- [x] T007 [P] [US2] Run `pnpm lint` and fix any residual violations in `frontend/src/api/` files manually — resolve each reported error at the source without adding `eslint-disable`
-- [x] T008 [P] [US2] Run `pnpm lint` and fix any residual violations in `frontend/src/components/` files manually — if `vue/multi-word-component-names` fires on any single-word component file, rename the file and update its import sites
-- [x] T009 [P] [US2] Run `pnpm lint` and fix any residual violations in `frontend/src/composables/`, `frontend/src/stores/`, and `frontend/src/utils/` files manually
-- [x] T010 [P] [US2] Run `pnpm lint` and fix any residual violations in `frontend/src/views/` and `frontend/src/router/` files manually
-- [x] T011 [P] [US2] Run `pnpm lint` and fix any residual violations in `frontend/src/types/`, `frontend/src/main.ts`, and `frontend/App.vue` manually
-- [x] T012 [US2] Run `pnpm lint` to confirm zero errors and zero warnings across all files in `frontend/src/` — this is the acceptance gate for US2
+- [x] T006 [US2] Run `pnpm lint:fix` in `app/` — apply all safe auto-fixes (quotes, semicolons, simple import ordering). Commit the auto-fixed changes as a single atomic commit before proceeding to manual fixes
+- [x] T007 [P] [US2] Run `pnpm lint` and fix any residual violations in `app/src/api/` files manually — resolve each reported error at the source without adding `eslint-disable`
+- [x] T008 [P] [US2] Run `pnpm lint` and fix any residual violations in `app/src/components/` files manually — if `vue/multi-word-component-names` fires on any single-word component file, rename the file and update its import sites
+- [x] T009 [P] [US2] Run `pnpm lint` and fix any residual violations in `app/src/composables/`, `app/src/stores/`, and `app/src/utils/` files manually
+- [x] T010 [P] [US2] Run `pnpm lint` and fix any residual violations in `app/src/views/` and `app/src/router/` files manually
+- [x] T011 [P] [US2] Run `pnpm lint` and fix any residual violations in `app/src/types/`, `app/src/main.ts`, and `app/App.vue` manually
+- [x] T012 [US2] Run `pnpm lint` to confirm zero errors and zero warnings across all files in `app/src/` — this is the acceptance gate for US2
 
 **Checkpoint**: `pnpm lint` exits 0. No suppression comments added. US2 complete.
 
@@ -78,7 +78,7 @@
 ### Implementation
 
 - [x] T013 [US3] Verify `pnpm lint` and `pnpm lint:fix` appear in `pnpm run` output alongside `dev`, `build`, `preview`, and `type-check` — confirm naming follows the same convention as existing scripts
-- [x] T014 [US3] Simulate a clean install: run `pnpm install` in `frontend/` then `pnpm lint` — confirm it resolves correctly without requiring any additional manual steps
+- [x] T014 [US3] Simulate a clean install: run `pnpm install` in `app/` then `pnpm lint` — confirm it resolves correctly without requiring any additional manual steps
 
 **Checkpoint**: Workflow integration confirmed. US3 complete.
 
@@ -88,9 +88,9 @@
 
 **Purpose**: Documentation and final validation.
 
-- [x] T015 [P] Update `docs/conventions/README.md` — add one sentence under the Vue/TS section noting that `pnpm lint` (in `frontend/`) enforces the no-semicolons and single-quote conventions defined in Constitution §VI
+- [x] T015 [P] Update `docs/conventions/README.md` — add one sentence under the Vue/TS section noting that `pnpm lint` (in `app/`) enforces the no-semicolons and single-quote conventions defined in Constitution §VI
 - [x] T016 Run the full quickstart from `specs/006-frontend-eslint/quickstart.md` top to bottom — confirm all commands work as documented and output matches expectations (also verifies SC-004: lint completes in under 30 seconds)
-- [x] T017 Confirm no `eslint-disable` directives were introduced anywhere in `frontend/src/` — run `grep -r 'eslint-disable' frontend/src/` and verify empty output
+- [x] T017 Confirm no `eslint-disable` directives were introduced anywhere in `app/src/` — run `grep -r 'eslint-disable' app/src/` and verify empty output
 
 ---
 

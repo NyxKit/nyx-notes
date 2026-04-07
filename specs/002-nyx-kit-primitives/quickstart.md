@@ -4,17 +4,17 @@
 
 | File | Change |
 |------|--------|
-| `frontend/src/components/SidebarNav.vue` | `<button>` → `NyxButton gradient` |
-| `frontend/src/components/NoteList.vue` | `<button>`s + tag spans → `NyxButton`, `NyxBadge` |
-| `frontend/src/components/NoteToolbar.vue` | tag spans → `NyxBadge hasClose` |
-| `frontend/src/components/CommentComposer.vue` | `<textarea>`, `<button>`s, form → `NyxTextarea`, `NyxButton`, `NyxForm` |
-| `frontend/src/components/CommentThread.vue` | `<button>`s → `NyxButton` (ghost/danger) |
-| `frontend/src/components/CommentSidebar.vue` | tab buttons → `NyxTabs`; add-comment button → `NyxButton` |
-| `frontend/src/views/HomeView.vue` | `<button>`s, `<input>`s, form div → `NyxButton`, `NyxInput`, `NyxForm` |
-| `frontend/src/views/VaultView.vue` | `<button>`s, tag spans → `NyxButton`, `NyxBadge` |
-| `frontend/src/views/NoteView.vue` | icon `<button>`s → `NyxButton variant="ghost" shape="square"` |
-| `frontend/src/views/VaultSettingsView.vue` | `<button>`s → `NyxButton` (ghost, danger) |
-| `frontend/src/views/TeamSettingsView.vue` | `<button>`s, `<input>`s, forms → `NyxButton`, `NyxInput`, `NyxForm` |
+| `app/src/components/SidebarNav.vue` | `<button>` → `NyxButton gradient` |
+| `app/src/components/NoteList.vue` | `<button>`s + tag spans → `NyxButton`, `NyxBadge` |
+| `app/src/components/NoteToolbar.vue` | tag spans → `NyxBadge hasClose` |
+| `app/src/components/CommentComposer.vue` | `<textarea>`, `<button>`s, form → `NyxTextarea`, `NyxButton`, `NyxForm` |
+| `app/src/components/CommentThread.vue` | `<button>`s → `NyxButton` (ghost/danger) |
+| `app/src/components/CommentSidebar.vue` | tab buttons → `NyxTabs`; add-comment button → `NyxButton` |
+| `app/src/views/HomeView.vue` | `<button>`s, `<input>`s, form div → `NyxButton`, `NyxInput`, `NyxForm` |
+| `app/src/views/VaultView.vue` | `<button>`s, tag spans → `NyxButton`, `NyxBadge` |
+| `app/src/views/NoteView.vue` | icon `<button>`s → `NyxButton variant="ghost" shape="square"` |
+| `app/src/views/VaultSettingsView.vue` | `<button>`s → `NyxButton` (ghost, danger) |
+| `app/src/views/TeamSettingsView.vue` | `<button>`s, `<input>`s, forms → `NyxButton`, `NyxInput`, `NyxForm` |
 | `docs/interface/frontend.md` | Update component library section |
 
 No changes to: `LoginView.vue` (already correct), `VaultSwitcher.vue` (already uses `NyxSelect`), `NoteEditor.vue`, `App.vue`.

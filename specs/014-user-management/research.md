@@ -42,7 +42,7 @@ Alternatives considered: Reusing `/api/auth/*` for admin CRUD was rejected becau
 
 ## Frontend Integration Pattern
 
-Decision: Add a top-level `frontend/src/users/` domain containing API module, composable/store, `UsersView`, and `CreateEditUser` modal component, then wire a `Users` entry into the authenticated sidebar directly above `Settings`.
+Decision: Add a top-level `app/src/users/` domain containing API module, composable/store, `UsersView`, and `CreateEditUser` modal component, then wire a `Users` entry into the authenticated sidebar directly above `Settings`.
 
 Rationale: The existing frontend already follows domain-based structure with a persistent shell and route-driven pages. A dedicated users domain keeps the feature isolated, matches the stated requirement, and fits the constitution's barrel-export rules. The sidebar placement makes administration discoverable without overloading the settings page.
 

@@ -8,7 +8,7 @@
 
 **Alternatives considered**:
 - `eslint.config.ts` + `jiti`: adds one extra dev dep with no functional gain.
-- `eslint.config.js`: equivalent to `.mjs` since `frontend/package.json` has `"type": "module"`, but `.mjs` is explicit about ES module intent and avoids ambiguity.
+- `eslint.config.js`: equivalent to `.mjs` since `app/package.json` has `"type": "module"`, but `.mjs` is explicit about ES module intent and avoids ambiguity.
 
 ---
 
@@ -60,7 +60,7 @@ Rules to add:
 **Rationale**: The nyx-kit shared config already ignores `**/dist/**`, `**/dist-ssr/**`, and `**/coverage/**`. Explicitly targeting `./src` scopes lint to the application source and avoids linting config files (`vite.config.ts`, `eslint.config.mjs`) which follow different conventions.
 
 **Alternatives considered**:
-- Lint the entire `frontend/` directory: would include `vite.config.ts` and `eslint.config.mjs`, which may need style exceptions. Narrower scope is safer.
+- Lint the entire `app/` directory: would include `vite.config.ts` and `eslint.config.mjs`, which may need style exceptions. Narrower scope is safer.
 
 ---
 

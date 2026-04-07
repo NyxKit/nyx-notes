@@ -52,7 +52,7 @@ docs/
 ├── interface/frontend.md
 └── testing/README.md
 
-frontend/src/
+app/src/
 ├── notes/
 │   ├── composables/
 │   │   ├── useGlobalNoteBrowsing.ts    # planned
@@ -84,7 +84,7 @@ frontend/src/
     └── views/VaultView.vue
 ```
 
-**Structure Decision**: Keep feature ownership in `frontend/src/notes/` because global search and favorites are note-browsing concerns. Reuse `shared/` only for shell navigation and common types, keep `vaults/` limited to vault-scoped browsing, and implement one shared browse surface component for search and favorites so the layout and sort-control presentation stay identical. Profile-scoped API loading lives in a notes-domain composable, while the browsing store owns derived state and UI-facing state only. Docs are updated first because they currently describe the older route and scope model.
+**Structure Decision**: Keep feature ownership in `app/src/notes/` because global search and favorites are note-browsing concerns. Reuse `shared/` only for shell navigation and common types, keep `vaults/` limited to vault-scoped browsing, and implement one shared browse surface component for search and favorites so the layout and sort-control presentation stay identical. Profile-scoped API loading lives in a notes-domain composable, while the browsing store owns derived state and UI-facing state only. Docs are updated first because they currently describe the older route and scope model.
 
 ## Phase 0: Research Outcomes
 
@@ -109,7 +109,7 @@ frontend/src/
 1. Update docs to redefine search and favorites as global browse surfaces and document route ownership changes.
 2. Add a notes-domain composable for profile-scoped global browse loading.
 3. Add notes-domain browse state for global search query/results, shared sorting state, and persisted favorites.
-4. Add a shared browse surface component plus dedicated search and favorites views under `frontend/src/notes/`, and register global routes.
+4. Add a shared browse surface component plus dedicated search and favorites views under `app/src/notes/`, and register global routes.
 5. Rework sidebar navigation so favorites is global and the generic `New Note` CTA is removed.
 6. Route sidebar search keypresses into live global search updates with debounce or a similar mechanism.
 7. Extend `NoteCard` inputs to render server and vault labels and reuse it in global and vault-scoped grids.

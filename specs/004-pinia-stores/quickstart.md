@@ -10,14 +10,14 @@
 
 | Area | Change |
 |------|--------|
-| `frontend/src/stores/vaults.ts` | **NEW** — `useVaultStore` (Pinia setup store, replaces `useVaults`) |
-| `frontend/src/stores/notes.ts` | **NEW** — `useNotesStore` (Pinia setup store, replaces `useNotes`) |
-| `frontend/src/composables/useVaults.ts` | **DELETED** |
-| `frontend/src/composables/useNotes.ts` | **DELETED** |
+| `app/src/stores/vaults.ts` | **NEW** — `useVaultStore` (Pinia setup store, replaces `useVaults`) |
+| `app/src/stores/notes.ts` | **NEW** — `useNotesStore` (Pinia setup store, replaces `useNotes`) |
+| `app/src/composables/useVaults.ts` | **DELETED** |
+| `app/src/composables/useNotes.ts` | **DELETED** |
 | 10 components/views | Import path + function name updated |
-| `frontend/src/components/NoteList.vue` | Use `notesFor()`, sort+limit, active state from route, no loadList watch |
-| `frontend/src/components/AppLayout.vue` | Call `useNotesStore().loadAll()` after loading vaults |
-| `frontend/src/views/HomeView.vue` | Call `useVaultStore().setActive(null)` on mount |
+| `app/src/components/NoteList.vue` | Use `notesFor()`, sort+limit, active state from route, no loadList watch |
+| `app/src/components/AppLayout.vue` | Call `useNotesStore().loadAll()` after loading vaults |
+| `app/src/views/HomeView.vue` | Call `useVaultStore().setActive(null)` on mount |
 
 ---
 
@@ -138,8 +138,8 @@ onMounted(async () => {
 ### Step 7: Delete composable files
 
 ```
-rm frontend/src/composables/useVaults.ts
-rm frontend/src/composables/useNotes.ts
+rm app/src/composables/useVaults.ts
+rm app/src/composables/useNotes.ts
 ```
 
 ---

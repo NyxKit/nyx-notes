@@ -5,7 +5,7 @@
 
 ## Summary
 
-Add a client-side workspace profile layer that lets one Nyx Notes client switch between a singleton local workspace and multiple remote server profiles, with each remote profile carrying its own URL, username/password sign-in flow, and isolated auth/session state. The implementation should preserve existing backend layer boundaries by treating profile management as a frontend/native-client concern, with only additive auth-discovery contract support if server identity or compatibility metadata is needed.
+Add a client-side workspace profile layer that lets one Nyx Notes client switch between a singleton local workspace and multiple remote server profiles, with each remote profile carrying its own URL, username/password sign-in flow, and isolated auth/session state. The implementation should preserve existing backend layer boundaries by treating profile management as a app/native-client concern, with only additive auth-discovery contract support if server identity or compatibility metadata is needed.
 
 ## Technical Context
 
@@ -24,7 +24,7 @@ Add a client-side workspace profile layer that lets one Nyx Notes client switch 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
 - **Docs are the source of truth**: PASS with prerequisite. Implementation must begin by updating `docs/architecture/authentication.md`, `docs/architecture/deployment-modes.md`, `docs/interface/frontend.md`, and `README.md` to describe multi-profile client behavior and the narrowed username/password scope for this feature.
-- **Strict layer boundaries**: PASS. Profile persistence and switching stay in the frontend/native-client layer. Backend changes, if any, are limited to additive auth discovery metadata and existing auth endpoints.
+- **Strict layer boundaries**: PASS. Profile persistence and switching stay in the app/native-client layer. Backend changes, if any, are limited to additive auth discovery metadata and existing auth endpoints.
 - **Filesystem source of truth**: PASS. This feature does not alter note, vault, or comment storage layout.
 - **Test coverage per layer**: PASS. Plan includes frontend unit/E2E coverage, server integration coverage for discovery/login contracts, and no unnecessary storage-layer changes.
 - **Security by design**: PASS. Per-profile auth/session isolation, explicit failure classification, and no token sharing across profiles are required.
@@ -79,7 +79,7 @@ crates/
 ├── notes-server-axum/
 └── notes-cli/
 
-frontend/
+app/
 └── src/
     ├── auth/
     ├── shared/
@@ -95,7 +95,7 @@ docs/
 └── testing/
 ```
 
-**Structure Decision**: This feature primarily affects `frontend/src/auth/` and `frontend/src/shared/` by introducing client-side profile selection and per-profile bootstrapping above the existing API client. `notes-server-axum` may receive additive discovery metadata or response-shape hardening, but `notes-core` and `notes-storage-fs` should remain unchanged unless docs updates reveal a broader architectural gap.
+**Structure Decision**: This feature primarily affects `app/src/auth/` and `app/src/shared/` by introducing client-side profile selection and per-profile bootstrapping above the existing API client. `notes-server-axum` may receive additive discovery metadata or response-shape hardening, but `notes-core` and `notes-storage-fs` should remain unchanged unless docs updates reveal a broader architectural gap.
 
 ## Complexity Tracking
 

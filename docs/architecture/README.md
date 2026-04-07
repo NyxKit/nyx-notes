@@ -27,6 +27,7 @@ Each layer depends only on the layer below it. `notes-core` has zero runtime dep
 | [authentication.md](./authentication.md) | Auth modes (`local`, `secret_key`, `oidc`) and their implementations |
 | [vaults-and-teams.md](./vaults-and-teams.md) | Legacy ownership document to be aligned or replaced during the file-system refactor |
 | [deployment-modes.md](./deployment-modes.md) | Deployment configurations: local, self-hosted, cloud, native app |
+| [docker.md](./docker.md) | Docker container setup, Dockerfile stages, docker-compose reference |
 
 ## Key Design Decisions
 

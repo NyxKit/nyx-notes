@@ -11,7 +11,7 @@
 
 - **[P]**: Can run in parallel (different files, no dependencies on incomplete tasks)
 - **[Story]**: Which user story this task belongs to (US1, US2, US3)
-- All paths are relative to `frontend/src/`
+- All paths are relative to `app/src/`
 
 ---
 
@@ -47,7 +47,7 @@
 
 **Goal**: Every domain-specific file lives inside its domain folder. A developer opening `vaults/`, `notes/`, `comments/`, `auth/`, or `teams/` finds all files for that domain.
 
-**Independent Test**: Open `frontend/src/` — the only top-level entries are `main.ts`, `App.vue`, `vite-env.d.ts`, the five domain folders, and `shared/`. No `components/`, `stores/`, `views/`, `api/`, or `composables/` folders remain.
+**Independent Test**: Open `app/src/` — the only top-level entries are `main.ts`, `App.vue`, `vite-env.d.ts`, the five domain folders, and `shared/`. No `components/`, `stores/`, `views/`, `api/`, or `composables/` folders remain.
 
 ### Vaults domain
 
@@ -94,9 +94,9 @@
 
 **Goal**: Every file in `shared/` is genuinely cross-domain; every cross-domain import everywhere in the codebase resolves to `@/shared/...`.
 
-**Independent Test**: A developer can open `frontend/src/shared/` and confirm every file there is used by more than one domain. A developer can `grep -r "@/types\|@/api/client\|@/utils/time\|@/router" frontend/src/` and find zero results (all such imports now use `@/shared/`).
+**Independent Test**: A developer can open `app/src/shared/` and confirm every file there is used by more than one domain. A developer can `grep -r "@/types\|@/api/client\|@/utils/time\|@/router" app/src/` and find zero results (all such imports now use `@/shared/`).
 
-- [x] T030 [US2] Audit `frontend/src/` with `grep -r "@/types\|@/api/client\|@/utils/time\|@/composables/\|@/stores/\|@/views/\|@/components/" frontend/src/` and fix any stale `@/` imports that were not updated during Phase 3 moves
+- [x] T030 [US2] Audit `app/src/` with `grep -r "@/types\|@/api/client\|@/utils/time\|@/composables/\|@/stores/\|@/views/\|@/components/" app/src/` and fix any stale `@/` imports that were not updated during Phase 3 moves
 - [x] T031 [P] [US2] Verify `shared/router/index.ts` resolves: confirm every dynamic `import(...)` path points to an existing file under the new domain structure
 - [x] T032 [P] [US2] Verify `shared/components/AppLayout.vue` and `shared/components/SidebarNav.vue` use correct `@/vaults/...` or `@/shared/...` imports for any sub-components they reference
 
@@ -108,11 +108,11 @@
 
 **Goal**: Old flat directories are removed. Each domain is self-contained — removing one domain folder requires changes only to the router and shared layer, not to other domain folders.
 
-**Independent Test**: Delete or stub out `frontend/src/comments/` — the only files outside `comments/` that reference it are `shared/router/index.ts` (the route entry) and any `shared/components/` that use comment components (e.g., `AppLayout.vue`). No `vaults/` or `notes/` file should import from `comments/`.
+**Independent Test**: Delete or stub out `app/src/comments/` — the only files outside `comments/` that reference it are `shared/router/index.ts` (the route entry) and any `shared/components/` that use comment components (e.g., `AppLayout.vue`). No `vaults/` or `notes/` file should import from `comments/`.
 
-- [x] T033 [US3] Delete the now-empty flat directories: `frontend/src/api/`, `frontend/src/components/`, `frontend/src/composables/`, `frontend/src/stores/`, `frontend/src/views/`, `frontend/src/router/`, `frontend/src/types/`, `frontend/src/utils/`, `frontend/src/assets/icons/`, `frontend/src/assets/` (the `vaults/` subfolder was already moved in T013; the generic icons were moved in T008; `assets/` itself is empty after T007/T008)
-- [x] T034 [US3] Run `pnpm build` from `frontend/` — confirm zero TypeScript and import errors
-- [x] T035 [P] [US3] Verify cross-domain isolation: `grep -r "@/vaults\|@/notes\|@/comments\|@/auth\|@/teams" frontend/src/notes frontend/src/vaults frontend/src/comments frontend/src/auth frontend/src/teams` — confirm no domain imports another domain (cross-domain imports should only appear in `shared/`)
+- [x] T033 [US3] Delete the now-empty flat directories: `app/src/api/`, `app/src/components/`, `app/src/composables/`, `app/src/stores/`, `app/src/views/`, `app/src/router/`, `app/src/types/`, `app/src/utils/`, `app/src/assets/icons/`, `app/src/assets/` (the `vaults/` subfolder was already moved in T013; the generic icons were moved in T008; `assets/` itself is empty after T007/T008)
+- [x] T034 [US3] Run `pnpm build` from `app/` — confirm zero TypeScript and import errors
+- [x] T035 [P] [US3] Verify cross-domain isolation: `grep -r "@/vaults\|@/notes\|@/comments\|@/auth\|@/teams" app/src/notes app/src/vaults app/src/comments app/src/auth app/src/teams` — confirm no domain imports another domain (cross-domain imports should only appear in `shared/`)
 
 **Checkpoint**: Build passes. Old flat directories are gone. Domain isolation verified.
 
@@ -120,7 +120,7 @@
 
 ## Final Phase: Polish & Cross-Cutting Concerns
 
-- [x] T036 [P] Update `README.md` if it contains a description or tree of the `frontend/src/` layout — sync it with the new domain structure
+- [x] T036 [P] Update `README.md` if it contains a description or tree of the `app/src/` layout — sync it with the new domain structure
 - [x] T037 Start the dev server (`pnpm dev`) and manually verify all routes: `/` (vault list), `/vaults/:id` (vault view), `/vaults/:id/notes/:id` (note editor), `/vaults/:id/settings` (vault settings), `/teams/:id/settings` (team settings), `/login` (login page)
 - [x] T038 [P] Verify vault icons render correctly in the UI — they reference SVGs moved from `assets/icons/vaults/` to `vaults/assets/icons/`
 - [x] T039 Run `git status` to confirm no untracked or dangling files remain at old flat directory paths

@@ -25,10 +25,10 @@
 
 **Purpose**: Extend composables and create the shared shell. Must complete before view simplification.
 
-- [X] T002 Extend `useNotes` in `frontend/src/composables/useNotes.ts` — replace `notes: Ref<NoteMeta[]>` with `notesByVault: Ref<Record<string, NoteMeta[]>>`; add `notesFor(vaultId)` (returns `notesByVault.value[vaultId] ?? []`) and `loadAll(vaultIds)` (Promise.allSettled over fetchNotes, writes results into notesByVault without touching listLoading); update `loadList`, `create`, `save`, `remove`, `updatePermission` to target notesByVault[vaultId] instead of the flat ref
-- [X] T003 Widen `setActive` in `frontend/src/composables/useVaults.ts` — change signature from `(vault: Vault)` to `(vault: Vault | null)`
-- [X] T004 Create `AppLayout.vue` in `frontend/src/components/AppLayout.vue` — calls `useVaults().load()` then `useNotes().loadAll(vaultIds)` on `onMounted`; renders left sidebar (VaultSwitcher, SidebarNav, NoteList, footer with Settings/Help links) and `<RouterView />`; sidebar always open at 288px; see contracts/ui-contract.md §1
-- [X] T005 Update `frontend/src/router/index.ts` — nest all authenticated routes under `AppLayout` parent with `meta: { requiresAuth: true }`; LoginView remains top-level sibling; see contracts/ui-contract.md §2
+- [X] T002 Extend `useNotes` in `app/src/composables/useNotes.ts` — replace `notes: Ref<NoteMeta[]>` with `notesByVault: Ref<Record<string, NoteMeta[]>>`; add `notesFor(vaultId)` (returns `notesByVault.value[vaultId] ?? []`) and `loadAll(vaultIds)` (Promise.allSettled over fetchNotes, writes results into notesByVault without touching listLoading); update `loadList`, `create`, `save`, `remove`, `updatePermission` to target notesByVault[vaultId] instead of the flat ref
+- [X] T003 Widen `setActive` in `app/src/composables/useVaults.ts` — change signature from `(vault: Vault)` to `(vault: Vault | null)`
+- [X] T004 Create `AppLayout.vue` in `app/src/components/AppLayout.vue` — calls `useVaults().load()` then `useNotes().loadAll(vaultIds)` on `onMounted`; renders left sidebar (VaultSwitcher, SidebarNav, NoteList, footer with Settings/Help links) and `<RouterView />`; sidebar always open at 288px; see contracts/ui-contract.md §1
+- [X] T005 Update `app/src/router/index.ts` — nest all authenticated routes under `AppLayout` parent with `meta: { requiresAuth: true }`; LoginView remains top-level sibling; see contracts/ui-contract.md §2
 
 **Checkpoint**: `AppLayout` mounts, loads all vaults and all vault notes, and renders child route via `<RouterView />`.
 
@@ -40,11 +40,11 @@
 
 **Independent Test**: Navigate to HomeView (`/`), VaultView (`/vaults/:id`), and NoteView (`/vaults/:id/notes/:id`); verify the "Recent Notes" sidebar is visible and shows correct notes; click an entry and verify you land on the correct note editor.
 
-- [X] T006 [US1] Update `NoteList.vue` in `frontend/src/components/NoteList.vue` — remove `watch(activeVault, loadList)`; replace `notes` with `notesFor(activeVault.value.id)`; guard with `if (!activeVault.value) return []`; sort by `updated_at` desc; limit to `RECENT_LIMIT = 20`; derive active state from `route.params.id` instead of `activeNote`; see contracts/ui-contract.md §4
-- [X] T007 [P] [US1] Simplify `HomeView.vue` in `frontend/src/views/HomeView.vue` — remove outer `app-shell` wrapper, `app-shell__sidebar` aside, sidebar CSS; call `setActive(null)` in `onMounted` before `loadVaults`; root becomes `<div class="app-shell__main">`
-- [X] T008 [P] [US1] Simplify `VaultView.vue` in `frontend/src/views/VaultView.vue` — remove outer `app-shell` wrapper and sidebar aside; change `notes.value` to `notesFor(vaultId.value)` in `sortedNotes`; root becomes `<div class="app-shell__main">`
-- [X] T009 [US1] Simplify `NoteView.vue` in `frontend/src/views/NoteView.vue` — remove `<aside class="app-shell__sidebar">` block, outer `app-shell` wrapper, `isSidebarOpen` ref, `sidebarVisible` computed, hamburger toggle, and unused imports; root becomes `<div class="app-shell__main">`
-- [X] T010 [P] [US1] Update `VaultSwitcher.vue` in `frontend/src/components/VaultSwitcher.vue` — replace `notes.value.length` with `notesFor(activeVault.value?.id ?? '').length` for the note count label
+- [X] T006 [US1] Update `NoteList.vue` in `app/src/components/NoteList.vue` — remove `watch(activeVault, loadList)`; replace `notes` with `notesFor(activeVault.value.id)`; guard with `if (!activeVault.value) return []`; sort by `updated_at` desc; limit to `RECENT_LIMIT = 20`; derive active state from `route.params.id` instead of `activeNote`; see contracts/ui-contract.md §4
+- [X] T007 [P] [US1] Simplify `HomeView.vue` in `app/src/views/HomeView.vue` — remove outer `app-shell` wrapper, `app-shell__sidebar` aside, sidebar CSS; call `setActive(null)` in `onMounted` before `loadVaults`; root becomes `<div class="app-shell__main">`
+- [X] T008 [P] [US1] Simplify `VaultView.vue` in `app/src/views/VaultView.vue` — remove outer `app-shell` wrapper and sidebar aside; change `notes.value` to `notesFor(vaultId.value)` in `sortedNotes`; root becomes `<div class="app-shell__main">`
+- [X] T009 [US1] Simplify `NoteView.vue` in `app/src/views/NoteView.vue` — remove `<aside class="app-shell__sidebar">` block, outer `app-shell` wrapper, `isSidebarOpen` ref, `sidebarVisible` computed, hamburger toggle, and unused imports; root becomes `<div class="app-shell__main">`
+- [X] T010 [P] [US1] Update `VaultSwitcher.vue` in `app/src/components/VaultSwitcher.vue` — replace `notes.value.length` with `notesFor(activeVault.value?.id ?? '').length` for the note count label
 
 **Checkpoint**: US1 complete. Sidebar present on all views. No duplicate list in NoteView. Switching vaults shows correct notes from cache.
 

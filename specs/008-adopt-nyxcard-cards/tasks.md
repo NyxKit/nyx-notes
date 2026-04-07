@@ -17,9 +17,9 @@
 
 **Purpose**: Establish validation and test scaffolding required for the clarified browse-card feature.
 
-- [X] T001 Update frontend validation and test scripts in `frontend/package.json`
-- [X] T002 [P] Add frontend unit test configuration in `frontend/vitest.config.ts` and `frontend/src/test/setup.ts`
-- [X] T003 [P] Add browser test configuration scaffold in `frontend/playwright.config.ts` and `frontend/tests/e2e/.gitkeep`
+- [X] T001 Update frontend validation and test scripts in `app/package.json`
+- [X] T002 [P] Add frontend unit test configuration in `app/vitest.config.ts` and `app/src/test/setup.ts`
+- [X] T003 [P] Add browser test configuration scaffold in `app/playwright.config.ts` and `app/tests/e2e/.gitkeep`
 
 ---
 
@@ -31,8 +31,8 @@
 
 - [X] T004 Update in-scope and out-of-scope browse-card guidance in `docs/interface/frontend.md`
 - [X] T005 [P] Update shared browse-card visual rules and exclusions in `DESIGN.md`
-- [X] T006 Add standalone card-family shell styles in `frontend/src/shared/assets/theme.css`
-- [X] T007 [P] Add optional description support to frontend request and domain types in `frontend/src/shared/types/index.ts`
+- [X] T006 Add standalone card-family shell styles in `app/src/shared/assets/theme.css`
+- [X] T007 [P] Add optional description support to frontend request and domain types in `app/src/shared/types/index.ts`
 - [X] T008 [P] Add Rust domain and API support for vault and note descriptions in `crates/notes-core/src/domain.rs`, `crates/notes-storage-fs/src/lib.rs`, and `crates/notes-server-axum/src/routes/notes.rs`
 
 **Checkpoint**: Docs, shared browse-card scaffold, and validation tooling are ready; user stories can begin.
@@ -47,14 +47,14 @@
 
 ### Tests for User Story 1
 
-- [X] T009 [P] [US1] Add vault-card interaction coverage in `frontend/src/vaults/components/VaultCard.spec.ts`
-- [X] T010 [P] [US1] Add vault dashboard browser verification in `frontend/tests/e2e/vault-dashboard-cards.spec.ts`
+- [X] T009 [P] [US1] Add vault-card interaction coverage in `app/src/vaults/components/VaultCard.spec.ts`
+- [X] T010 [P] [US1] Add vault dashboard browser verification in `app/tests/e2e/vault-dashboard-cards.spec.ts`
 
 ### Implementation for User Story 1
 
-- [X] T011 [US1] Refactor `VaultCard` into a standalone `NyxCard` + `RouterLink` component in `frontend/src/vaults/components/VaultCard.vue`
-- [X] T012 [US1] Wire the updated vault card behavior and descriptions into `frontend/src/vaults/views/HomeView.vue`
-- [X] T013 [US1] Update vault component exports for the browse-card refactor in `frontend/src/vaults/components/index.ts`
+- [X] T011 [US1] Refactor `VaultCard` into a standalone `NyxCard` + `RouterLink` component in `app/src/vaults/components/VaultCard.vue`
+- [X] T012 [US1] Wire the updated vault card behavior and descriptions into `app/src/vaults/views/HomeView.vue`
+- [X] T013 [US1] Update vault component exports for the browse-card refactor in `app/src/vaults/components/index.ts`
 
 **Checkpoint**: User Story 1 is fully functional and independently testable.
 
@@ -68,13 +68,13 @@
 
 ### Tests for User Story 2
 
-- [X] T014 [P] [US2] Add inline create-card state coverage in `frontend/src/vaults/views/HomeView.create-card.spec.ts`
-- [X] T015 [P] [US2] Add create-vault browser verification in `frontend/tests/e2e/create-vault-card.spec.ts`
+- [X] T014 [P] [US2] Add inline create-card state coverage in `app/src/vaults/views/HomeView.create-card.spec.ts`
+- [X] T015 [P] [US2] Add create-vault browser verification in `app/tests/e2e/create-vault-card.spec.ts`
 
 ### Implementation for User Story 2
 
-- [X] T016 [US2] Refactor the inline create-vault surface into a `NyxCard` form with description input in `frontend/src/vaults/views/HomeView.vue`
-- [X] T017 [US2] Extend vault create/update payload types for descriptions in `frontend/src/shared/types/index.ts` and `frontend/src/vaults/api/vaults.ts`
+- [X] T016 [US2] Refactor the inline create-vault surface into a `NyxCard` form with description input in `app/src/vaults/views/HomeView.vue`
+- [X] T017 [US2] Extend vault create/update payload types for descriptions in `app/src/shared/types/index.ts` and `app/src/vaults/api/vaults.ts`
 
 **Checkpoint**: User Stories 1 and 2 both work independently and the dashboard card family remains coherent.
 
@@ -88,13 +88,13 @@
 
 ### Tests for User Story 3
 
-- [X] T018 [P] [US3] Add note-card rendering and link behavior coverage in `frontend/src/vaults/views/VaultView.note-cards.spec.ts`
-- [X] T019 [P] [US3] Add note masonry browser verification in `frontend/tests/e2e/vault-note-cards.spec.ts`
+- [X] T018 [P] [US3] Add note-card rendering and link behavior coverage in `app/src/vaults/views/VaultView.note-cards.spec.ts`
+- [X] T019 [P] [US3] Add note masonry browser verification in `app/tests/e2e/vault-note-cards.spec.ts`
 
 ### Implementation for User Story 3
 
-- [X] T020 [US3] Create `NoteCard` and refactor note masonry tiles to use it in `frontend/src/notes/components/NoteCard.vue` and `frontend/src/vaults/views/VaultView.vue`
-- [X] T021 [US3] Add distilled note-description handling to frontend and Rust note save flows in `frontend/src/shared/types/index.ts`, `crates/notes-core/src/domain.rs`, and `crates/notes-server-axum/src/routes/notes.rs`
+- [X] T020 [US3] Create `NoteCard` and refactor note masonry tiles to use it in `app/src/notes/components/NoteCard.vue` and `app/src/vaults/views/VaultView.vue`
+- [X] T021 [US3] Add distilled note-description handling to frontend and Rust note save flows in `app/src/shared/types/index.ts`, `crates/notes-core/src/domain.rs`, and `crates/notes-server-axum/src/routes/notes.rs`
 
 **Checkpoint**: All user stories are independently functional with shared browse-card behavior.
 
@@ -105,9 +105,9 @@
 **Purpose**: Finalize docs alignment, exclusions, responsive behavior, and full validation across the feature.
 
 - [X] T022 [P] Reconcile final browse-card docs wording in `docs/interface/frontend.md` and `DESIGN.md`
-- [X] T023 [P] Verify excluded surfaces remain unchanged in `frontend/src/vaults/components/VaultSwitcher.vue` and `frontend/src/comments/components/CommentThread.vue`
-- [X] T024 Run full frontend validation from `frontend/package.json` and resolve issues in `frontend/package.json`, `frontend/vitest.config.ts`, and `frontend/playwright.config.ts`
-- [X] T025 Perform final responsive and accessibility cleanup in `frontend/src/vaults/components/VaultCard.vue`, `frontend/src/notes/components/NoteCard.vue`, `frontend/src/vaults/views/HomeView.vue`, and `frontend/src/vaults/views/VaultView.vue`
+- [X] T023 [P] Verify excluded surfaces remain unchanged in `app/src/vaults/components/VaultSwitcher.vue` and `app/src/comments/components/CommentThread.vue`
+- [X] T024 Run full frontend validation from `app/package.json` and resolve issues in `app/package.json`, `app/vitest.config.ts`, and `app/playwright.config.ts`
+- [X] T025 Perform final responsive and accessibility cleanup in `app/src/vaults/components/VaultCard.vue`, `app/src/notes/components/NoteCard.vue`, `app/src/vaults/views/HomeView.vue`, and `app/src/vaults/views/VaultView.vue`
 
 ---
 
@@ -118,14 +118,14 @@
 - **Phase 1 (Setup)**: No dependencies; can start immediately.
 - **Phase 2 (Foundational)**: Depends on Phase 1; blocks all user stories.
 - **Phase 3 (US1)**: Depends on Phase 2; MVP and highest priority.
-- **Phase 4 (US2)**: Depends on Phase 2; should follow US1 in practice because both modify `frontend/src/vaults/views/HomeView.vue`.
+- **Phase 4 (US2)**: Depends on Phase 2; should follow US1 in practice because both modify `app/src/vaults/views/HomeView.vue`.
 - **Phase 5 (US3)**: Depends on Phase 2; can proceed once the shared browse-card scaffold is stable, but should land after US1 if shared surface behavior is still changing.
 - **Phase 6 (Polish)**: Depends on all selected user stories being complete.
 
 ### User Story Dependencies
 
 - **US1**: No dependency on other stories after foundational work.
-- **US2**: Independent in behavior, but shares `frontend/src/vaults/views/HomeView.vue` with US1, so sequence it after US1 to avoid file conflicts.
+- **US2**: Independent in behavior, but shares `app/src/vaults/views/HomeView.vue` with US1, so sequence it after US1 to avoid file conflicts.
 - **US3**: Independent in behavior after foundational work; it reuses the shared browse-card family but does not depend on the create-vault flow.
 
 ### Within Each User Story
@@ -149,24 +149,24 @@
 
 ```bash
 # Launch User Story 1 verification tasks together:
-Task: "Add vault-card interaction coverage in frontend/src/vaults/components/VaultCard.spec.ts"
-Task: "Add vault dashboard browser verification in frontend/tests/e2e/vault-dashboard-cards.spec.ts"
+Task: "Add vault-card interaction coverage in app/src/vaults/components/VaultCard.spec.ts"
+Task: "Add vault dashboard browser verification in app/tests/e2e/vault-dashboard-cards.spec.ts"
 ```
 
 ## Parallel Example: User Story 2
 
 ```bash
 # Launch User Story 2 verification tasks together:
-Task: "Add inline create-card state coverage in frontend/src/vaults/views/HomeView.create-card.spec.ts"
-Task: "Add create-vault browser verification in frontend/tests/e2e/create-vault-card.spec.ts"
+Task: "Add inline create-card state coverage in app/src/vaults/views/HomeView.create-card.spec.ts"
+Task: "Add create-vault browser verification in app/tests/e2e/create-vault-card.spec.ts"
 ```
 
 ## Parallel Example: User Story 3
 
 ```bash
 # Launch User Story 3 verification tasks together:
-Task: "Add note-card rendering and activation coverage in frontend/src/vaults/views/VaultView.note-cards.spec.ts"
-Task: "Add note masonry browser verification in frontend/tests/e2e/vault-note-cards.spec.ts"
+Task: "Add note-card rendering and activation coverage in app/src/vaults/views/VaultView.note-cards.spec.ts"
+Task: "Add note masonry browser verification in app/tests/e2e/vault-note-cards.spec.ts"
 ```
 
 ---
@@ -192,9 +192,9 @@ Task: "Add note masonry browser verification in frontend/tests/e2e/vault-note-ca
 
 1. One developer completes setup and docs-first foundational work
 2. After the shared browse-card scaffold is stable:
-   - Developer A implements US1 in `frontend/src/vaults/components/VaultCard.vue` and `frontend/src/vaults/views/HomeView.vue`
-   - Developer B prepares US3 tests and note-card refactor in `frontend/src/vaults/views/VaultView.vue`
-3. US2 follows once `frontend/src/vaults/views/HomeView.vue` is free of US1 merge conflicts
+   - Developer A implements US1 in `app/src/vaults/components/VaultCard.vue` and `app/src/vaults/views/HomeView.vue`
+   - Developer B prepares US3 tests and note-card refactor in `app/src/vaults/views/VaultView.vue`
+3. US2 follows once `app/src/vaults/views/HomeView.vue` is free of US1 merge conflicts
 
 ---
 
@@ -202,4 +202,4 @@ Task: "Add note masonry browser verification in frontend/tests/e2e/vault-note-ca
 
 - All tasks use the required checklist format with task ID, optional `[P]`, story label for story phases, and file path.
 - The clarified interaction rule is preserved throughout: `NyxCard` is the visual shell, while selectable cards use internal `RouterLink` anchors.
-- Out-of-scope card-like containers such as `frontend/src/vaults/components/VaultSwitcher.vue` and `frontend/src/comments/components/CommentThread.vue` are intentionally excluded and explicitly verified in polish.
+- Out-of-scope card-like containers such as `app/src/vaults/components/VaultSwitcher.vue` and `app/src/comments/components/CommentThread.vue` are intentionally excluded and explicitly verified in polish.

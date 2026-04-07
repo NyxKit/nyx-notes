@@ -61,7 +61,7 @@ Unify the browse-card family across the frontend by moving the in-scope surfaces
 ├── docs/
 │   └── interface/
 │       └── frontend.md
-└── frontend/
+└── app/
     ├── package.json
     └── src/
         ├── vaults/
@@ -85,7 +85,7 @@ Unify the browse-card family across the frontend by moving the in-scope surfaces
                 └── theme.css
 ```
 
-**Structure Decision**: Treat this as a frontend feature inside the existing domain-based Vue app. `VaultCard` remains in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/`, `NoteCard` lives in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/notes/components/`, shared theme tokens stay in `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/shared/assets/theme.css`, and out-of-scope surfaces such as `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/vaults/components/VaultSwitcher.vue` and `/home/arnedecant/Projects/nyxkit/nyx-notes/frontend/src/comments/components/CommentThread.vue` are referenced only to document non-target areas.
+**Structure Decision**: Treat this as a frontend feature inside the existing domain-based Vue app. `VaultCard` remains in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/components/`, `NoteCard` lives in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/notes/components/`, shared theme tokens stay in `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/shared/assets/theme.css`, and out-of-scope surfaces such as `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/vaults/components/VaultSwitcher.vue` and `/home/arnedecant/Projects/nyxkit/nyx-notes/app/src/comments/components/CommentThread.vue` are referenced only to document non-target areas.
 
 ## Complexity Tracking
 

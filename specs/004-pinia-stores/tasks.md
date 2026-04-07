@@ -24,8 +24,8 @@
 
 **Purpose**: Create both stores. All user story work and call site updates depend on these existing first.
 
-- [X] T002 Create `frontend/src/stores/vaults.ts` — Pinia setup store `useVaultStore` with store ID `'vaults'`; move all module-level refs from `useVaults.ts` into the store body: `vaults`, `activeVault`, `loading`, `error`; preserve all existing actions (`load`, `create`, `remove`, `patchPermission`, `addTeamVault`, `removeTeamVault`); widen `setActive` to accept `Vault | null`; add `$reset()` that restores all refs to initial values; add `if (import.meta.hot) acceptHMRUpdate(useVaultStore, import.meta.hot)` at the bottom; see contracts/store-contract.md §1
-- [X] T003 Create `frontend/src/stores/notes.ts` — Pinia setup store `useNotesStore` with store ID `'notes'`; use `notesByVault: ref<Record<string, NoteMeta[]>>({})` (vault-keyed cache, not a flat notes ref); add `notesFor(vaultId: string): NoteMeta[]` returning `notesByVault.value[vaultId] ?? []`; add `loadAll(vaultIds: string[])` using `Promise.allSettled` writing results into the cache without touching `listLoading`; preserve all existing actions (`loadList`, `loadNote`, `create`, `save`, `remove`, `updatePermission`) updated to read/write `notesByVault[vaultId]` instead of a flat ref; add `$reset()`; add `acceptHMRUpdate`; see contracts/store-contract.md §2
+- [X] T002 Create `app/src/stores/vaults.ts` — Pinia setup store `useVaultStore` with store ID `'vaults'`; move all module-level refs from `useVaults.ts` into the store body: `vaults`, `activeVault`, `loading`, `error`; preserve all existing actions (`load`, `create`, `remove`, `patchPermission`, `addTeamVault`, `removeTeamVault`); widen `setActive` to accept `Vault | null`; add `$reset()` that restores all refs to initial values; add `if (import.meta.hot) acceptHMRUpdate(useVaultStore, import.meta.hot)` at the bottom; see contracts/store-contract.md §1
+- [X] T003 Create `app/src/stores/notes.ts` — Pinia setup store `useNotesStore` with store ID `'notes'`; use `notesByVault: ref<Record<string, NoteMeta[]>>({})` (vault-keyed cache, not a flat notes ref); add `notesFor(vaultId: string): NoteMeta[]` returning `notesByVault.value[vaultId] ?? []`; add `loadAll(vaultIds: string[])` using `Promise.allSettled` writing results into the cache without touching `listLoading`; preserve all existing actions (`loadList`, `loadNote`, `create`, `save`, `remove`, `updatePermission`) updated to read/write `notesByVault[vaultId]` instead of a flat ref; add `$reset()`; add `acceptHMRUpdate`; see contracts/store-contract.md §2
 
 **Checkpoint**: Both stores exist and compile. Vue DevTools Pinia panel should now show `vaults` and `notes` stores.
 
@@ -37,14 +37,14 @@
 
 **Independent Test**: Open Vue DevTools Pinia panel — `vaults` store is listed with full state. Navigate between views; vault list and activeVault update as expected.
 
-- [X] T004 [P] [US1] Update `frontend/src/components/AppLayout.vue` — replace `import { useVaults }` with `import { useVaultStore } from '@/stores/vaults'`; replace `import { useNotes }` with `import { useNotesStore } from '@/stores/notes'`; call `const vaultStore = useVaultStore()` and `const notesStore = useNotesStore()`; update `onMounted` to `await vaultStore.load()` then `await notesStore.loadAll(vaultStore.vaults.map(v => v.id))`; update template refs (`activeVault` → `vaultStore.activeVault`)
-- [X] T005 [P] [US1] Update `frontend/src/components/VaultSwitcher.vue` — replace `useVaults` import with `useVaultStore` from `@/stores/vaults`; replace `useNotes` / `notes` with `useNotesStore().notesFor(activeVault?.id ?? '')` for the count label; update all `setActive`, `vaults`, `activeVault` references to use the store
-- [X] T006 [P] [US1] Update `frontend/src/components/SidebarNav.vue` — replace `useVaults` with `useVaultStore` from `@/stores/vaults`; replace `useNotes` with `useNotesStore` from `@/stores/notes`; update all destructured references accordingly
-- [X] T007 [P] [US1] Update `frontend/src/views/HomeView.vue` — replace `useVaults` import with `useVaultStore` from `@/stores/vaults`; call `vaultStore.setActive(null)` at start of `onMounted` before `vaultStore.load()`; update all destructured references
-- [X] T008 [P] [US1] Update `frontend/src/views/VaultView.vue` — replace `useVaults` and `useNotes` imports with store equivalents; update `onMounted` to use store actions; change `sortedNotes` computed to use `notesStore.notesFor(vaultId.value)`
-- [X] T009 [P] [US1] Update `frontend/src/views/NoteView.vue` — replace `useVaults` and `useNotes` imports with store equivalents; update all references (`loadVaults`, `setActive`, `loadNote`, `activeNote`, `saving`, `remove`) to use store instances
-- [X] T010 [P] [US1] Update `frontend/src/views/VaultSettingsView.vue` — replace `useVaults` import with `useVaultStore` from `@/stores/vaults`; update all destructured references (`vaults`, `load`, `remove`, `patchPermission`)
-- [X] T011 [P] [US1] Update `frontend/src/views/TeamSettingsView.vue` — replace `useVaults` import with `useVaultStore` from `@/stores/vaults`; update all destructured references (`vaults`, `load`, `patchPermission`, `addTeamVault`, `removeTeamVault`)
+- [X] T004 [P] [US1] Update `app/src/components/AppLayout.vue` — replace `import { useVaults }` with `import { useVaultStore } from '@/stores/vaults'`; replace `import { useNotes }` with `import { useNotesStore } from '@/stores/notes'`; call `const vaultStore = useVaultStore()` and `const notesStore = useNotesStore()`; update `onMounted` to `await vaultStore.load()` then `await notesStore.loadAll(vaultStore.vaults.map(v => v.id))`; update template refs (`activeVault` → `vaultStore.activeVault`)
+- [X] T005 [P] [US1] Update `app/src/components/VaultSwitcher.vue` — replace `useVaults` import with `useVaultStore` from `@/stores/vaults`; replace `useNotes` / `notes` with `useNotesStore().notesFor(activeVault?.id ?? '')` for the count label; update all `setActive`, `vaults`, `activeVault` references to use the store
+- [X] T006 [P] [US1] Update `app/src/components/SidebarNav.vue` — replace `useVaults` with `useVaultStore` from `@/stores/vaults`; replace `useNotes` with `useNotesStore` from `@/stores/notes`; update all destructured references accordingly
+- [X] T007 [P] [US1] Update `app/src/views/HomeView.vue` — replace `useVaults` import with `useVaultStore` from `@/stores/vaults`; call `vaultStore.setActive(null)` at start of `onMounted` before `vaultStore.load()`; update all destructured references
+- [X] T008 [P] [US1] Update `app/src/views/VaultView.vue` — replace `useVaults` and `useNotes` imports with store equivalents; update `onMounted` to use store actions; change `sortedNotes` computed to use `notesStore.notesFor(vaultId.value)`
+- [X] T009 [P] [US1] Update `app/src/views/NoteView.vue` — replace `useVaults` and `useNotes` imports with store equivalents; update all references (`loadVaults`, `setActive`, `loadNote`, `activeNote`, `saving`, `remove`) to use store instances
+- [X] T010 [P] [US1] Update `app/src/views/VaultSettingsView.vue` — replace `useVaults` import with `useVaultStore` from `@/stores/vaults`; update all destructured references (`vaults`, `load`, `remove`, `patchPermission`)
+- [X] T011 [P] [US1] Update `app/src/views/TeamSettingsView.vue` — replace `useVaults` import with `useVaultStore` from `@/stores/vaults`; update all destructured references (`vaults`, `load`, `patchPermission`, `addTeamVault`, `removeTeamVault`)
 
 **Checkpoint**: All vault-related call sites use `useVaultStore`. App navigates correctly. DevTools shows vault state.
 
@@ -56,8 +56,8 @@
 
 **Independent Test**: Switch from a 0-note vault to a 2-note vault — sidebar shows correct notes instantly. Navigate to HomeView — sidebar is empty.
 
-- [X] T012 [US2] Update `frontend/src/components/NoteList.vue` — replace `useVaults` with `useVaultStore`; replace `useNotes` with `useNotesStore`; remove `watch(activeVault, loadList)` (AppLayout pre-loads); use `notesStore.notesFor(activeVault?.id ?? '')` guarded by `if (!activeVault) return []`; sort by `updated_at` desc; slice to `RECENT_LIMIT = 20`; active state: `route.params.id === note.id`; see contracts/store-contract.md §5
-- [X] T013 [US2] Update `frontend/src/components/NoteEditor.vue` — replace `useNotes` import with `useNotesStore` from `@/stores/notes`; update `save` and `updatePermission` call sites to use the store
+- [X] T012 [US2] Update `app/src/components/NoteList.vue` — replace `useVaults` with `useVaultStore`; replace `useNotes` with `useNotesStore`; remove `watch(activeVault, loadList)` (AppLayout pre-loads); use `notesStore.notesFor(activeVault?.id ?? '')` guarded by `if (!activeVault) return []`; sort by `updated_at` desc; slice to `RECENT_LIMIT = 20`; active state: `route.params.id === note.id`; see contracts/store-contract.md §5
+- [X] T013 [US2] Update `app/src/components/NoteEditor.vue` — replace `useNotes` import with `useNotesStore` from `@/stores/notes`; update `save` and `updatePermission` call sites to use the store
 
 **Checkpoint**: US2 complete. Sidebar correctly reflects active vault's notes from cache. No loading flash on vault switch. HomeView shows empty sidebar.
 
@@ -69,8 +69,8 @@
 
 **Independent Test**: Open Vue DevTools Pinia panel — `notes` store listed with `notesByVault`, `activeNote`, loading flags visible.
 
-- [X] T014 [US3] Delete `frontend/src/composables/useVaults.ts` — remove the file entirely once all callers in T004–T011 are confirmed updated
-- [X] T015 [US3] Delete `frontend/src/composables/useNotes.ts` — remove the file entirely once all callers in T012–T013 are confirmed updated
+- [X] T014 [US3] Delete `app/src/composables/useVaults.ts` — remove the file entirely once all callers in T004–T011 are confirmed updated
+- [X] T015 [US3] Delete `app/src/composables/useNotes.ts` — remove the file entirely once all callers in T012–T013 are confirmed updated
 
 **Checkpoint**: US3 complete. Both composable files are gone. No dangling imports. `notes` store visible in DevTools.
 
@@ -78,7 +78,7 @@
 
 ## Phase 6: Polish
 
-- [X] T016 Verify `frontend/src/main.ts` — confirm `createPinia()` is already passed to the app (should already be present since `useEditorStore` works); no change needed if present
+- [X] T016 Verify `app/src/main.ts` — confirm `createPinia()` is already passed to the app (should already be present since `useEditorStore` works); no change needed if present
 - [X] T017 [P] Update `CLAUDE.md` active technologies entry for `004-pinia-stores` — replace references to `useNotes` / `useVaults` composables with `useNotesStore` / `useVaultStore` Pinia stores
 
 ---

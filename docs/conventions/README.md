@@ -33,11 +33,11 @@ Coding conventions, naming rules, and file organization standards for Nyx Notes.
 - Composables return plain `ref`/`computed` values — avoid returning reactive objects with nested refs
 - All API calls go through composables, not directly from components
 - Use `nyx-kit` for all UI primitives; do not introduce additional component libraries
-- No semicolons; single quotes for strings — enforced by `pnpm lint` (in `frontend/`)
+- No semicolons; single quotes for strings — enforced by `pnpm lint` (in `app/`)
 
 ## Frontend Directory Structure
 
-`frontend/src/` uses a domain-based layout. Each business domain owns all its files.
+`app/src/` uses a domain-based layout. Each business domain owns all its files.
 
 | Where to put a new file | Location |
 |---|---|
@@ -48,7 +48,7 @@ Coding conventions, naming rules, and file organization standards for Nyx Notes.
 Valid subdirectory types per domain: `api/`, `assets/`, `classes/`, `components/`,
 `composables/`, `stores/`, `types/`, `utils/`, `views/`. Create only those with actual files.
 
-The `@/` alias maps to `frontend/src/`. Cross-domain imports use `@/shared/...`; same-domain
+The `@/` alias maps to `app/src/`. Cross-domain imports use `@/shared/...`; same-domain
 imports use `@/domainname/...`. Direct imports between two domain folders are not permitted —
 extract shared code to `shared/` instead.
 

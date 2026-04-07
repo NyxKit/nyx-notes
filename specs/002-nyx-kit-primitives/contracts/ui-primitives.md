@@ -5,7 +5,7 @@
 
 ## Rule
 
-No `.vue` file in `frontend/src/` may contain a native `<button>`, `<input>`, `<textarea>`, or hand-rolled badge `<span>` in its template. All interactive controls and display primitives MUST use the corresponding nyx-kit component.
+No `.vue` file in `app/src/` may contain a native `<button>`, `<input>`, `<textarea>`, or hand-rolled badge `<span>` in its template. All interactive controls and display primitives MUST use the corresponding nyx-kit component.
 
 ## Permitted Exceptions
 

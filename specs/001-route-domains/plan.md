@@ -53,7 +53,7 @@ specs/001-route-domains/
 ### Source Code (repository root)
 
 ```text
-frontend/src/
+app/src/
 ├── router/
 │   └── index.ts              # modified: add /vaults/:vault_id route
 ├── views/
@@ -66,7 +66,7 @@ docs/
     └── frontend.md            # modified: routing table + VaultView description
 ```
 
-**Structure Decision**: Single web-application project (Option 1 variant). Frontend-only changes in `frontend/src/`. Docs update in `docs/interface/`.
+**Structure Decision**: Single web-application project (Option 1 variant). Frontend-only changes in `app/src/`. Docs update in `docs/interface/`.
 
 ## Complexity Tracking
 

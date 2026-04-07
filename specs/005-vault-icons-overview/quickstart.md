@@ -28,14 +28,14 @@
 
 | File | Change |
 |---|---|
-| `frontend/src/types/index.ts` | Add `icon?` to `Vault`, `CreateVaultRequest`; add `UpdateVaultRequest` |
-| `frontend/src/api/vaults.ts` | Add `updateVault(vaultId, body)` |
-| `frontend/src/stores/vaults.ts` | Add `update(vaultId, body)` action |
-| `frontend/src/assets/icons/*.svg` | **New** — 20 individual SVG asset files (one per slug) |
-| `frontend/src/components/VaultIcon.vue` | **New** — imports icons via Vite `?raw`, renders by slug prop |
-| `frontend/src/components/VaultIconPicker.vue` | **New** — 5×4 icon grid, emits `select` |
-| `frontend/src/views/HomeView.vue` | Redesign vault cards: 1:1 square, icon as background |
-| `frontend/src/views/VaultSettingsView.vue` | Add icon picker section |
+| `app/src/types/index.ts` | Add `icon?` to `Vault`, `CreateVaultRequest`; add `UpdateVaultRequest` |
+| `app/src/api/vaults.ts` | Add `updateVault(vaultId, body)` |
+| `app/src/stores/vaults.ts` | Add `update(vaultId, body)` action |
+| `app/src/assets/icons/*.svg` | **New** — 20 individual SVG asset files (one per slug) |
+| `app/src/components/VaultIcon.vue` | **New** — imports icons via Vite `?raw`, renders by slug prop |
+| `app/src/components/VaultIconPicker.vue` | **New** — 5×4 icon grid, emits `select` |
+| `app/src/views/HomeView.vue` | Redesign vault cards: 1:1 square, icon as background |
+| `app/src/views/VaultSettingsView.vue` | Add icon picker section |
 
 ### Docs
 

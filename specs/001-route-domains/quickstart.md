@@ -4,9 +4,9 @@
 
 | File | Change |
 |------|--------|
-| `frontend/src/router/index.ts` | Add `/vaults/:vault_id` route → `VaultView.vue` |
-| `frontend/src/views/HomeView.vue` | Rework: single-vault redirect + multi-vault masonry |
-| `frontend/src/views/VaultView.vue` | **New file** — notes masonry + getting-started state |
+| `app/src/router/index.ts` | Add `/vaults/:vault_id` route → `VaultView.vue` |
+| `app/src/views/HomeView.vue` | Rework: single-vault redirect + multi-vault masonry |
+| `app/src/views/VaultView.vue` | **New file** — notes masonry + getting-started state |
 | `docs/interface/frontend.md` | Update routing table, add VaultView description |
 
 ## Implementation Order

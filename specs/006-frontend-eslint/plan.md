@@ -5,7 +5,7 @@
 
 ## Summary
 
-Install ESLint peer dependencies and create `frontend/eslint.config.mjs` that extends the nyx-kit shared rule set, adds project-level style overrides enforcing the constitution's no-semicolons / single-quote conventions, and registers `lint` and `lint:fix` scripts in `frontend/package.json`. Run the auto-fixer, then manually resolve any residual violations until the baseline is clean.
+Install ESLint peer dependencies and create `app/eslint.config.mjs` that extends the nyx-kit shared rule set, adds project-level style overrides enforcing the constitution's no-semicolons / single-quote conventions, and registers `lint` and `lint:fix` scripts in `app/package.json`. Run the auto-fixer, then manually resolve any residual violations until the baseline is clean.
 
 ## Technical Context
 
@@ -17,7 +17,7 @@ Install ESLint peer dependencies and create `frontend/eslint.config.mjs` that ex
 **Project Type**: Web application — Vue 3 SPA
 **Performance Goals**: Lint run completes in under 30 seconds (SC-004)
 **Constraints**: No `eslint-disable` suppressions; `build` script untouched; `.mjs` config to avoid `jiti` dependency
-**Scale/Scope**: ~35 source files in `frontend/src/`
+**Scale/Scope**: ~35 source files in `app/src/`
 
 ## Constitution Check
 
@@ -49,7 +49,7 @@ specs/006-frontend-eslint/
 ### Source Code (affected files)
 
 ```text
-frontend/
+app/
 ├── eslint.config.mjs          # NEW — extends nyx-kit/eslint + project overrides
 ├── package.json               # MODIFIED — 4 new devDeps + lint/lint:fix scripts
 └── src/                       # MODIFIED — code adjustments for lint compliance

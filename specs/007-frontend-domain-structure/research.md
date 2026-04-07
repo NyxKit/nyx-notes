@@ -9,7 +9,7 @@
 
 **Decision**: No change to the `@/` alias mapping.
 
-**Rationale**: The alias `@` → `frontend/src/` remains valid after restructuring. Domain imports simply become `@/vaults/components/VaultCard.vue`, `@/shared/types/index.ts`, etc. Changing the alias would require touching every import in the app and would provide no benefit. The current alias resolves everything below `src/` by full path, which is exactly what we need.
+**Rationale**: The alias `@` → `app/src/` remains valid after restructuring. Domain imports simply become `@/vaults/components/VaultCard.vue`, `@/shared/types/index.ts`, etc. Changing the alias would require touching every import in the app and would provide no benefit. The current alias resolves everything below `src/` by full path, which is exactly what we need.
 
 **Alternatives considered**: Adding per-domain aliases (`@vaults/`, `@notes/`, etc.) — rejected because it requires `vite.config.ts` changes and adds cognitive overhead for minimal gain. The flat `@/domain/...` pattern is sufficient and immediately readable.
 

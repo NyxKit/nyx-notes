@@ -8,13 +8,13 @@
 
 ## New Types
 
-None. All types (`Vault`, `NoteMeta`, `Note`, etc.) remain in `frontend/src/types/index.ts` unchanged.
+None. All types (`Vault`, `NoteMeta`, `Note`, etc.) remain in `app/src/types/index.ts` unchanged.
 
 ---
 
 ## New Stores
 
-### `useVaultStore` — `frontend/src/stores/vaults.ts`
+### `useVaultStore` — `app/src/stores/vaults.ts`
 
 Replaces `useVaults()` composable.
 
@@ -42,7 +42,7 @@ Replaces `useVaults()` composable.
 
 ---
 
-### `useNotesStore` — `frontend/src/stores/notes.ts`
+### `useNotesStore` — `app/src/stores/notes.ts`
 
 Replaces `useNotes()` composable.
 
@@ -77,8 +77,8 @@ Replaces `useNotes()` composable.
 
 | File | Replacement |
 |------|-------------|
-| `frontend/src/composables/useNotes.ts` | `frontend/src/stores/notes.ts` |
-| `frontend/src/composables/useVaults.ts` | `frontend/src/stores/vaults.ts` |
+| `app/src/composables/useNotes.ts` | `app/src/stores/notes.ts` |
+| `app/src/composables/useVaults.ts` | `app/src/stores/vaults.ts` |
 
 ---
 
