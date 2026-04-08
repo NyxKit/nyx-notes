@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libs
 WORKDIR /build
 COPY Cargo.toml Cargo.lock ./
 COPY crates/ ./crates/
+COPY app/native ./app/native/
 RUN cargo build --release -p notes-server-axum
 
 # Stage 2: Build Vue frontend
