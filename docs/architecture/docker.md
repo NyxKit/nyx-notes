@@ -17,6 +17,17 @@ Nyx Notes ships as a single container. The Rust server binary serves both the RE
 
 The `STATIC_DIR` env var controls where the server looks for static files (default: `./dist`; set to `/app/dist` in the Docker image).
 
+## CI/CD
+
+Every push to `main` triggers `.github/workflows/docker.yml`, which builds the image and pushes it to GitHub Container Registry:
+
+```
+ghcr.io/nyxkit/nyx-notes:latest
+ghcr.io/nyxkit/nyx-notes:<short-sha>
+```
+
+Pull requests build the image but do not push. Layer caching via GitHub Actions cache keeps subsequent builds fast.
+
 ## Build
 
 The `Dockerfile` at the repo root uses a three-stage build:
@@ -36,8 +47,7 @@ docker build -t nyx-notes .
 ```yaml
 services:
   nyx-notes:
-    image: nyx-notes:latest
-    build: .
+    image: ghcr.io/nyxkit/nyx-notes:latest
     ports:
       - "8080:8080"
     volumes:
