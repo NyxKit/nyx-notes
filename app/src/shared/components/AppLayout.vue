@@ -2,8 +2,6 @@
 import { watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { NyxButton } from 'nyx-kit/components'
-import { NyxTheme } from 'nyx-kit/types'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { RouteName } from '@/shared/types'
@@ -85,6 +83,14 @@ watch(
         <SidebarNav />
         <NoteList />
         <SidebarNavItem
+          class="app-shell__settings-link app-shell__feedback-link"
+          icon="bug"
+          @click="openFeedback"
+        >
+          Feedback
+        </SidebarNavItem>
+
+        <SidebarNavItem
           v-if="authMode === 'secret_key' && serverMetadata?.role === 'admin'"
           :to="{ name: RouteName.Users }"
           icon="users"
@@ -101,16 +107,6 @@ watch(
         >
           Settings
         </SidebarNavItem>
-
-        <NyxButton
-          class="app-shell__feedback-button"
-          :theme="NyxTheme.Primary"
-          :gradient="true"
-          type="button"
-          @click="openFeedback"
-        >
-          Feedback
-        </NyxButton>
       </div>
     </aside>
 
@@ -132,7 +128,7 @@ watch(
   flex-shrink: 0;
 }
 
-.app-shell__feedback-button {
+.app-shell__feedback-link {
   margin: 0 0.75rem 0.75rem;
   flex-shrink: 0;
 }
