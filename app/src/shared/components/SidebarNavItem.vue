@@ -51,6 +51,8 @@ defineProps<{
   border: 0;
   text-align: left;
   font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
   cursor: pointer;
 }
 

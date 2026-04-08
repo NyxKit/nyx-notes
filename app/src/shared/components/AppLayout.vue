@@ -83,6 +83,16 @@ watch(
         <SidebarNav />
         <NoteList />
         <SidebarNavItem
+          v-if="serverMetadata?.role === 'admin'"
+          :to="{ name: RouteName.Feedback, params: { server_slug: serverMetadata.slug } }"
+          class="app-shell__settings-link app-shell__feedback-link"
+          icon="bug"
+          :active="route.name === RouteName.Feedback || route.name === RouteName.FeedbackItem"
+        >
+          Feedback
+        </SidebarNavItem>
+        <SidebarNavItem
+          v-else
           class="app-shell__settings-link app-shell__feedback-link"
           icon="bug"
           @click="openFeedback"
@@ -124,7 +134,6 @@ watch(
 <style scoped>
 .app-shell__settings-link {
   margin: 0 0.75rem 0.75rem;
-  border-top: 1px solid var(--nyx-c-divider);
   flex-shrink: 0;
 }
 
