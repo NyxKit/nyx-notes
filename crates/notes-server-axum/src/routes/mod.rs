@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod comments;
+pub mod feedback;
 pub mod notes;
 pub mod server;
 pub mod users;
@@ -23,6 +24,20 @@ pub fn router() -> Router<AppState> {
         .route("/api/users/:user_id", patch(users::update_user).delete(users::delete_user))
         .route("/api/server", get(server::get_server))
         .route("/api/server/vaults", get(vaults::list_server_vaults).post(vaults::create_server_vault))
+        .route(
+            "/api/feedback",
+            get(feedback::list_feedback).post(feedback::create_feedback),
+        )
+        .route(
+            "/api/feedback/:id",
+            get(feedback::get_feedback)
+                .put(feedback::update_feedback)
+                .delete(feedback::delete_feedback),
+        )
+        .route(
+            "/api/feedback/:id/images/:filename",
+            get(feedback::get_feedback_image),
+        )
         // Notes (vault-scoped)
         .route(
             "/api/vaults/:vault_id/notes",

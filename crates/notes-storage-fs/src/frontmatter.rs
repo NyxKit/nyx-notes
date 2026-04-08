@@ -9,12 +9,24 @@ pub struct DiskNoteMeta {
     #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<String>,
     author_id: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    images: Vec<String>,
     tags: Vec<String>,
     category: Option<String>,
     created_at: DateTime<Utc>,
     updated_at: DateTime<Utc>,
     is_encrypted: bool,
     permission: NotePermission,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    feedback_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    app_location: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    storage_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    console_output: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    interaction_trail: Option<String>,
 }
 
 /// Parse a full note file (frontmatter + body).
@@ -48,12 +60,18 @@ pub fn parse_note_file(input: &str, vault_id: &str) -> Result<(NoteMeta, String)
         title: disk_meta.title,
         description: disk_meta.description,
         author_id: disk_meta.author_id,
+        images: disk_meta.images,
         tags: disk_meta.tags,
         category: disk_meta.category,
         created_at: disk_meta.created_at,
         updated_at: disk_meta.updated_at,
         is_encrypted: disk_meta.is_encrypted,
         permission: disk_meta.permission,
+        feedback_type: disk_meta.feedback_type,
+        app_location: disk_meta.app_location,
+        storage_path: disk_meta.storage_path,
+        console_output: disk_meta.console_output,
+        interaction_trail: disk_meta.interaction_trail,
     };
 
     if meta.description.is_none() {
@@ -77,12 +95,18 @@ pub fn serialize_note_file(note: &Note) -> Result<String, StorageError> {
         title: note.meta.title.clone(),
         description: distill_markdown_description(&note.content),
         author_id: note.meta.author_id.clone(),
+        images: note.meta.images.clone(),
         tags: note.meta.tags.clone(),
         category: note.meta.category.clone(),
         created_at: note.meta.created_at,
         updated_at: note.meta.updated_at,
         is_encrypted: note.meta.is_encrypted,
         permission: note.meta.permission.clone(),
+        feedback_type: note.meta.feedback_type.clone(),
+        app_location: note.meta.app_location.clone(),
+        storage_path: note.meta.storage_path.clone(),
+        console_output: note.meta.console_output.clone(),
+        interaction_trail: note.meta.interaction_trail.clone(),
     };
     let yaml = serde_yaml::to_string(&meta).map_err(|e| StorageError::ParseError(e.to_string()))?;
     Ok(format!("---\n{}---\n{}", yaml, note.content))

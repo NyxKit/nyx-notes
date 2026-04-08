@@ -98,12 +98,18 @@ export interface NoteMeta {
   title: string
   description?: string
   author_id: string
+  images: string[]
   tags: string[]
   category: string | null
   created_at: string // ISO 8601
   updated_at: string // ISO 8601
   is_encrypted: boolean
   permission: NotePermission
+  feedback_type?: string | null
+  app_location?: string | null
+  storage_path?: string | null
+  console_output?: string | null
+  interaction_trail?: string | null
 }
 
 export interface Note {
@@ -211,6 +217,7 @@ export interface CreateNoteRequest {
   content: string
   tags?: string[]
   category?: string
+  images?: string[]
   permission?: NotePermission
 }
 
@@ -219,7 +226,27 @@ export interface UpdateNoteRequest {
   content: string
   tags?: string[]
   category?: string
+  images?: string[]
 }
+
+export interface FeedbackImageUpload {
+  name: string
+  mime_type: string
+  data: string
+}
+
+export interface CreateFeedbackRequest {
+  title: string
+  description: string
+  feedback_type: string
+  app_location: string
+  storage_path: string
+  console_output: string
+  interaction_trail?: string | null
+  images?: FeedbackImageUpload[]
+}
+
+export interface UpdateFeedbackRequest extends CreateFeedbackRequest {}
 
 export interface PatchPermissionRequest {
   permission: NotePermission

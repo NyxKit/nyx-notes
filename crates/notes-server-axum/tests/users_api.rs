@@ -47,6 +47,7 @@ fn test_app() -> (axum::Router, String, String) {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
         auth: Arc::new(store),
         auth_config: AuthConfig::SecretKey,
+        root_path: root.clone(),
     });
 
     (app, admin.token, alice.token)
@@ -60,6 +61,7 @@ async fn users_routes_return_422_in_local_mode() {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
         auth: Arc::new(LocalAuthStore::new("local".into(), "Local User".into())),
         auth_config: AuthConfig::Local,
+        root_path: root.clone(),
     });
 
     let response = app

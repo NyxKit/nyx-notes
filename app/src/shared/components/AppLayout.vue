@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import { NyxButton } from 'nyx-kit/components'
+import { NyxTheme } from 'nyx-kit/types'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { RouteName } from '@/shared/types'
@@ -13,12 +15,16 @@ import SidebarNav from './SidebarNav.vue'
 import SidebarNavItem from './SidebarNavItem.vue'
 import { NoteList, NoteSearch } from '@/notes/components'
 import type { Vault } from '@/shared/types'
+import { useFeedbackDialog } from '@/feedback/composables'
+import { FeedbackModal } from '@/feedback/views'
 
 const route = useRoute()
+const router = useRouter()
 const vaultStore = useVaultStore()
 const notesStore = useNotesStore()
 const { apiEpoch, isAuthenticated, authMode, serverMetadata } = useAuth()
 const { activeProfile } = useWorkspaceProfiles()
+const { openFeedbackDialog } = useFeedbackDialog()
 const { vaults } = storeToRefs(vaultStore)
 const { load } = vaultStore
 const { loadAll } = notesStore
@@ -35,6 +41,15 @@ async function refreshWorkspace() {
       vaultStore.setActive(currentVault as Vault)
     }
   }
+}
+
+function openFeedback() {
+  if (serverMetadata.value?.role === 'admin') {
+    router.push({ name: RouteName.Feedback, params: { server_slug: serverMetadata.value.slug } })
+    return
+  }
+
+  openFeedbackDialog()
 }
 
 watch([activeProfile, apiEpoch], async () => {
@@ -86,6 +101,16 @@ watch(
         >
           Settings
         </SidebarNavItem>
+
+        <NyxButton
+          class="app-shell__feedback-button"
+          :theme="NyxTheme.Primary"
+          :gradient="true"
+          type="button"
+          @click="openFeedback"
+        >
+          Feedback
+        </NyxButton>
       </div>
     </aside>
 
@@ -96,6 +121,7 @@ watch(
     </header>
 
     <RouterView class="app-shell__body" />
+    <FeedbackModal />
   </div>
 </template>
 
@@ -103,6 +129,11 @@ watch(
 .app-shell__settings-link {
   margin: 0 0.75rem 0.75rem;
   border-top: 1px solid var(--nyx-c-divider);
+  flex-shrink: 0;
+}
+
+.app-shell__feedback-button {
+  margin: 0 0.75rem 0.75rem;
   flex-shrink: 0;
 }
 

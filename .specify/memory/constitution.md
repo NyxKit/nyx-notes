@@ -1,17 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.0.1 → 1.0.2 (PATCH — added barrel-export rule to Principle VI)
-Modified principles: VI. Frontend Constraints (added one bullet on index-based subdirectory exports/imports)
+Version change: 1.0.2 → 1.0.3 (PATCH — relaxed frontend cross-domain import rule)
+Modified principles: VI. Frontend Constraints (clarified domain layout vs. import boundaries)
 Added sections: N/A
 Removed sections: N/A
 Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ — no outdated references found; constitution-aligned
-  - .specify/templates/spec-template.md ✅ — no misaligned constraints
-  - .specify/templates/tasks-template.md ✅ — task categories (testing, security, layer) consistent
-  - docs/interface/frontend.md ✅ — Application Layout updated with barrel export/import rules
-  - docs/conventions/README.md ✅ — Frontend Directory Structure updated with barrel export/import rules
-Follow-up TODOs: none
+  - .specify/templates/plan-template.md ⏳
+  - .specify/templates/spec-template.md ⏳
+  - .specify/templates/tasks-template.md ⏳
+  - docs/interface/frontend.md ⏳
+  - docs/conventions/README.md ⏳
+Follow-up TODOs: update frontend docs to reflect intentional cross-domain imports
 -->
 
 # Nyx Notes Core Constitution
@@ -90,8 +90,9 @@ The Vue 3 frontend MUST follow the Composition API exclusively.
 - No semicolons in frontend TypeScript/Vue files; single quotes for strings.
 - `app/src/` MUST use a domain-based layout (`vaults/`, `notes/`, `comments/`, `auth/`,
   `teams/`, `shared/`). A file belongs in its domain folder if used by one domain; in `shared/`
-  if used by two or more. Direct imports between two domain folders are NOT permitted — extract
-  shared code to `shared/` instead.
+  if intentionally reused by several domains. Cross-domain imports are permitted when they are a
+  deliberate dependency and do not create circular imports; prefer `shared/` for code that is
+  clearly reusable across multiple domains.
 - Every importable frontend subdirectory MUST expose an `index.ts` barrel file that re-exports
   every module in that subdirectory. Imports MUST target the directory barrel (for example,
   `@/notes/components`) rather than reaching into a specific module file.

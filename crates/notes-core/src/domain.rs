@@ -142,6 +142,8 @@ pub struct NoteMeta {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     pub author_id: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub images: Vec<String>,
     pub tags: Vec<String>,
     pub category: Option<String>,
     pub created_at: DateTime<Utc>,
@@ -149,6 +151,16 @@ pub struct NoteMeta {
     /// Reserved for future E2EE support.
     pub is_encrypted: bool,
     pub permission: NotePermission,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub feedback_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub app_location: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub storage_path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub console_output: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub interaction_trail: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

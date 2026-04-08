@@ -5,6 +5,7 @@ pub mod storage_adapter;
 pub mod types;
 
 use std::sync::Arc;
+use std::path::PathBuf;
 
 use notes_core::AuthStore;
 use storage_adapter::AsyncStorageAdapter;
@@ -16,4 +17,5 @@ pub struct AppState {
     pub storage: AsyncStorageAdapter,
     pub auth: Arc<dyn AuthStore>,
     pub auth_config: AuthConfig,
+    pub root_path: PathBuf,
 }

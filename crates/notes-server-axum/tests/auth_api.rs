@@ -24,6 +24,7 @@ async fn auth_mode_reports_optional_api_version_metadata() {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
         auth: Arc::new(LocalAuthStore::new("local".into(), "Local User".into())),
         auth_config: AuthConfig::SecretKey,
+        root_path: root.clone(),
     });
 
     let response = app
@@ -50,6 +51,7 @@ async fn login_returns_422_when_auth_mode_does_not_support_password_login() {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
         auth: Arc::new(LocalAuthStore::new("local".into(), "Local User".into())),
         auth_config: AuthConfig::Local,
+        root_path: root.clone(),
     });
 
     let response = app
@@ -79,6 +81,7 @@ async fn login_returns_401_for_invalid_secret_key_credentials() {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
         auth,
         auth_config: AuthConfig::SecretKey,
+        root_path: root.clone(),
     });
 
     let response = app

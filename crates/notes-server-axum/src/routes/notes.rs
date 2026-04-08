@@ -118,12 +118,18 @@ pub async fn create_note(
             title: body.title,
             description: distill_markdown_description(&body.content),
             author_id: user.id.clone(),
+            images: body.images,
             tags: body.tags,
             category: body.category,
             created_at: now,
             updated_at: now,
             is_encrypted: false,
             permission,
+            feedback_type: None,
+            app_location: None,
+            storage_path: None,
+            console_output: None,
+            interaction_trail: None,
         },
         content: body.content,
     };
@@ -148,6 +154,7 @@ pub async fn update_note(
 
     note.meta.title = body.title;
     note.meta.description = distill_markdown_description(&body.content);
+    note.meta.images = body.images;
     note.meta.tags = body.tags;
     note.meta.category = body.category;
     note.meta.updated_at = Utc::now();
