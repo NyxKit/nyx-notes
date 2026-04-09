@@ -14,6 +14,7 @@ import { NyxTheme, NyxShape, NyxVariant } from 'nyx-kit/types'
 import { NoteEditor } from '@/notes/components'
 import { CommentSidebar } from '@/comments/components'
 import { ImageShelf } from '@/shared/components'
+import { RoutePath } from '@/shared/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -67,7 +68,7 @@ const { loadNote, remove, clearActive } = notesStore
 const LAST_NOTE_KEY = 'nyx_last_note'
 
 const section = computed(() => {
-  if (route.path.includes('/favorites')) return 'favorites'
+  if (route.path.includes(RoutePath.Favorites)) return 'favorites'
   if (route.path.includes('/drafts')) return 'drafts'
   return 'notes'
 })

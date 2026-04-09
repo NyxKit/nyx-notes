@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { fetchVaults, updateVault } from '@/vaults/api'
+import { NotePermission, VaultOwnerType } from '@/shared/types'
 import VaultSettingsView from './VaultSettingsView.vue'
 
 const push = vi.fn()
@@ -36,8 +37,8 @@ describe('VaultSettingsView', () => {
         slug: 'writing',
         name: 'Writing',
         description: 'Original description.',
-        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
-        permission: 'edit',
+        owner: { type: VaultOwnerType.Home, server_slug: 'main-server', home_slug: 'user-1' },
+        permission: NotePermission.Edit,
         icon: 'folder',
       },
     ])
@@ -47,8 +48,8 @@ describe('VaultSettingsView', () => {
       slug: 'writing',
       name: 'Writing',
       description: 'Updated description.',
-      owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
-      permission: 'edit',
+      owner: { type: VaultOwnerType.Home, server_slug: 'main-server', home_slug: 'user-1' },
+      permission: NotePermission.Edit,
       icon: 'folder',
     })
   })

@@ -9,21 +9,8 @@ import {
   deleteNote,
   patchNotePermission,
 } from '@/notes/api'
-import type { Note, NoteMeta, CreateNoteRequest, UpdateNoteRequest, NotePermission } from '@/shared/types'
-
-function normalizeNoteMeta(meta: NoteMeta): NoteMeta {
-  return {
-    ...meta,
-    images: meta.images ?? [],
-  }
-}
-
-function normalizeNote(note: Note): Note {
-  return {
-    meta: normalizeNoteMeta(note.meta),
-    content: note.content,
-  }
-}
+import { Note, NoteMeta } from '@/shared/types'
+import type { CreateNoteRequest, UpdateNoteRequest, NotePermission } from '@/shared/types'
 
 export const useNotesStore = defineStore('notes', () => {
   const notesByVault = ref<Record<string, NoteMeta[]>>({})
@@ -56,7 +43,7 @@ export const useNotesStore = defineStore('notes', () => {
     try {
       const notes = await fetchNotes(vaultId)
       if (requestEpoch !== getApiRequestEpoch()) return
-      notesByVault.value[vaultId] = notes.map(normalizeNoteMeta)
+      notesByVault.value[vaultId] = notes
     } catch (e) {
       error.value = String(e)
     } finally {
@@ -71,7 +58,7 @@ export const useNotesStore = defineStore('notes', () => {
     try {
       const note = await fetchNote(vaultId, id)
       if (requestEpoch !== getApiRequestEpoch()) return
-      activeNote.value = normalizeNote(note)
+      activeNote.value = note
     } catch (e) {
       error.value = String(e)
     } finally {
@@ -82,25 +69,23 @@ export const useNotesStore = defineStore('notes', () => {
   async function create(vaultId: string, body: CreateNoteRequest) {
     const meta = await createNote(vaultId, body)
     if (!notesByVault.value[vaultId]) notesByVault.value[vaultId] = []
-    const normalized = normalizeNoteMeta(meta)
-    notesByVault.value[vaultId] = [normalized, ...notesByVault.value[vaultId]]
-    return normalized
+    notesByVault.value[vaultId] = [meta, ...notesByVault.value[vaultId]]
+    return meta
   }
 
   async function save(vaultId: string, id: string, body: UpdateNoteRequest) {
     saving.value = true
     try {
       const meta = await updateNote(vaultId, id, body)
-      const normalized = normalizeNoteMeta(meta)
       const list = notesByVault.value[vaultId]
       if (list) {
         const idx = list.findIndex(n => n.id === id)
-        if (idx !== -1) list[idx] = normalized
+        if (idx !== -1) list[idx] = meta
       }
       if (activeNote.value?.meta.id === id) {
-        activeNote.value = { meta: normalized, content: body.content }
+        activeNote.value = new Note({ meta, content: body.content })
       }
-      return normalized
+      return meta
     } finally {
       saving.value = false
     }
@@ -121,7 +106,7 @@ export const useNotesStore = defineStore('notes', () => {
       if (idx !== -1) list[idx] = meta
     }
     if (activeNote.value?.meta.id === id) {
-      activeNote.value = { ...activeNote.value, meta }
+      activeNote.value = new Note({ meta, content: activeNote.value.content })
     }
     return meta
   }

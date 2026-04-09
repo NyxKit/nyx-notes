@@ -47,6 +47,10 @@ impl AuthStore for SecretKeyAuthStore {
         self.users.find_user(user_id)
     }
 
+    fn find_user_by_username(&self, username: &str) -> Result<Option<User>, AuthError> {
+        self.users.find_user_by_username(username)
+    }
+
     fn verify_token(&self, token: &str) -> Result<User, AuthError> {
         let data = decode::<Claims>(token, &self.decoding_key, &Validation::default())
             .map_err(|_| AuthError::InvalidToken)?;

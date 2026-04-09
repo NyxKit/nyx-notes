@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { AuthMode, ProfileSessionState } from '@/shared/types'
 
 vi.mock('@/auth/api', () => ({
   fetchAuthMode: vi.fn(),
@@ -22,13 +23,13 @@ describe('useAuth', () => {
     profiles.createLocalProfile()
     await auth.bootstrapActiveProfile()
 
-    expect(auth.authMode.value).toBe('local')
+    expect(auth.authMode.value).toBe(AuthMode.Local)
     expect(auth.isAuthenticated.value).toBe(true)
   })
 
   it('auto-signs into a saved remote profile with stored credentials', async () => {
     const authApi = await import('@/auth/api')
-    vi.mocked(authApi.fetchAuthMode).mockResolvedValue({ mode: 'secret_key' })
+    vi.mocked(authApi.fetchAuthMode).mockResolvedValue({ mode: AuthMode.SecretKey })
     vi.mocked(authApi.login).mockResolvedValue({ token: 'remote-token', expires_in: 60 })
 
     const { useWorkspaceProfiles } = await import('@/shared/composables')
@@ -46,14 +47,14 @@ describe('useAuth', () => {
 
     await auth.bootstrapActiveProfile()
 
-    expect(auth.authMode.value).toBe('secret_key')
+    expect(auth.authMode.value).toBe(AuthMode.SecretKey)
     expect(auth.token.value).toBe('remote-token')
     expect(auth.isAuthenticated.value).toBe(true)
   })
 
   it('signs out only the active remote profile session', async () => {
     const authApi = await import('@/auth/api')
-    vi.mocked(authApi.fetchAuthMode).mockResolvedValue({ mode: 'secret_key' })
+    vi.mocked(authApi.fetchAuthMode).mockResolvedValue({ mode: AuthMode.SecretKey })
     vi.mocked(authApi.login).mockResolvedValue({ token: 'token-a', expires_in: 60 })
 
     const { useWorkspaceProfiles } = await import('@/shared/composables')
@@ -79,8 +80,8 @@ describe('useAuth', () => {
 
     auth.sessions.value[bravo.id] = {
       profile_id: bravo.id,
-      state: 'signed_in',
-      auth_mode: 'secret_key',
+      state: ProfileSessionState.SignedIn,
+      auth_mode: AuthMode.SecretKey,
       token: 'token-b',
     }
 

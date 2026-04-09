@@ -68,6 +68,12 @@ An Axum HTTP server that exposes note CRUD operations over a REST API. It wraps 
 | `POST` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies` | Add a reply |
 | `DELETE` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies/:reply_id` | Delete a reply |
 
+## Admin Sync
+
+| Method | Path | Description |
+|---|---|---|
+| `POST` | `/api/admin/sync-homes` | Admin-only sync that resolves home usernames to canonical user IDs and rewrites note `author_id` values |
+
 ## Permission Rules
 
 ### Personal vaults

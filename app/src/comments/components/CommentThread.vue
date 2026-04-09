@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useAuth } from '@/auth/composables'
 import { useComments } from '@/comments/composables'
 import type { Comment } from '@/shared/types'
+import { AuthMode } from '@/shared/types'
 import { NyxButton, NyxForm, NyxFormField, NyxInput, NyxModal } from 'nyx-kit/components'
 import { NyxTheme, NyxSize, NyxVariant } from 'nyx-kit/types'
 
@@ -18,7 +19,7 @@ const emit = defineEmits<{
   focus: []
 }>()
 
-const { currentUser, authMode } = useAuth()
+const { currentUser, authMode, serverMetadata } = useAuth()
 const { resolveComment, removeComment, addReply, removeReply } = useComments()
 
 const replyBody = ref('')
@@ -29,7 +30,9 @@ const confirmDeleteReplyId = ref<string | null>(null)
 const replyPendingDelete = () => props.comment.replies.find(reply => reply.id === confirmDeleteReplyId.value) ?? null
 
 const isAuthor = (authorId: string) =>
-  authMode.value === 'local' || currentUser.value?.id === authorId
+  authMode.value === AuthMode.Local
+  || currentUser.value?.id === authorId
+  || serverMetadata.value?.current_user_id === authorId
 
 async function onResolve() {
   await resolveComment(props.vaultId, props.noteId, props.comment.id, !props.comment.resolved)

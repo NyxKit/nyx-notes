@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 import type { NyxSelectOption } from 'nyx-kit/types'
 import { GlobalNoteBrowseView } from '@/notes/components'
 import { useNoteBrowsingStore } from '@/notes/stores'
-import type { GlobalBrowseSortMode } from '@/shared/types'
+import { GlobalBrowseSortMode } from '@/shared/types'
 
 const route = useRoute()
 const browsingStore = useNoteBrowsingStore()
@@ -20,9 +20,9 @@ const {
 const { loadSearch, setSearchSortMode } = browsingStore
 
 const sortOptions: NyxSelectOption[] = [
-  { label: 'Best match', value: 'best_match' },
-  { label: 'Recent', value: 'recent' },
-  { label: 'Grouped by origin', value: 'grouped' },
+  { label: 'Best match', value: GlobalBrowseSortMode.BestMatch },
+  { label: 'Recent', value: GlobalBrowseSortMode.Recent },
+  { label: 'Grouped by origin', value: GlobalBrowseSortMode.Grouped },
 ]
 
 const sortMode = computed({

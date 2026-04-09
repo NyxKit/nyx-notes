@@ -1,15 +1,17 @@
 import { api } from '@/shared/api'
-import type { Comment, CommentReply, CreateCommentRequest } from '@/shared/types'
+import type { CommentReply, CreateCommentRequest } from '@/shared/types'
+import { Comment } from '@/shared/types'
 
-export function fetchComments(vaultId: string, noteId: string) {
-  return api<Comment[]>(`/api/vaults/${vaultId}/notes/${noteId}/comments`)
+export async function fetchComments(vaultId: string, noteId: string) {
+  const comments = await api<unknown[]>(`/api/vaults/${vaultId}/notes/${noteId}/comments`)
+  return comments.map(comment => new Comment(comment))
 }
 
-export function createComment(vaultId: string, noteId: string, body: CreateCommentRequest) {
-  return api<Comment>(`/api/vaults/${vaultId}/notes/${noteId}/comments`, {
+export async function createComment(vaultId: string, noteId: string, body: CreateCommentRequest) {
+  return new Comment(await api<unknown>(`/api/vaults/${vaultId}/notes/${noteId}/comments`, {
     method: 'POST',
     body,
-  })
+  }))
 }
 
 export function deleteComment(vaultId: string, noteId: string, commentId: string) {
@@ -18,11 +20,11 @@ export function deleteComment(vaultId: string, noteId: string, commentId: string
   })
 }
 
-export function patchComment(vaultId: string, noteId: string, commentId: string, resolved: boolean) {
-  return api<Comment>(`/api/vaults/${vaultId}/notes/${noteId}/comments/${commentId}`, {
+export async function patchComment(vaultId: string, noteId: string, commentId: string, resolved: boolean) {
+  return new Comment(await api<unknown>(`/api/vaults/${vaultId}/notes/${noteId}/comments/${commentId}`, {
     method: 'PATCH',
     body: { resolved },
-  })
+  }))
 }
 
 export function createReply(vaultId: string, noteId: string, commentId: string, body: string) {

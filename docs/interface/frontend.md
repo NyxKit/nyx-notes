@@ -19,7 +19,7 @@ A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to
 ## Application Layout
 
 `src/` is organised into domain folders. Each domain owns its views, components, stores,
-composables, and API module. Cross-domain code lives in `shared/`. Entry points stay at
+composables, classes, and API module. Cross-domain code lives in `shared/`. Entry points stay at
 the `src/` root.
 
 Every importable subdirectory exposes an `index.ts` barrel file. Internal code imports from the
@@ -34,6 +34,7 @@ app/src/
 
   vaults/
     index.ts                 # re-exports the vault barrels below
+    classes/                  # domain object: Vault
     api/vaults.ts            # vault CRUD API calls
     api/index.ts             # exports vault API functions
     assets/icons/            # 20 solid vault-themed SVGs (book.svg, briefcase.svg, …)
@@ -54,6 +55,7 @@ app/src/
 
   notes/
     index.ts                 # re-exports the notes barrels below
+    classes/                  # domain objects: NoteMeta, Note
     api/notes.ts             # note CRUD API calls
     api/index.ts             # exports note API functions
     composables/
@@ -80,6 +82,7 @@ app/src/
 
   comments/
     index.ts                 # re-exports the comments barrels below
+    classes/                  # domain objects: CommentAnchor, Comment
     api/comments.ts          # comment CRUD API calls
     api/index.ts             # exports comment API functions
     components/
@@ -104,6 +107,7 @@ app/src/
 
   users/
     index.ts                 # re-exports users barrels below
+    classes/                  # domain object: User
     api/users.ts             # user management API calls
     api/index.ts             # exports users API functions
     components/
@@ -131,7 +135,7 @@ app/src/
       SidebarNav.vue         # primary navigation links in the sidebar
       index.ts               # exports shared components
     router/index.ts          # router module and folder barrel for shared routing
-    types/index.ts           # TypeScript interfaces mirroring Rust domain types
+    types/index.ts           # TypeScript domain classes and API shapes mirroring Rust domain types
     utils/time.ts            # date/time formatting utilities
     utils/index.ts           # exports shared utilities
 ```
@@ -144,6 +148,12 @@ app/src/
   `composables/`, `stores/`, `types/`, `utils/`, `views/` — create only those with actual files
 - Every importable subdirectory gets an `index.ts` barrel that re-exports all modules in that
   folder, and imports target the folder path rather than a file path
+
+### Domain Classes
+
+- Raw API payloads are normalized into domain classes at the API boundary using `NyxLoader`
+- `NoteMeta` owns note metadata, `Note` wraps metadata plus content, and `FeedbackNote` extends `Note`
+- `User`, `Vault`, and `Comment` are also class-based domain objects so stores and views can work with consistent instances
 
 ## Views
 

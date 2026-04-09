@@ -139,6 +139,13 @@ Methods that accept `vault_id: &str` resolve the vault by vault slug in the acti
 - Create the vault directory
 - Write `.vault.json`
 
+### `sync_all_homes_author_id(resolver)`
+
+- Scan every home directory under `<server-slug>/homes/`
+- Resolve each home slug to the canonical user ID through the caller-provided resolver
+- Rewrite note frontmatter `author_id` values to that canonical user ID
+- Return counts for scanned homes, rewritten vaults, and rewritten notes
+
 ### `delete_vault(vault_id)`
 
 - Resolve the vault directory

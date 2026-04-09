@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { NyxButton, NyxForm, NyxFormField, NyxInput } from 'nyx-kit/components'
 import { NyxInputType, NyxVariant } from 'nyx-kit/types'
 import { setup, type SetupInput } from '@/auth/api'
-import type { InitialSetupState } from '@/auth/types/profileSetup'
+import { InitialSetupState } from '@/auth/types/profileSetup'
 
 const emit = defineEmits<{
   complete: []
@@ -13,7 +13,7 @@ defineProps<{
   loading?: boolean
 }>()
 
-const state = ref<InitialSetupState>('uninitialized')
+const state = ref<InitialSetupState>(InitialSetupState.Uninitialized)
 const error = ref<string | null>(null)
 const passwordError = ref<string | null>(null)
 
@@ -52,15 +52,15 @@ async function submitSetup() {
     return
   }
   
-  state.value = 'initializing'
+  state.value = InitialSetupState.Initializing
 
   try {
     await setup(input.value)
-    state.value = 'initialized'
+    state.value = InitialSetupState.Initialized
     emit('complete')
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : 'Setup failed'
-    state.value = 'uninitialized'
+    state.value = InitialSetupState.Uninitialized
   }
 }
 </script>
@@ -73,7 +73,7 @@ async function submitSetup() {
         :variant="NyxVariant.Soft"
         placeholder="admin"
         required
-        :disabled="loading || state === 'initializing'"
+        :disabled="loading || state === InitialSetupState.Initializing"
       />
     </NyxFormField>
 
@@ -83,7 +83,7 @@ async function submitSetup() {
         :variant="NyxVariant.Soft"
         placeholder="Admin"
         required
-        :disabled="loading || state === 'initializing'"
+        :disabled="loading || state === InitialSetupState.Initializing"
       />
     </NyxFormField>
 
@@ -94,7 +94,7 @@ async function submitSetup() {
         :type="NyxInputType.Email"
         placeholder="admin@example.com"
         required
-        :disabled="loading || state === 'initializing'"
+        :disabled="loading || state === InitialSetupState.Initializing"
       />
     </NyxFormField>
 
@@ -104,7 +104,7 @@ async function submitSetup() {
         :variant="NyxVariant.Soft"
         :type="NyxInputType.Password"
         required
-        :disabled="loading || state === 'initializing'"
+        :disabled="loading || state === InitialSetupState.Initializing"
       />
     </NyxFormField>
 
@@ -114,7 +114,7 @@ async function submitSetup() {
         :variant="NyxVariant.Soft"
         :type="NyxInputType.Password"
         required
-        :disabled="loading || state === 'initializing'"
+        :disabled="loading || state === InitialSetupState.Initializing"
       />
     </NyxFormField>
 
@@ -122,8 +122,8 @@ async function submitSetup() {
       class="setup-form__button"
       type="submit"
       :variant="NyxVariant.Soft"
-      :loading="loading || state === 'initializing'"
-      :disabled="state === 'initializing'"
+      :loading="loading || state === InitialSetupState.Initializing"
+      :disabled="state === InitialSetupState.Initializing"
     >
       Create Account
     </NyxButton>

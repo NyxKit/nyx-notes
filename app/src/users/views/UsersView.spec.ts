@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { ref } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import UsersView from './UsersView.vue'
+import { AuthMode, ServerRole } from '@/shared/types'
 
 const load = vi.fn()
 const create = vi.fn()
@@ -10,8 +11,8 @@ const remove = vi.fn()
 
 vi.mock('@/auth/composables', () => ({
   useAuth: () => ({
-    authMode: ref('secret_key'),
-    serverMetadata: ref({ current_user_id: 'admin-1', role: 'admin' }),
+    authMode: ref(AuthMode.SecretKey),
+    serverMetadata: ref({ current_user_id: 'admin-1', role: ServerRole.Admin }),
   }),
 }))
 
@@ -23,7 +24,7 @@ vi.mock('@/users/composables', () => ({
         username: 'admin',
         email: 'admin@localhost',
         display_name: 'Admin',
-        role: 'admin',
+        role: ServerRole.Admin,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         can_edit: true,

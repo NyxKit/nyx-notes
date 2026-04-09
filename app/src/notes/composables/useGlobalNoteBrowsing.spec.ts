@@ -1,15 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
+import { RemoteConnectionStatus, WorkspaceProfileType, NotePermission, VaultOwnerType } from '@/shared/types'
 
 const mockProfiles = ref([
-  { id: 'local', type: 'local', display_name: 'Local' },
+  { id: 'local', type: WorkspaceProfileType.Local, display_name: 'Local' },
   {
     id: 'remote-offline',
-    type: 'remote',
+    type: WorkspaceProfileType.Remote,
     display_name: 'Remote',
     server_url: 'https://remote.example.com',
     username: 'alice',
-    connection_status: 'unreachable',
+    connection_status: RemoteConnectionStatus.Unreachable,
   },
 ])
 
@@ -37,8 +38,8 @@ vi.mock('ofetch', () => ({
               id: 'vault-1',
               slug: 'writing',
               name: 'Writing',
-              owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
-              permission: 'edit',
+              owner: { type: VaultOwnerType.Home, server_slug: 'main-server', home_slug: 'user-1' },
+              permission: NotePermission.Edit,
             },
           ]
         }
@@ -56,7 +57,7 @@ vi.mock('ofetch', () => ({
               created_at: '2026-04-01T09:00:00Z',
               updated_at: '2026-04-01T10:00:00Z',
               is_encrypted: false,
-              permission: 'edit',
+               permission: NotePermission.Edit,
             },
           ]
         }
@@ -74,7 +75,7 @@ vi.mock('ofetch', () => ({
               created_at: '2026-04-01T09:00:00Z',
               updated_at: '2026-04-01T10:00:00Z',
               is_encrypted: false,
-              permission: 'edit',
+               permission: NotePermission.Edit,
             },
             content: 'Body keyword lives here',
           }

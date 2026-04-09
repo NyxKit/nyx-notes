@@ -1,9 +1,10 @@
 import { RouteName } from '@/shared/types'
 import type { Vault } from '@/shared/types'
 import type { RouteLocationRaw } from 'vue-router'
+import { VaultOwnerType } from '@/shared/types'
 
 export function vaultRoute(vault: Pick<Vault, 'slug' | 'owner'>): RouteLocationRaw {
-  if (vault.slug === 'feedback' && vault.owner.type === 'server') {
+  if (vault.slug === 'feedback' && vault.owner.type === VaultOwnerType.Server) {
     return {
       name: RouteName.Feedback,
       params: {
@@ -12,7 +13,7 @@ export function vaultRoute(vault: Pick<Vault, 'slug' | 'owner'>): RouteLocationR
     }
   }
 
-  if (vault.owner.type === 'home') {
+  if (vault.owner.type === VaultOwnerType.Home) {
     return {
       name: RouteName.UserVault,
       params: {
@@ -23,7 +24,7 @@ export function vaultRoute(vault: Pick<Vault, 'slug' | 'owner'>): RouteLocationR
     }
   }
 
-  if (vault.owner.type === 'server') {
+  if (vault.owner.type === VaultOwnerType.Server) {
     return {
       name: RouteName.ServerVault,
       params: {
@@ -37,7 +38,7 @@ export function vaultRoute(vault: Pick<Vault, 'slug' | 'owner'>): RouteLocationR
 }
 
 export function noteRoute(vault: Pick<Vault, 'slug' | 'owner'>, noteId?: string): RouteLocationRaw {
-  if (vault.slug === 'feedback' && vault.owner.type === 'server') {
+  if (vault.slug === 'feedback' && vault.owner.type === VaultOwnerType.Server) {
     return {
       name: noteId ? RouteName.FeedbackNote : RouteName.Feedback,
       params: {
@@ -47,7 +48,7 @@ export function noteRoute(vault: Pick<Vault, 'slug' | 'owner'>, noteId?: string)
     }
   }
 
-  if (vault.owner.type === 'home') {
+  if (vault.owner.type === VaultOwnerType.Home) {
     return {
       name: RouteName.UserNote,
       params: {
@@ -59,7 +60,7 @@ export function noteRoute(vault: Pick<Vault, 'slug' | 'owner'>, noteId?: string)
     }
   }
 
-  if (vault.owner.type === 'server') {
+  if (vault.owner.type === VaultOwnerType.Server) {
     return {
       name: RouteName.ServerNote,
       params: {
@@ -74,7 +75,7 @@ export function noteRoute(vault: Pick<Vault, 'slug' | 'owner'>, noteId?: string)
 }
 
 export function vaultSettingsRoute(vault: Pick<Vault, 'slug' | 'owner'>): RouteLocationRaw {
-  if (vault.owner.type === 'home') {
+  if (vault.owner.type === VaultOwnerType.Home) {
     return {
       name: RouteName.UserVaultSettings,
       params: {
@@ -85,7 +86,7 @@ export function vaultSettingsRoute(vault: Pick<Vault, 'slug' | 'owner'>): RouteL
     }
   }
 
-  if (vault.owner.type === 'server') {
+  if (vault.owner.type === VaultOwnerType.Server) {
     return {
       name: RouteName.ServerVaultSettings,
       params: {

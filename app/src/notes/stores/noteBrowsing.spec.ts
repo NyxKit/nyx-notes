@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
+import { GlobalBrowseSortMode } from '@/shared/types'
 
 const loadSearchResults = vi.fn()
 const loadFavoriteResults = vi.fn()
@@ -61,7 +62,7 @@ describe('useNoteBrowsingStore', () => {
     await store.loadSearch('alpha')
     expect(store.searchResults.map(note => note.note_id)).toEqual(['b', 'a'])
 
-    store.setSearchSortMode('grouped')
+     store.setSearchSortMode(GlobalBrowseSortMode.Grouped)
     expect(store.searchResults.map(note => note.note_id)).toEqual(['b', 'a'])
   })
 

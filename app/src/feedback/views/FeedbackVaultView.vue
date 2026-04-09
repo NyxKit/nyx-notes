@@ -9,6 +9,7 @@ import { useAuth } from '@/auth/composables'
 import { useFeedbackStore } from '@/feedback/stores'
 import { useFeedbackSubmissionContext } from '@/feedback/composables'
 import NoteCard from '@/notes/components/NoteCard.vue'
+import { AuthMode, NotePermission, VaultOwnerType } from '@/shared/types'
 import type { BrowseNoteCardModel, Vault } from '@/shared/types'
 
 const router = useRouter()
@@ -23,10 +24,10 @@ const feedbackVault = computed<Vault>(() => ({
   slug: 'feedback',
   name: 'Feedback',
   owner: {
-    type: 'server',
+    type: VaultOwnerType.Server,
     server_slug: serverMetadata.value?.slug ?? 'main-server',
   },
-  permission: 'restricted',
+  permission: NotePermission.Restricted,
   icon: 'message-circle',
 }))
 
@@ -56,7 +57,7 @@ const sortedFeedback = computed<BrowseNoteCardModel[]>(() =>
 watch(
   [apiEpoch, () => serverMetadata.value?.slug, authMode, token, isAuthenticated],
   async () => {
-    if (authMode.value !== 'local' && !token.value) return
+    if (authMode.value !== AuthMode.Local && !token.value) return
     if (!isAuthenticated.value) return
     await loadList()
   },

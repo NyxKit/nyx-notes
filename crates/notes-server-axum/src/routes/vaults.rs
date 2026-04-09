@@ -242,9 +242,8 @@ pub async fn delete_server_vault(
     Ok(StatusCode::NO_CONTENT)
 }
 
-/// Scan ALL homes on disk, compare directory name (home_slug) with
-/// vault/note author_ids, and rewrite author_ids to the correct user_id
-/// from .home.json.
+/// Scan ALL homes on disk, resolve each home slug to the canonical user ID,
+/// and rewrite vault/note author_ids to that ID.
 pub async fn sync_all_homes(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser,
@@ -253,7 +252,14 @@ pub async fn sync_all_homes(
         return Err(AppError::Forbidden);
     }
 
-    let result = state.storage.sync_all_homes_author_id().await?;
+    let auth = std::sync::Arc::clone(&state.auth);
+    let resolver = std::sync::Arc::new(move |username: &str| {
+        auth.find_user_by_username(username)
+            .ok()
+            .flatten()
+            .map(|user| user.id)
+    });
+    let result = state.storage.sync_all_homes_author_id(resolver).await?;
 
     Ok(Json(serde_json::json!({
         "homes_scanned": result.homes_scanned,

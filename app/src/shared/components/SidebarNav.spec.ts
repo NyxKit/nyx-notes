@@ -2,19 +2,20 @@ import { mount } from '@vue/test-utils'
 import { computed, ref } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
 import SidebarNav from './SidebarNav.vue'
+import { RouteName } from '@/shared/types'
 
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
   return {
     ...actual,
-    useRoute: () => ({ name: 'favorites' }),
+    useRoute: () => ({ name: RouteName.Favorites }),
   }
 })
 
 vi.mock('@/auth/composables', () => ({
   useAuth: () => ({
-    personalOverviewRoute: computed(() => ({ name: 'user-root' })),
-    serverVaultsRoute: computed(() => ({ name: 'server-root' })),
+    personalOverviewRoute: computed(() => ({ name: RouteName.UserRoot })),
+    serverVaultsRoute: computed(() => ({ name: RouteName.ServerRoot })),
   }),
 }))
 

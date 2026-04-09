@@ -574,7 +574,10 @@ impl StorageBackend for FsStorage {
         Ok(())
     }
 
-    fn sync_all_homes_author_id(&self) -> Result<SyncResult, StorageError> {
+    fn sync_all_homes_author_id(
+        &self,
+        resolve_user_id: &dyn Fn(&str) -> Option<String>,
+    ) -> Result<SyncResult, StorageError> {
         let homes_dir = self.homes_dir();
         if !homes_dir.is_dir() {
             return Ok(SyncResult::default());
@@ -594,16 +597,8 @@ impl StorageBackend for FsStorage {
                 .unwrap_or("")
                 .to_string();
 
-            // Read .home.json to get the correct user_id for this home
-            let home_json_path = home_dir.join(".home.json");
-            let correct_user_id = if home_json_path.is_file() {
-                let content = std::fs::read_to_string(&home_json_path)?;
-                let home_meta: HomeJson = serde_json::from_str(&content)
-                    .map_err(|e| StorageError::ParseError(e.to_string()))?;
-                Some(home_meta.owner_user_id)
-            } else {
-                None
-            };
+            // Resolve the home slug to the canonical user ID.
+            let correct_user_id = resolve_user_id(&home_slug);
 
             result.homes_scanned += 1;
 
@@ -622,7 +617,7 @@ impl StorageBackend for FsStorage {
                 let mut meta: VaultJson = serde_json::from_str(&content)
                     .map_err(|e| StorageError::ParseError(e.to_string()))?;
 
-                // Fix .vault.json owner to match the home directory
+                // Fix .vault.json owner to match the home directory.
                 let expected_owner = VaultOwner::Home {
                     server_slug: self.active_server_slug(),
                     home_slug: home_slug.clone(),
@@ -635,7 +630,7 @@ impl StorageBackend for FsStorage {
                     result.vaults_fixed += 1;
                 }
 
-                // Fix note author_ids
+                // Fix note author_ids.
                 if let Some(ref user_id) = correct_user_id {
                     for note_entry in std::fs::read_dir(&vault_dir)? {
                         let path = note_entry?.path();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { NyxButton, NyxCard } from 'nyx-kit/components'
-import type { InstallationMode, ServerSetupChoice } from '@/auth/types/profileSetup'
+import { InstallationMode, ServerSetupChoice } from '@/auth/types/profileSetup'
 
 defineProps<{
   selectedMode?: InstallationMode | null
@@ -20,13 +20,13 @@ const emit = defineEmits<{
       <p>Use this server directly or connect this client to another self-hosted server.</p>
 
       <div class="setup-step__actions">
-        <NyxButton @click="emit('selectMode', 'local')">Use This Server</NyxButton>
-        <NyxButton @click="emit('selectMode', 'server')">Use Server</NyxButton>
+        <NyxButton @click="emit('selectMode', InstallationMode.Local)">Use This Server</NyxButton>
+        <NyxButton @click="emit('selectMode', InstallationMode.Server)">Use Server</NyxButton>
       </div>
 
-      <div v-if="selectedMode === 'server'" class="setup-step__server-actions">
-        <NyxButton @click="emit('selectServerChoice', 'setup_new_server')">Set Up a New Server</NyxButton>
-        <NyxButton @click="emit('selectServerChoice', 'connect_existing_server')">Connect to Existing Server</NyxButton>
+      <div v-if="selectedMode === InstallationMode.Server" class="setup-step__server-actions">
+        <NyxButton @click="emit('selectServerChoice', ServerSetupChoice.SetupNewServer)">Set Up a New Server</NyxButton>
+        <NyxButton @click="emit('selectServerChoice', ServerSetupChoice.ConnectExistingServer)">Connect to Existing Server</NyxButton>
       </div>
     </NyxCard>
   </div>

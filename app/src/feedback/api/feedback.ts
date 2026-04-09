@@ -1,26 +1,28 @@
 import { api } from '@/shared/api'
-import type { Note, NoteMeta, CreateFeedbackRequest, UpdateFeedbackRequest } from '@/shared/types'
+import type { CreateFeedbackRequest, UpdateFeedbackRequest } from '@/shared/types'
+import { FeedbackNote, NoteMeta } from '@/shared/types'
 
-export function fetchFeedbackList() {
-  return api<NoteMeta[]>('/api/feedback')
+export async function fetchFeedbackList() {
+  const items = await api<unknown[]>('/api/feedback')
+  return items.map(item => new NoteMeta(item))
 }
 
-export function fetchFeedback(id: string) {
-  return api<Note>(`/api/feedback/${id}`)
+export async function fetchFeedback(id: string) {
+  return new FeedbackNote(await api<unknown>(`/api/feedback/${id}`))
 }
 
-export function createFeedback(body: CreateFeedbackRequest) {
-  return api<NoteMeta>('/api/feedback', {
+export async function createFeedback(body: CreateFeedbackRequest) {
+  return new NoteMeta(await api<unknown>('/api/feedback', {
     method: 'POST',
     body,
-  })
+  }))
 }
 
-export function updateFeedback(id: string, body: UpdateFeedbackRequest) {
-  return api<NoteMeta>(`/api/feedback/${id}`, {
+export async function updateFeedback(id: string, body: UpdateFeedbackRequest) {
+  return new NoteMeta(await api<unknown>(`/api/feedback/${id}`, {
     method: 'PUT',
     body,
-  })
+  }))
 }
 
 export function deleteFeedback(id: string) {

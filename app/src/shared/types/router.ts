@@ -17,3 +17,25 @@ export enum RouteName {
   Login = 'login',
   Setup = 'setup',
 }
+
+export enum RoutePath {
+  Home = '/',
+  Search = '/search',
+  Favorites = '/favorites',
+  Settings = '/settings',
+  Users = '/users',
+  Login = '/login',
+  Setup = '/setup',
+}
+
+export enum RouteQueryKey {
+  Add = 'add',
+  Manage = 'manage',
+  Profile = 'profile',
+  Redirect = 'redirect',
+}
+
+export enum RouteQueryValue {
+  Remote = 'remote',
+  Active = 'active',
+}

@@ -72,6 +72,19 @@ impl SqliteUserStore {
         }))
     }
 
+    pub fn find_user_by_username(&self, username: &str) -> Result<Option<User>, AuthError> {
+        let normalized_username = normalize_username(username)?;
+        Ok(self
+            .load_user_by_username(&normalized_username)?
+            .map(|user| User {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                display_name: user.display_name,
+                role: user.role,
+            }))
+    }
+
     pub fn login_user(&self, username: &str, password: &str) -> Result<User, AuthError> {
         let normalized_username = normalize_username(username)?;
         let connection = self.connection()?;
@@ -361,6 +374,18 @@ impl SqliteUserStore {
             .query_row(
                 "SELECT id, username, email, display_name, role, password_hash, created_at, updated_at FROM users WHERE email = ?1",
                 params![email],
+                map_stored_user,
+            )
+            .optional()
+            .map_err(to_service_error)
+    }
+
+    fn load_user_by_username(&self, username: &str) -> Result<Option<StoredUser>, AuthError> {
+        let connection = self.connection()?;
+        connection
+            .query_row(
+                "SELECT id, username, email, display_name, role, password_hash, created_at, updated_at FROM users WHERE username = ?1",
+                params![username],
                 map_stored_user,
             )
             .optional()

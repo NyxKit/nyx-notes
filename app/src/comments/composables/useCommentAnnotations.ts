@@ -5,6 +5,7 @@ import {
   type NyxAnnotation,
   type NyxAnnotationAnchor,
 } from 'nyx-kit/types'
+import { CommentAttachment, CommentVisibility } from '@/shared/types'
 import type { Comment, CommentAnchor } from '@/shared/types'
 
 export function toCommentAnchor(anchor: NyxAnnotationAnchor, linePreview?: string): Omit<CommentAnchor, 'attachment' | 'last_matched_at'> {
@@ -19,7 +20,7 @@ export function toCommentAnchor(anchor: NyxAnnotationAnchor, linePreview?: strin
 }
 
 export function toNyxAnnotation(comment: Comment, activeId?: string): NyxAnnotation | null {
-  if (comment.visibility === 'hidden_legacy') {
+  if (comment.visibility === CommentVisibility.HiddenLegacy) {
     return null
   }
 
@@ -38,7 +39,7 @@ export function toNyxAnnotation(comment: Comment, activeId?: string): NyxAnnotat
     },
     interaction: activeId === comment.id ? NyxAnnotationInteraction.Focus : NyxAnnotationInteraction.Default,
     status: comment.resolved ? NyxAnnotationStatus.Resolved : NyxAnnotationStatus.Unresolved,
-    attachment: comment.anchor.attachment === 'detached'
+    attachment: comment.anchor.attachment === CommentAttachment.Detached
       ? NyxAnnotationAttachment.Detached
       : NyxAnnotationAttachment.Attached,
   }
@@ -57,8 +58,8 @@ export function toNyxAnnotations(
 
 export function sortCommentsByAnchor(comments: Comment[]): Comment[] {
   return [...comments].sort((left, right) => {
-    const leftDetached = left.anchor.attachment === 'detached'
-    const rightDetached = right.anchor.attachment === 'detached'
+    const leftDetached = left.anchor.attachment === CommentAttachment.Detached
+    const rightDetached = right.anchor.attachment === CommentAttachment.Detached
 
     if (leftDetached !== rightDetached) {
       return leftDetached ? 1 : -1

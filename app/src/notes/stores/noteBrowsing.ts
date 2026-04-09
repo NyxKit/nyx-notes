@@ -1,7 +1,8 @@
 import { computed, ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { useGlobalNoteBrowsing } from '@/notes/composables'
-import type { BrowseNoteCardModel, FavoriteNoteRef, GlobalBrowseSortMode, NoteMeta } from '@/shared/types'
+import { GlobalBrowseSortMode } from '@/shared/types'
+import type { BrowseNoteCardModel, FavoriteNoteRef, NoteMeta } from '@/shared/types'
 
 const FAVORITES_KEY = 'nyx_favorites_v2'
 
@@ -70,8 +71,8 @@ export const useNoteBrowsingStore = defineStore('noteBrowsing', () => {
   const browsing = useGlobalNoteBrowsing()
 
   const searchQuery = ref('')
-  const searchSortMode = ref<GlobalBrowseSortMode>('recent')
-  const favoritesSortMode = ref<Exclude<GlobalBrowseSortMode, 'best_match'>>('recent')
+  const searchSortMode = ref<GlobalBrowseSortMode>(GlobalBrowseSortMode.Recent)
+  const favoritesSortMode = ref<Exclude<GlobalBrowseSortMode, GlobalBrowseSortMode.BestMatch>>(GlobalBrowseSortMode.Recent)
   const searchResultsRaw = ref<BrowseNoteCardModel[]>([])
   const favoriteResultsRaw = ref<BrowseNoteCardModel[]>([])
   const recentResultsRaw = ref<BrowseNoteCardModel[]>([])
@@ -87,13 +88,13 @@ export const useNoteBrowsingStore = defineStore('noteBrowsing', () => {
   const recentExcludedProfilesCount = ref(0)
 
   const searchResults = computed(() => {
-    if (searchSortMode.value === 'best_match') return sortBestMatch(searchResultsRaw.value)
-    if (searchSortMode.value === 'grouped') return sortGrouped(searchResultsRaw.value)
+    if (searchSortMode.value === GlobalBrowseSortMode.BestMatch) return sortBestMatch(searchResultsRaw.value)
+    if (searchSortMode.value === GlobalBrowseSortMode.Grouped) return sortGrouped(searchResultsRaw.value)
     return sortRecent(searchResultsRaw.value)
   })
 
   const favoriteResults = computed(() => {
-    if (favoritesSortMode.value === 'grouped') return sortGrouped(favoriteResultsRaw.value)
+    if (favoritesSortMode.value === GlobalBrowseSortMode.Grouped) return sortGrouped(favoriteResultsRaw.value)
     return sortRecent(favoriteResultsRaw.value)
   })
 
@@ -204,14 +205,14 @@ export const useNoteBrowsingStore = defineStore('noteBrowsing', () => {
     searchSortMode.value = mode
   }
 
-  function setFavoritesSortMode(mode: Exclude<GlobalBrowseSortMode, 'best_match'>) {
+  function setFavoritesSortMode(mode: Exclude<GlobalBrowseSortMode, GlobalBrowseSortMode.BestMatch>) {
     favoritesSortMode.value = mode
   }
 
   function $reset() {
     searchQuery.value = ''
-    searchSortMode.value = 'recent'
-    favoritesSortMode.value = 'recent'
+    searchSortMode.value = GlobalBrowseSortMode.Recent
+    favoritesSortMode.value = GlobalBrowseSortMode.Recent
     searchResultsRaw.value = []
     favoriteResultsRaw.value = []
     favoriteRefs.value = readFavoriteRefs()

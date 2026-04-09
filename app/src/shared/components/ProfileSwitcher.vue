@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import { NyxButton, NyxCard } from 'nyx-kit/components'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
-import { RouteName } from '@/shared/types'
+import { RouteName, RouteQueryKey, RouteQueryValue, WorkspaceProfileType } from '@/shared/types'
 
 const router = useRouter()
 const auth = useAuth()
@@ -12,7 +12,7 @@ const profilesStore = useWorkspaceProfiles()
 
 const profiles = computed(() => profilesStore.profiles.value)
 const activeProfile = computed(() => profilesStore.activeProfile.value)
-const canAddLocal = computed(() => !profiles.value.some(profile => profile.type === 'local'))
+const canAddLocal = computed(() => !profiles.value.some(profile => profile.type === WorkspaceProfileType.Local))
 
 async function activateProfile(profileId: string) {
   const result = profilesStore.setActiveProfile(profileId)
@@ -24,7 +24,7 @@ async function activateProfile(profileId: string) {
 
 async function removeActiveProfile() {
   const profile = activeProfile.value
-  if (!profile || profile.type === 'local') return
+  if (!profile || profile.type === WorkspaceProfileType.Local) return
 
   auth.clearProfileSession(profile.id)
   profilesStore.removeProfile(profile.id)
@@ -68,11 +68,11 @@ async function addLocalProfile() {
     </div>
 
     <div class="profile-switcher__actions">
-      <NyxButton @click="router.push({ name: RouteName.Login, query: { add: 'remote' } })">Add Server</NyxButton>
+      <NyxButton @click="router.push({ name: RouteName.Login, query: { [RouteQueryKey.Add]: RouteQueryValue.Remote } })">Add Server</NyxButton>
       <NyxButton v-if="canAddLocal" @click="addLocalProfile">Add This Server</NyxButton>
-      <NyxButton v-if="activeProfile?.type === 'remote'" @click="router.push({ name: RouteName.Login, query: { manage: 'active' } })">Edit Active Server</NyxButton>
-      <NyxButton v-if="activeProfile?.type === 'remote'" @click="signOutActiveProfile">Sign Out</NyxButton>
-      <NyxButton v-if="activeProfile?.type === 'remote'" @click="removeActiveProfile">Remove Active Server</NyxButton>
+      <NyxButton v-if="activeProfile?.type === WorkspaceProfileType.Remote" @click="router.push({ name: RouteName.Login, query: { [RouteQueryKey.Manage]: RouteQueryValue.Active } })">Edit Active Server</NyxButton>
+      <NyxButton v-if="activeProfile?.type === WorkspaceProfileType.Remote" @click="signOutActiveProfile">Sign Out</NyxButton>
+      <NyxButton v-if="activeProfile?.type === WorkspaceProfileType.Remote" @click="removeActiveProfile">Remove Active Server</NyxButton>
     </div>
   </NyxCard>
 </template>

@@ -3,6 +3,7 @@ import { ofetch } from 'ofetch'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { noteRoute } from '@/shared/utils'
+import { WorkspaceProfileType } from '@/shared/types'
 import type {
   AnyWorkspaceProfile,
   BrowseNoteCardModel,
@@ -56,7 +57,7 @@ function formatUpdatedLabel(iso: string) {
 }
 
 export function getServerLabel(profile: AnyWorkspaceProfile) {
-  if (profile.type === 'remote') {
+  if (profile.type === WorkspaceProfileType.Remote) {
     return profile.server_label || profile.display_name || profile.server_url
   }
 
@@ -65,7 +66,7 @@ export function getServerLabel(profile: AnyWorkspaceProfile) {
 
 function makeProfileClient(profile: AnyWorkspaceProfile, token?: string): ProfileBrowseClient {
   const client = ofetch.create({
-    baseURL: profile.type === 'remote' ? profile.server_url : import.meta.env.VITE_API_BASE_URL ?? '/',
+    baseURL: profile.type === WorkspaceProfileType.Remote ? profile.server_url : import.meta.env.VITE_API_BASE_URL ?? '/',
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
   })
 
@@ -111,7 +112,7 @@ function buildBrowseNote(
     updated_label: formatUpdatedLabel(note.updated_at),
     href: noteRoute(vault, note.id),
     server_label: getServerLabel(profile),
-    server_id: profile.type === 'remote' ? profile.server_id : undefined,
+    server_id: profile.type === WorkspaceProfileType.Remote ? profile.server_id : undefined,
     vault_name: vault.name,
     vault_slug: vault.slug,
     is_favorite: isFavorite,
@@ -130,7 +131,7 @@ export function useGlobalNoteBrowsing() {
       const session = sessions.value[profile.id]
       const sessionToken = session?.state === 'signed_in' ? session.token : undefined
 
-      if (profile.type === 'local') {
+      if (profile.type === WorkspaceProfileType.Local) {
         contexts.push({ profile, client: makeProfileClient(profile, sessionToken) })
         continue
       }
