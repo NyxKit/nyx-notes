@@ -19,61 +19,134 @@ function toSearchParams(query: LiveQuery) {
   return params
 }
 
-export const VaultBase = {
-  subscribe<T = unknown>(query: LiveQuery, onUpdate?: (snapshot: T) => void) {
-    const handle = subscriptionManager.acquire<T>(query, record => {
-      if (record.latestSnapshot !== undefined) {
-        onUpdate?.(record.latestSnapshot)
-      }
-    })
+function createVaultKey(query: LiveQuery): string {
+  if (query.vault_id) {
+    return `vault_${query.vault_id}`
+  }
+  return `server_${query.server_slug}`
+}
 
-    void Promise.resolve().then(async () => {
+interface SubscriptionEntry {
+  key: string
+  query: LiveQuery
+  refCount: number
+  onUpdate: (snapshot: unknown) => void
+  eventSource?: EventSource
+}
+
+class VaultBaseClass {
+  private subscriptions = new Map<string, SubscriptionEntry>()
+
+  subscribe<T>(query: LiveQuery, onUpdate: (snapshot: T) => void): { key: string; release: () => void } {
+    const vaultKey = createVaultKey(query)
+    const existing = this.subscriptions.get(vaultKey)
+
+    if (existing) {
+      existing.refCount += 1
+      existing.onUpdate = onUpdate as (snapshot: unknown) => void
+      if (existing.refCount === 2) {
+        this.startLiveConnection(query, vaultKey)
+      }
+      return {
+        key: vaultKey,
+        release: () => this.release(vaultKey),
+      }
+    }
+
+    const entry: SubscriptionEntry = {
+      key: vaultKey,
+      query,
+      refCount: 1,
+      onUpdate: onUpdate as (snapshot: unknown) => void,
+    }
+    this.subscriptions.set(vaultKey, entry)
+
+    this.loadInitialSnapshot(query, vaultKey, onUpdate)
+
+    return {
+      key: vaultKey,
+      release: () => this.release(vaultKey),
+    }
+  }
+
+  private async loadInitialSnapshot<T>(query: LiveQuery, vaultKey: string, onUpdate: (snapshot: T) => void) {
+    try {
+      let snapshot: unknown
       switch (query.collection) {
         case LiveCollection.VaultListPersonal:
         case LiveCollection.VaultListShared:
-          subscriptionManager.publish(query, await fetchVaults() as T)
+          snapshot = await fetchVaults()
           break
         case LiveCollection.NoteList:
           if (!query.vault_id) throw new Error('vault_id is required')
-          subscriptionManager.publish(query, await fetchNotes(query.vault_id) as T)
+          snapshot = await fetchNotes(query.vault_id)
           break
         case LiveCollection.Note:
           if (!query.vault_id || !query.note_id) throw new Error('vault_id and note_id are required')
-          subscriptionManager.publish(query, await fetchNote(query.vault_id, query.note_id) as T)
+          snapshot = await fetchNote(query.vault_id, query.note_id)
           break
+      }
+
+      if (snapshot !== undefined) {
+        subscriptionManager.publish(query, snapshot)
+        onUpdate(snapshot as T)
       }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const response: any = await api(`/api/live?${toSearchParams(query).toString()}`)
       if (response?.data !== undefined) {
-        subscriptionManager.publish(query, response.data as T)
+        subscriptionManager.publish(query, response.data)
+        onUpdate(response.data as T)
       }
-    }).catch((error: unknown) => {
-      subscriptionManager.fail(query, error instanceof Error ? error.message : String(error))
-    })
 
-    const reconnect = async (q: LiveQuery) => {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response: any = await api(`/api/live?${toSearchParams(q).toString()}`)
-        if (response?.data !== undefined) {
-          subscriptionManager.publish(q, response.data as T)
+      if (this.subscriptions.has(vaultKey)) {
+        this.startLiveConnection(query, vaultKey)
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      subscriptionManager.fail(query, message)
+    }
+  }
+
+  private startLiveConnection(query: LiveQuery, vaultKey: string) {
+    const entry = this.subscriptions.get(vaultKey)
+    if (!entry) return
+    if (entry.eventSource) return
+
+    const eventSource = new EventSource(`/api/live?${toSearchParams(query).toString()}`)
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      if (data.snapshot !== undefined) {
+        subscriptionManager.publish(query, data.snapshot)
+        entry.onUpdate(data.snapshot)
+      }
+    }
+
+    eventSource.onerror = () => {
+      eventSource.close()
+      entry.eventSource = undefined
+      setTimeout(() => {
+        if (this.subscriptions.has(vaultKey)) {
+          this.startLiveConnection(query, vaultKey)
         }
-      } catch (error: unknown) {
-        subscriptionManager.fail(q, error instanceof Error ? error.message : String(error))
-      }
+      }, 1000)
     }
 
-    handle.subscribe(reconnect)
+    entry.eventSource = eventSource
+  }
 
-    return {
-      key: handle.key,
-      release: () => {
-        handle.unsubscribe()
-        handle.release()
-      },
+  private release(vaultKey: string) {
+    const entry = this.subscriptions.get(vaultKey)
+    if (!entry) return
+
+    entry.refCount = Math.max(0, entry.refCount - 1)
+
+    if (entry.refCount === 0) {
+      entry.eventSource?.close()
+      this.subscriptions.delete(vaultKey)
     }
-  },
+  }
 
   createVaultListPersonalQuery(serverSlug: string, userContext?: string): LiveQuery {
     return {
@@ -82,7 +155,7 @@ export const VaultBase = {
       server_slug: serverSlug,
       user_context: userContext,
     }
-  },
+  }
 
   createVaultListSharedQuery(serverSlug: string): LiveQuery {
     return {
@@ -90,7 +163,7 @@ export const VaultBase = {
       scope_kind: LiveScopeKind.Collection,
       server_slug: serverSlug,
     }
-  },
+  }
 
   createNoteListQuery(serverSlug: string, vaultId: string): LiveQuery {
     return {
@@ -99,7 +172,7 @@ export const VaultBase = {
       server_slug: serverSlug,
       vault_id: vaultId,
     }
-  },
+  }
 
   createNoteQuery(serverSlug: string, vaultId: string, noteId: string): LiveQuery {
     return {
@@ -109,5 +182,7 @@ export const VaultBase = {
       vault_id: vaultId,
       note_id: noteId,
     }
-  },
+  }
 }
+
+export const VaultBase = new VaultBaseClass()

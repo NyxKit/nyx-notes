@@ -47,12 +47,11 @@ describe('VaultBase', () => {
     const { VaultBase } = await import('./vaultBase')
 
     const query = VaultBase.createNoteListQuery('main-server', 'writing')
-    const handle = VaultBase.subscribe(query)
+    const handle = VaultBase.subscribe(query, vi.fn())
 
     await vi.waitFor(() => {
       expect(fetchNotesMock).toHaveBeenCalledWith('writing')
-      expect(handle.key).toContain('collection=note_list')
-      expect(handle.key).toContain('vault_id=writing')
+      expect(handle.key).toBe('vault_writing')
     })
   })
 })
