@@ -19,6 +19,12 @@ vi.mock('@/notes/api', () => ({
   fetchNote: fetchNoteMock,
 }))
 
+vi.stubGlobal('EventSource', vi.fn().mockImplementation(() => ({
+  onmessage: null,
+  onerror: null,
+  close: vi.fn(),
+})))
+
 describe('VaultBase', () => {
   beforeEach(async () => {
     vi.clearAllMocks()

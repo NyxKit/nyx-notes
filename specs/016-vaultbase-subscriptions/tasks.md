@@ -59,11 +59,11 @@
 
 - [X] T016 [US1] Implement SSE snapshot delivery for typed live scopes in crates/notes-server-axum/src/routes/subscriptions.rs
 - [X] T017 [US1] Publish vault and note updates from write handlers into the broker in crates/notes-server-axum/src/routes/vaults.rs and crates/notes-server-axum/src/routes/notes.rs
-- [ ] T018 [US1] Add latest-snapshot replay and reconnect handling to the shared manager in app/src/shared/api/subscriptionManager.ts
+- [X] T018 [US1] Add latest-snapshot replay and reconnect handling to the shared manager in app/src/shared/api/subscriptionManager.ts
 - [X] T019 [US1] Adapt the vault store to own live vault list subscriptions through VaultBase in app/src/vaults/stores/vaults.ts
 - [X] T020 [US1] Adapt the notes store to own live note list and note document subscriptions through VaultBase in app/src/notes/stores/notes.ts
 - [X] T021 [US1] Update useVaults lifecycle behavior to call store-level subscribe/unsubscribe methods on mount/unmount in app/src/vaults/composables/useVaults.ts
-- [ ] T022 [US1] Update note-facing composables and views to call store-level live note subscription behavior in app/src/notes/composables/useGlobalNoteBrowsing.ts, app/src/vaults/views/VaultView.vue, and app/src/notes/views/NoteView.vue
+- [X] T022 [US1] Update note-facing composables and views to call store-level live note subscription behavior in app/src/notes/composables/useGlobalNoteBrowsing.ts, app/src/vaults/views/VaultView.vue, and app/src/notes/views/NoteView.vue
 
 **Checkpoint**: User Story 1 should now deliver live vault and note updates and be testable on its own.
 

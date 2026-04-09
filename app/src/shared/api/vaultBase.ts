@@ -43,15 +43,36 @@ export const VaultBase = {
           break
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const response: any = await api(`/api/live?${toSearchParams(query).toString()}`)
       if (response?.data !== undefined) {
         subscriptionManager.publish(query, response.data as T)
       }
-    }).catch((error: Error) => {
-      subscriptionManager.fail(query, error.message)
+    }).catch((error: unknown) => {
+      subscriptionManager.fail(query, error instanceof Error ? error.message : String(error))
     })
 
-    return handle
+    const reconnect = async (q: LiveQuery) => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response: any = await api(`/api/live?${toSearchParams(q).toString()}`)
+        if (response?.data !== undefined) {
+          subscriptionManager.publish(q, response.data as T)
+        }
+      } catch (error: unknown) {
+        subscriptionManager.fail(q, error instanceof Error ? error.message : String(error))
+      }
+    }
+
+    handle.subscribe(reconnect)
+
+    return {
+      key: handle.key,
+      release: () => {
+        handle.unsubscribe()
+        handle.release()
+      },
+    }
   },
 
   createVaultListPersonalQuery(serverSlug: string, userContext?: string): LiveQuery {

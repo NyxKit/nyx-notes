@@ -8,6 +8,12 @@ import VaultView from './VaultView.vue'
 
 const push = vi.fn()
 
+vi.stubGlobal('EventSource', vi.fn().mockImplementation(() => ({
+  onmessage: null,
+  onerror: null,
+  close: vi.fn(),
+})))
+
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
   return {
