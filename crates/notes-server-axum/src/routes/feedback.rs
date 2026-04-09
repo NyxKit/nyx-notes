@@ -249,9 +249,14 @@ pub async fn update_feedback(
 
     ensure_feedback_vault(&state).await?;
     let mut note = load_feedback_note(&state, id.clone()).await?;
+    let images = if body.images.is_empty() {
+        note.meta.images.clone()
+    } else {
+        save_images(&state.root_path, &id, &body.images)?
+    };
     note.meta.title = body.title;
     note.meta.description = Some(body.description.clone());
-    note.meta.images = save_images(&state.root_path, &id, &body.images)?;
+    note.meta.images = images;
     note.meta.tags = vec!["feedback".into(), body.feedback_type.clone()];
     note.meta.category = Some("feedback".into());
     note.meta.feedback_type = Some(body.feedback_type);

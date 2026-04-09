@@ -34,7 +34,7 @@ const router = createRouter({
         {
           path: ':server_slug/vaults/:vault_id(feedback)/:id',
           name: RouteName.FeedbackItem,
-          component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
+          component: () => import('@/feedback/views').then(({ FeedbackItemView }) => FeedbackItemView),
         },
         {
           path: ':server_slug/homes/:home_slug',

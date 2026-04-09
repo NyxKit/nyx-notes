@@ -42,7 +42,7 @@ async fn resolve_vault_owner(
     storage: &AsyncStorageAdapter,
     vault_id: &str,
     username: &str,
-    is_admin: bool,
+    _is_admin: bool,
 ) -> Result<VaultOwner, AppError> {
     // Try user's home — FsStorage will scan all homes as fallback
     let owner = user_home_owner(username);
@@ -50,12 +50,10 @@ async fn resolve_vault_owner(
         return Ok(owner);
     }
 
-    // Try server vault (only if admin)
-    if is_admin {
-        let owner = server_owner();
-        if storage.load_vault(owner.clone(), vault_id.to_string()).await.is_ok() {
-            return Ok(owner);
-        }
+    // Server vaults are shared; any authenticated user may resolve them.
+    let owner = server_owner();
+    if storage.load_vault(owner.clone(), vault_id.to_string()).await.is_ok() {
+        return Ok(owner);
     }
 
     Err(AppError::NotFound)
