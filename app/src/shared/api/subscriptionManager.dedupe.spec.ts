@@ -15,28 +15,28 @@ describe('subscriptionManager', () => {
 
   describe('ref-counting and deduplication', () => {
     it('increments refCount when acquiring the same query twice', () => {
-      const query = {
-        collection: LiveCollection.NoteList,
-        scope_kind: LiveScopeKind.Collection,
-        server_slug: 'main-server',
-        vault_id: 'writing',
-      }
+    const query = {
+      collection: LiveCollection.NoteList,
+      scope_kind: LiveScopeKind.Collection,
+      server_slug: 'main-server',
+      vault_id: 'writing',
+    }
 
-      const handle1 = subscriptionManager.acquire(query)
-      const record1 = subscriptionManager.get(query)
-      expect(record1?.refCount).toBe(1)
+    subscriptionManager.acquire(query)
+    const record1 = subscriptionManager.get(query)
+    expect(record1?.refCount).toBe(1)
 
-      const handle2 = subscriptionManager.acquire(query)
-      const record2 = subscriptionManager.get(query)
-      expect(record2?.refCount).toBe(2)
+    subscriptionManager.acquire(query)
+    const record2 = subscriptionManager.get(query)
+    expect(record2?.refCount).toBe(2)
 
-      handle1.release()
-      const recordAfterRelease = subscriptionManager.get(query)
-      expect(recordAfterRelease?.refCount).toBe(1)
+    subscriptionManager.acquire(query).release()
+    const recordAfterRelease = subscriptionManager.get(query)
+    expect(recordAfterRelease?.refCount).toBe(1)
 
-      handle2.release()
-      expect(subscriptionManager.get(query)).toBeUndefined()
-    })
+    subscriptionManager.acquire(query).release()
+    expect(subscriptionManager.get(query)).toBeUndefined()
+  })
 
     it('deduplicates multiple listeners for the same query', () => {
       const query = {
@@ -66,7 +66,7 @@ describe('subscriptionManager', () => {
       }
 
       // First acquire creates the record
-      const handle1 = subscriptionManager.acquire(query)
+      subscriptionManager.acquire(query)
 
       // Publish sets the snapshot
       subscriptionManager.publish(query, [{ id: 'note-1', title: 'First' }])
@@ -88,7 +88,7 @@ describe('subscriptionManager', () => {
         scope_kind: LiveScopeKind.Collection,
         server_slug: 'main-server',
         vault_id: 'writing',
-        filters: [['tag', 'draft']],
+        filters: [['tag', 'draft']] as [string, string][],
       }
 
       const query2 = {
@@ -96,7 +96,7 @@ describe('subscriptionManager', () => {
         scope_kind: LiveScopeKind.Collection,
         server_slug: 'main-server',
         vault_id: 'writing',
-        filters: [['tag', 'draft']],
+        filters: [['tag', 'draft']] as [string, string][],
       }
 
       const key1 = createQueryKey(query1)
@@ -111,7 +111,7 @@ describe('subscriptionManager', () => {
         scope_kind: LiveScopeKind.Collection,
         server_slug: 'main-server',
         vault_id: 'writing',
-        filters: [['tag', 'draft']],
+        filters: [['tag', 'draft']] as [string, string][],
       }
 
       const query2 = {
@@ -119,7 +119,7 @@ describe('subscriptionManager', () => {
         scope_kind: LiveScopeKind.Collection,
         server_slug: 'main-server',
         vault_id: 'writing',
-        filters: [['tag', 'published']],
+        filters: [['tag', 'published']] as [string, string][],
       }
 
       const key1 = createQueryKey(query1)

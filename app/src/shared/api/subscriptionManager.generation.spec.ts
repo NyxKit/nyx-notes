@@ -21,13 +21,11 @@ describe('subscriptionManager generation fencing', () => {
       vault_id: 'writing',
     }
 
-    const handle1 = subscriptionManager.acquire(query)
+    subscriptionManager.acquire(query)
     const record1 = subscriptionManager.get(query)
     const gen1 = record1!.generation
 
-    const handle2 = subscriptionManager.acquire(query)
-
-    handle1.release()
+    subscriptionManager.acquire(query).release()
     const recordAfterRelease = subscriptionManager.get(query)
     expect(recordAfterRelease!.generation).toBe(gen1 + 1)
   })
@@ -40,12 +38,10 @@ describe('subscriptionManager generation fencing', () => {
       vault_id: 'writing',
     }
 
-    const handle1 = subscriptionManager.acquire(query)
+    subscriptionManager.acquire(query)
     const genAtRelease = subscriptionManager.get(query)!.generation
 
-    const handle2 = subscriptionManager.acquire(query)
-
-    handle1.release()
+    subscriptionManager.acquire(query).release()
 
     const listener = vi.fn()
     subscriptionManager.acquire(query, listener)
