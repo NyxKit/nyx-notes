@@ -20,6 +20,11 @@ createApp(App)
         size: NyxSize.Medium,
         variant: NyxVariant.Subtle,
       },
+      button: {
+        theme: NyxTheme.Primary,
+        size: NyxSize.Medium,
+        variant: NyxVariant.Soft,
+      }
     },
   })
   .mount('#app')
