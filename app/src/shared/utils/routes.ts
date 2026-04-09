@@ -42,7 +42,6 @@ export function noteRoute(vault: Pick<Vault, 'slug' | 'owner'>, noteId?: string)
       name: noteId ? RouteName.FeedbackItem : RouteName.Feedback,
       params: {
         server_slug: vault.owner.server_slug,
-        vault_id: vault.slug,
         ...(noteId ? { id: noteId } : {}),
       },
     }
@@ -132,7 +131,7 @@ export function noteCrumbRouteFromParams(
   noteId: string,
 ): RouteLocationRaw {
   if (serverSlug && vaultSlug === 'feedback') {
-    return { name: RouteName.FeedbackItem, params: { server_slug: serverSlug, vault_id: vaultSlug, id: noteId } }
+    return { name: RouteName.FeedbackItem, params: { server_slug: serverSlug, id: noteId } }
   }
 
   if (serverSlug && homeSlug) {

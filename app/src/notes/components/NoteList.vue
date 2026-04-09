@@ -6,7 +6,7 @@ import { useNoteBrowsingStore } from '@/notes/stores'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
 
-const RECENT_LIMIT = 20
+const RECENT_LIMIT = 5
 
 const router = useRouter()
 const route = useRoute()

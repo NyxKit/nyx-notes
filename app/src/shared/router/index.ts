@@ -27,12 +27,12 @@ const router = createRouter({
           component: () => import('@/notes/views').then(({ FavoritesView }) => FavoritesView),
         },
         {
-          path: ':server_slug/vaults/feedback',
+          path: ':server_slug/feedback',
           name: RouteName.Feedback,
           component: () => import('@/feedback/views').then(({ FeedbackVaultView }) => FeedbackVaultView),
         },
         {
-          path: ':server_slug/vaults/:vault_id(feedback)/:id',
+          path: ':server_slug/feedback/:id',
           name: RouteName.FeedbackItem,
           component: () => import('@/feedback/views').then(({ FeedbackItemView }) => FeedbackItemView),
         },

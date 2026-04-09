@@ -244,6 +244,18 @@ The frontend uses a shared browse-card family for browse-and-select surfaces onl
 - The client should treat `note.meta.vault_id` returned by the API as authoritative for setting active vault context
 - Left sidebar (VaultSwitcher, NoteSearch, SidebarNav, NoteList) is owned by `AppLayout`, not this view
 
+### `FeedbackVaultView` (`/feedback`)
+
+- Admin-only shared feedback overview
+- Uses a masonry grid of note cards
+- Clicking a card opens `FeedbackItemView`
+
+### `FeedbackItemView` (`/feedback/:id`)
+
+- Admin-only feedback detail view
+- Reuses the note editor shell for title/body editing
+- Shows captured diagnostics and attachments below the editor
+
 ### `VaultSettingsView` (`/vaults/:vault_id/settings`)
 
 - Rename vault
@@ -302,6 +314,7 @@ Rendered at the top of the left panel. Lets the user switch between vaults witho
   - `<server name>` -> shared server-vault overview
 - Adds `Settings` as the bottom sidebar item
 - Adds `Users` just above `Settings` when the active server is in `secret_key` mode and the caller is an administrator
+- Adds `Feedback` above `Users` for admins and opens `/feedback`
 - Links `Favorites` to `/favorites`
 - Leaves note creation to vault-specific surfaces such as `VaultView`
 

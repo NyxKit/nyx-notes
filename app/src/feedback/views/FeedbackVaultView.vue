@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { NyxButton, NyxGrid, NyxIcon } from 'nyx-kit/components'
@@ -12,9 +12,9 @@ import NoteCard from '@/notes/components/NoteCard.vue'
 import type { BrowseNoteCardModel, Vault } from '@/shared/types'
 
 const router = useRouter()
-const { serverMetadata } = useAuth()
+const { serverMetadata, apiEpoch, authMode, token, isAuthenticated } = useAuth()
 const feedbackStore = useFeedbackStore()
-const { feedbackItems, listLoading } = storeToRefs(feedbackStore)
+const { feedbackItems, listLoading, error } = storeToRefs(feedbackStore)
 const { loadList, create } = feedbackStore
 const { defaultFeedbackRequest } = useFeedbackSubmissionContext()
 
@@ -52,9 +52,15 @@ const sortedFeedback = computed<BrowseNoteCardModel[]>(() =>
     }))
 )
 
-onMounted(async () => {
-  await loadList()
-})
+watch(
+  [apiEpoch, () => serverMetadata.value?.slug, authMode, token, isAuthenticated],
+  async () => {
+    if (authMode.value !== 'local' && !token.value) return
+    if (!isAuthenticated.value) return
+    await loadList()
+  },
+  { immediate: true }
+)
 
 function formatDate(iso: string) {
   const d = new Date(iso)
@@ -106,6 +112,16 @@ async function createDraft() {
             :note="item"
           />
         </NyxGrid>
+      </div>
+
+      <div v-else-if="error" class="feedback-vault-view__canvas feedback-vault-view__canvas--center">
+        <div class="feedback-vault-view__welcome-card">
+          <div class="feedback-vault-view__welcome-icon">
+            <NyxIcon name="alert-triangle" :size="32" />
+          </div>
+          <h1 class="feedback-vault-view__heading">Unable to load feedback.</h1>
+          <p class="feedback-vault-view__desc">{{ error }}</p>
+        </div>
       </div>
 
       <div v-else class="feedback-vault-view__canvas feedback-vault-view__canvas--center">
