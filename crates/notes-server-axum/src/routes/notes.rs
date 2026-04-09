@@ -65,13 +65,17 @@ pub async fn list_notes(
     Path(vault_id): Path<String>,
 ) -> Result<Json<Vec<NoteMeta>>, AppError> {
     let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
+    let shared_server_vault = matches!(owner, VaultOwner::Server { .. });
     let all = state.storage.list_notes(owner, vault_id).await?;
 
-    // Filter to notes this user can view.
-    let visible = all
-        .into_iter()
-        .filter(|n| n.author_id == user.id || n.permission != NotePermission::Restricted)
-        .collect();
+    let visible = if shared_server_vault {
+        all
+    } else {
+        all
+            .into_iter()
+            .filter(|n| n.author_id == user.id || n.permission != NotePermission::Restricted)
+            .collect()
+    };
 
     Ok(Json(visible))
 }
@@ -82,9 +86,13 @@ pub async fn get_note(
     Path((vault_id, id)): Path<(String, String)>,
 ) -> Result<Json<Note>, AppError> {
     let owner = resolve_vault_owner(&state.storage, &vault_id, &user.username, matches!(user.role, ServerRole::Admin)).await?;
+    let shared_server_vault = matches!(owner, VaultOwner::Server { .. });
     let note = state.storage.load_note(owner, vault_id, id).await?;
 
-    if note.meta.author_id != user.id && note.meta.permission == NotePermission::Restricted {
+    if !shared_server_vault
+        && note.meta.author_id != user.id
+        && note.meta.permission == NotePermission::Restricted
+    {
         return Err(AppError::Forbidden);
     }
 

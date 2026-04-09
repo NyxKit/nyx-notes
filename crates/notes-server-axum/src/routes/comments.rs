@@ -56,7 +56,8 @@ async fn resolve_vault_owner(
     Err(AppError::NotFound)
 }
 
-// Helper: assert the caller can read the note (not restricted, or is author).
+// Helper: assert the caller can read the note (shared server vaults are open; personal notes
+// still require author access or non-restricted permission).
 async fn assert_can_read(
     state: &AppState,
     user: &User,
@@ -68,7 +69,10 @@ async fn assert_can_read(
         .storage
         .load_note(owner.clone(), vault_id.to_string(), note_id.to_string())
         .await?;
-    if note.meta.author_id != user.id && note.meta.permission == NotePermission::Restricted {
+    if !matches!(owner, VaultOwner::Server { .. })
+        && note.meta.author_id != user.id
+        && note.meta.permission == NotePermission::Restricted
+    {
         return Err(AppError::Forbidden);
     }
     Ok((note, owner))
@@ -100,8 +104,11 @@ pub async fn create_comment(
 ) -> Result<(StatusCode, Json<Comment>), AppError> {
     let (note, owner) = assert_can_read(&state, &user, &vault_id, &note_id).await?;
 
-    // Must have comment or edit permission (or be the author) to post.
-    if note.meta.author_id != user.id && note.meta.permission == NotePermission::Restricted {
+    // Shared server vault notes are commentable by all authenticated users.
+    if !matches!(owner, VaultOwner::Server { .. })
+        && note.meta.author_id != user.id
+        && note.meta.permission == NotePermission::Restricted
+    {
         return Err(AppError::Forbidden);
     }
 

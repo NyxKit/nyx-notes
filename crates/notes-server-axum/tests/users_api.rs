@@ -26,7 +26,14 @@ fn test_app() -> (axum::Router, String, String) {
     let root = temp_root();
     let _ = std::fs::create_dir_all(&root);
     let storage = FsStorage::new(&root);
-    let store = SecretKeyAuthStore::new(&root, &[9; 32], Some("Correct-password1")).unwrap();
+    let store = SecretKeyAuthStore::new(&root, &[9; 32], "main-server").unwrap();
+    store.setup_initial_user(CreateUserInput {
+        username: "admin".into(),
+        email: "admin@example.com".into(),
+        display_name: "Admin".into(),
+        role: Some(ServerRole::Admin),
+        password: "Correct-password1".into(),
+    }).unwrap();
     let admin = store.login("admin", "Correct-password1").unwrap();
     let admin_user = store.verify_token(&admin.token).unwrap();
     store
@@ -36,7 +43,7 @@ fn test_app() -> (axum::Router, String, String) {
                 username: "alice".into(),
                 email: "alice@example.com".into(),
                 display_name: "Alice".into(),
-                role: ServerRole::User,
+                role: Some(ServerRole::User),
                 password: "Correct-password1".into(),
             },
         )

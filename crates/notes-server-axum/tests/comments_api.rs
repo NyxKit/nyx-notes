@@ -32,8 +32,12 @@ fn seed_note(storage: &FsStorage, vault_id: &str, note_id: &str) {
         permission: NotePermission::Restricted,
         icon: None,
     };
+    let owner = VaultOwner::Home {
+        server_slug: "main-server".into(),
+        home_slug: "local".into(),
+    };
     storage.create_vault(&vault).unwrap();
-    storage.save_note(&Note {
+    storage.save_note(&owner, &Note {
         meta: NoteMeta {
             id: note_id.into(),
             vault_id: vault_id.into(),
@@ -109,7 +113,12 @@ async fn list_comments_omits_hidden_legacy_threads() {
     seed_note(&storage, "vault-1", "note-1");
 
     let now = chrono::Utc::now();
+    let owner = VaultOwner::Home {
+        server_slug: "main-server".into(),
+        home_slug: "local".into(),
+    };
     storage.save_comments(
+        &owner,
         "vault-1",
         "note-1",
         &[
