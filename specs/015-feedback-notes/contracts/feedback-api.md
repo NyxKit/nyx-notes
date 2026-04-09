@@ -14,9 +14,9 @@ Request fields:
 - `title`
 - `description`
 - `feedback_type`
-- `app_location`
-- `storage_path`
-- `console_output` (bounded and redacted)
+- `app_location` (auto-captured by the client)
+- `storage_path` (auto-captured by the client)
+- `console_output` (auto-captured, bounded, and redacted)
 - `interaction_trail` (optional)
 - `images` (optional)
 

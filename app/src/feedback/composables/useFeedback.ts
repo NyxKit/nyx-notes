@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuth } from '@/auth/composables'
+import { getConsoleOutputSnapshot } from '@/shared/utils'
 import type { CreateFeedbackRequest, FeedbackImageUpload } from '@/shared/types'
 
 const feedbackDialogOpen = ref(false)
@@ -57,6 +58,7 @@ export function useFeedbackSubmissionContext() {
 
   const appLocation = computed(() => route.fullPath)
   const storagePath = computed(() => route.path)
+  const consoleOutput = computed(() => getConsoleOutputSnapshot())
   const serverLabel = computed(() => serverMetadata.value?.name ?? 'Main Server')
 
   function defaultFeedbackRequest(overrides: Partial<CreateFeedbackRequest> = {}): CreateFeedbackRequest {
@@ -66,7 +68,7 @@ export function useFeedbackSubmissionContext() {
       feedback_type: overrides.feedback_type ?? 'feedback',
       app_location: overrides.app_location ?? appLocation.value,
       storage_path: overrides.storage_path ?? storagePath.value,
-      console_output: overrides.console_output ?? '',
+      console_output: overrides.console_output ?? consoleOutput.value,
       interaction_trail: overrides.interaction_trail ?? null,
       images: overrides.images ?? [],
     }
@@ -75,6 +77,7 @@ export function useFeedbackSubmissionContext() {
   return {
     appLocation,
     storagePath,
+    consoleOutput,
     serverLabel,
     defaultFeedbackRequest,
   }

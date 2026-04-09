@@ -73,7 +73,6 @@ async function createDraft() {
   const meta = await create(defaultFeedbackRequest({
     title: 'Untitled',
     description: '',
-    console_output: '',
   }))
 
   router.push(noteRoute(feedbackVault.value, meta.id))

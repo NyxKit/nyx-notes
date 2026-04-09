@@ -36,7 +36,7 @@ As a regular user, I can open a feedback modal from the bottom-left menu, enter 
 
 **Acceptance Scenarios**:
 
-1. **Given** a signed-in user on any page, **When** they select Feedback from the bottom-left menu, **Then** a large modal opens with fields for title, description, images, and feedback type.
+1. **Given** a signed-in user on any page, **When** they select Feedback from the bottom-left menu, **Then** a large modal opens with fields for title, description, images, and feedback type, while app location, storage path, and console output are captured automatically.
 2. **Given** a user has completed the form, **When** they submit it, **Then** the feedback is stored and the user stays on the same page they started from.
 3. **Given** a user attaches multiple images, **When** they submit the form, **Then** the images are preserved with the feedback entry.
 
@@ -99,7 +99,7 @@ As an admin, I can open a feedback item and manage it with the same capabilities
 - **FR-005**: The system MUST compress attached images before storing them.
 - **FR-006**: Note images MUST be stored inside an images folder within the note folder.
 - **FR-007**: Feedback items MUST be stored in a top-level feedback area separate from homes and vaults.
-- **FR-008**: A feedback submission MUST capture the feedback type, the user’s current app location, the corresponding storage path, and the console output available at submission time.
+- **FR-008**: A feedback submission MUST capture the feedback type, the user’s current app location, the corresponding storage path, and the console output available at submission time without asking the user to enter those diagnostics manually.
 - **FR-009**: Console output capture MUST be bounded and redacted so secrets, tokens, and other sensitive values are not retained in the submitted record.
 - **FR-010**: The feedback data model MUST allow additional diagnostic context, including a future interaction trail field, without changing the user flow.
 - **FR-011**: Admins MUST be able to open a feedback item into a note-style detail view that supports comments, title changes, and editing.

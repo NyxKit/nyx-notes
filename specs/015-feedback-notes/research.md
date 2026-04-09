@@ -15,7 +15,7 @@
 ## 3. Submission metadata
 
 - Decision: Capture feedback type, current app location, storage path, console output, and a future interaction trail field.
-- Rationale: These fields match the support/debugging goal of the feature while leaving room for later UX-history capture. Console output is stored in bounded, redacted form to avoid retaining secrets or oversized payloads.
+- Rationale: These fields match the support/debugging goal of the feature while leaving room for later UX-history capture. The UI should auto-capture the diagnostic fields so users only provide the feedback itself. Console output is stored in bounded, redacted form to avoid retaining secrets or oversized payloads.
 - Alternatives considered: Capturing only title and description; postponing diagnostics until later; storing raw console output.
 
 ## 4. Image compression

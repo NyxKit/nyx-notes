@@ -21,9 +21,9 @@
 - `content`: full feedback body
 - `images`: ordered list of attached images
 - `feedback_type`: feedback or bug
-- `app_location`: current app location at submission time
-- `storage_path`: stored location context
-- `console_output`: captured console dump
+- `app_location`: current app location at submission time, auto-captured
+- `storage_path`: stored location context, auto-captured
+- `console_output`: captured console dump, auto-captured and redacted
 - `interaction_trail`: optional future usage trail payload
 - `author_id`: submitting user identity
 - `created_at`: creation timestamp
