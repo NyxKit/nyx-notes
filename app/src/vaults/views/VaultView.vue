@@ -9,6 +9,7 @@ import NoteCard from '@/notes/components/NoteCard.vue'
 import { useNoteBrowsingStore, useNotesStore } from '@/notes/stores'
 import { useWorkspaceProfiles } from '@/shared/composables'
 import type { BrowseNoteCardModel } from '@/shared/types'
+import { WorkspaceProfileType } from '@/shared/types'
 import { useVaultStore } from '@/vaults/stores'
 
 const route = useRoute()
@@ -53,7 +54,7 @@ const sortedNotes = computed<BrowseNoteCardModel[]>(() =>
         updated_label: formatDate(note.updated_at),
         href: noteRoute(activeVault.value!, note.id),
         server_label: activeProfile.value?.display_name ?? 'Main Server',
-        server_id: activeProfile.value?.type === 'remote' ? activeProfile.value.server_id : undefined,
+        server_id: activeProfile.value?.type === WorkspaceProfileType.Remote ? activeProfile.value.server_id : undefined,
         vault_name: activeVault.value?.name ?? 'Vault',
         vault_slug: activeVault.value?.slug ?? '',
         is_favorite: noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', note.vault_id, note.id),

@@ -23,10 +23,7 @@ const title = computed({
   get: () => activeFeedback.value?.meta.title ?? '',
   set: (value: string) => {
     if (!activeFeedback.value) return
-    activeFeedback.value = {
-      ...activeFeedback.value,
-      meta: { ...activeFeedback.value.meta, title: value },
-    }
+    activeFeedback.value.meta.title = value
   },
 })
 
@@ -34,11 +31,8 @@ const description = computed({
   get: () => activeFeedback.value?.content ?? activeFeedback.value?.meta.description ?? '',
   set: (value: string) => {
     if (!activeFeedback.value) return
-    activeFeedback.value = {
-      ...activeFeedback.value,
-      content: value,
-      meta: { ...activeFeedback.value.meta, description: value || undefined },
-    }
+    activeFeedback.value.content = value
+    activeFeedback.value.meta.description = value || undefined
   },
 })
 

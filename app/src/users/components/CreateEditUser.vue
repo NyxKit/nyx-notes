@@ -2,7 +2,8 @@
 import { computed, reactive, watch } from 'vue'
 import { NyxButton, NyxForm, NyxFormField, NyxInput, NyxModal, NyxSelect } from 'nyx-kit/components'
 import { NyxInputType, NyxTheme, NyxVariant } from 'nyx-kit/types'
-import type { ManagedUserSummary, ServerRole } from '@/shared/types'
+import { ServerRole } from '@/shared/types'
+import type { ManagedUserSummary } from '@/shared/types'
 
 const props = defineProps<{
   open: boolean
@@ -20,14 +21,14 @@ const form = reactive({
   username: '',
   email: '',
   display_name: '',
-  role: 'user' as ServerRole,
+  role: ServerRole.User,
   password: '',
 })
 
 const isEdit = computed(() => Boolean(props.user))
 const roleOptions = [
-  { label: 'User', value: 'user' },
-  { label: 'Admin', value: 'admin' },
+  { label: 'User', value: ServerRole.User },
+  { label: 'Admin', value: ServerRole.Admin },
 ]
 
 watch(
@@ -36,7 +37,7 @@ watch(
     form.username = props.user?.username ?? ''
     form.email = props.user?.email ?? ''
     form.display_name = props.user?.display_name ?? ''
-    form.role = props.user?.role ?? 'user'
+    form.role = props.user?.role ?? ServerRole.User
     form.password = ''
   },
   { immediate: true }

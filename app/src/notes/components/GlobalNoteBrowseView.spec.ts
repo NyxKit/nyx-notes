@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import GlobalNoteBrowseView from './GlobalNoteBrowseView.vue'
+import { GlobalBrowseSortMode } from '@/shared/types'
 
 describe('GlobalNoteBrowseView', () => {
   it('renders the shared empty state and excluded-profile notice', () => {
@@ -12,9 +13,9 @@ describe('GlobalNoteBrowseView', () => {
         emptyTitle: 'No matching notes',
         emptyMessage: 'Try another phrase.',
         excludedProfilesCount: 2,
-        sortModelValue: 'recent',
+        sortModelValue: GlobalBrowseSortMode.Recent,
         sortOptions: [
-          { label: 'Recent', value: 'recent' },
+          { label: 'Recent', value: GlobalBrowseSortMode.Recent },
         ],
       },
       global: {

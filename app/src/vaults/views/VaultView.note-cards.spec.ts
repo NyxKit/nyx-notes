@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createNote, fetchNotes } from '@/notes/api'
+import { NotePermission, VaultOwnerType } from '@/shared/types'
 import { fetchVaults } from '@/vaults/api'
 import VaultView from './VaultView.vue'
 
@@ -46,8 +47,8 @@ describe('VaultView note cards', () => {
         slug: 'writing',
         name: 'Writing',
         description: 'Long-form drafts and essays.',
-        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
-        permission: 'edit',
+        owner: { type: VaultOwnerType.Home, server_slug: 'main-server', home_slug: 'user-1' },
+        permission: NotePermission.Edit,
         icon: 'folder',
       },
     ])
@@ -65,7 +66,7 @@ describe('VaultView note cards', () => {
         created_at: '2026-03-26T10:30:00Z',
         updated_at: '2026-03-26T11:00:00Z',
         is_encrypted: false,
-        permission: 'edit',
+        permission: NotePermission.Edit,
       },
     ])
 
@@ -81,7 +82,7 @@ describe('VaultView note cards', () => {
       created_at: '2026-03-26T12:00:00Z',
       updated_at: '2026-03-26T12:00:00Z',
       is_encrypted: false,
-      permission: 'edit',
+      permission: NotePermission.Edit,
     })
   })
 

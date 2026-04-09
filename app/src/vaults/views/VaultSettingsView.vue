@@ -9,6 +9,7 @@ import type { NyxSelectOption } from 'nyx-kit/types'
 import { NyxKit } from 'nyx-kit'
 import { VaultIconPicker } from '@/vaults/components'
 import { useVaultStore } from '@/vaults/stores'
+import { NotePermission, VaultOwnerType } from '@/shared/types'
 
 const route = useRoute()
 const router = useRouter()
@@ -89,15 +90,15 @@ async function onDelete() {
 
 const ownerLabel = computed(() => {
   if (!vault.value) return ''
-  if (vault.value.owner.type === 'home') return 'Personal'
-  if (vault.value.owner.type === 'server') return `Server: ${vault.value.owner.server_slug}`
+  if (vault.value.owner.type === VaultOwnerType.Home) return 'Personal'
+  if (vault.value.owner.type === VaultOwnerType.Server) return `Server: ${vault.value.owner.server_slug}`
   return 'Built-in'
 })
 
 const permissionOptions: NyxSelectOption[] = [
-  { label: 'Restricted', value: 'restricted' },
-  { label: 'Comment', value: 'comment' },
-  { label: 'Edit', value: 'edit' },
+  { label: 'Restricted', value: NotePermission.Restricted },
+  { label: 'Comment', value: NotePermission.Comment },
+  { label: 'Edit', value: NotePermission.Edit },
 ]
 </script>
 
@@ -135,7 +136,7 @@ const permissionOptions: NyxSelectOption[] = [
               <span class="settings-row__label">Owner</span>
               <span class="settings-row__value">{{ ownerLabel }}</span>
             </div>
-          <div v-if="vault.owner.type === 'server'" class="settings-row">
+          <div v-if="vault.owner.type === VaultOwnerType.Server" class="settings-row">
             <span class="settings-row__label">Role</span>
             <span class="settings-row__value">Shared server vault</span>
           </div>
@@ -160,7 +161,7 @@ const permissionOptions: NyxSelectOption[] = [
         </section>
 
         <!-- Permission (shared server vaults are currently read-only in the frontend) -->
-        <section v-if="vault.owner.type === 'server'" class="settings-section">
+        <section v-if="vault.owner.type === VaultOwnerType.Server" class="settings-section">
           <h2 class="settings-section__heading">Default Permission</h2>
           <p class="settings-section__description">
             Shared server vaults currently inherit their default note permission from the backend.

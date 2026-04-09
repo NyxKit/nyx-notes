@@ -72,6 +72,7 @@ pub enum AuthError {
 
 pub trait AuthStore: Send + Sync {
     fn find_user(&self, user_id: &str) -> Result<Option<User>, AuthError>;
+    fn find_user_by_username(&self, username: &str) -> Result<Option<User>, AuthError>;
     fn verify_token(&self, token: &str) -> Result<User, AuthError>;
 
     /// Authenticate with username and password, returning a signed token.

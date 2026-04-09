@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import CreateEditUser from './CreateEditUser.vue'
+import { ServerRole } from '@/shared/types'
 
 describe('CreateEditUser', () => {
   it('disables role selection when editing the current user', () => {
@@ -13,7 +14,7 @@ describe('CreateEditUser', () => {
           username: 'admin',
           email: 'admin@localhost',
           display_name: 'Admin',
-          role: 'admin',
+          role: ServerRole.Admin,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           can_edit: true,

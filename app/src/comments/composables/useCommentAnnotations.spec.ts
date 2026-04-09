@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { NyxAnnotationAttachment, NyxAnnotationStatus } from 'nyx-kit/types'
 import { sortCommentsByAnchor, toCommentAnchor, toNyxAnnotations } from './useCommentAnnotations'
+import { CommentAttachment, CommentVisibility } from '@/shared/types'
 import type { Comment } from '@/shared/types'
 
 function makeComment(overrides: Partial<Comment> = {}): Comment {
@@ -16,11 +17,11 @@ function makeComment(overrides: Partial<Comment> = {}): Comment {
       suffix: ' text after',
       range_from: 10,
       range_to: 25,
-      attachment: 'attached',
+      attachment: CommentAttachment.Attached,
       line_preview: 'A selected line of note text',
     },
     resolved: false,
-    visibility: 'visible',
+    visibility: CommentVisibility.Visible,
     created_at: '2026-03-28T10:00:00Z',
     updated_at: '2026-03-28T10:00:00Z',
     replies: [],
@@ -57,14 +58,14 @@ describe('useCommentAnnotations', () => {
       makeComment(),
       makeComment({
         id: 'comment-hidden',
-        visibility: 'hidden_legacy',
+        visibility: CommentVisibility.HiddenLegacy,
         anchor: {
           text: 'legacy quote',
           prefix: '',
           suffix: '',
           range_from: 0,
           range_to: 0,
-          attachment: 'detached',
+          attachment: CommentAttachment.Detached,
           line_preview: 'legacy quote',
         },
       }),
@@ -104,7 +105,7 @@ describe('useCommentAnnotations', () => {
           suffix: '',
           range_from: 0,
           range_to: 0,
-          attachment: 'detached',
+          attachment: CommentAttachment.Detached,
           line_preview: 'Detached line',
         },
       }),
@@ -116,7 +117,7 @@ describe('useCommentAnnotations', () => {
           suffix: '',
           range_from: 4,
           range_to: 18,
-          attachment: 'attached',
+          attachment: CommentAttachment.Attached,
           line_preview: 'Attached line',
         },
       }),

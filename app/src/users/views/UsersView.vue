@@ -4,6 +4,7 @@ import { NyxButton } from 'nyx-kit/components'
 import { useAuth } from '@/auth/composables'
 import { CreateEditUser, UsersTable } from '@/users/components'
 import { useUsers } from '@/users/composables'
+import { AuthMode, ServerRole } from '@/shared/types'
 import type { ManagedUserSummary } from '@/shared/types'
 
 const auth = useAuth()
@@ -14,7 +15,7 @@ const editingUser = ref<ManagedUserSummary | null>(null)
 const canTeleportHeaderActions = ref(false)
 
 const currentUserId = computed(() => auth.serverMetadata.value?.current_user_id ?? null)
-const canManageUsers = computed(() => auth.authMode.value === 'secret_key' && auth.serverMetadata.value?.role === 'admin')
+const canManageUsers = computed(() => auth.authMode.value === AuthMode.SecretKey && auth.serverMetadata.value?.role === ServerRole.Admin)
 
 onMounted(() => {
   canTeleportHeaderActions.value = Boolean(document.getElementById('layout-header-actions'))
@@ -40,7 +41,7 @@ function openEdit(user: ManagedUserSummary) {
   showModal.value = true
 }
 
-async function submit(payload: { username: string; email: string; display_name: string; role: 'admin' | 'user'; password?: string }) {
+async function submit(payload: { username: string; email: string; display_name: string; role: ServerRole; password?: string }) {
   if (editingUser.value) {
     await update(editingUser.value.id, {
       email: payload.email,

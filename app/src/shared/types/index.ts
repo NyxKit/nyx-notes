@@ -1,8 +1,10 @@
-import type { AuthMode } from './profile'
+import type { AuthMode, ServerRole, TeamRole, NotePermission, VaultOwnerType } from './enums'
 import type { RouteLocationRaw } from 'vue-router'
+import type CommentAnchor from '@/comments/classes/CommentAnchor'
 
 // ─── Shared ───────────────────────────────────────────────────────────────────
 export * from './profile'
+export * from './enums'
 export * from './router'
 
 // ─── Auth ────────────────────────────────────────────────────────────────────
@@ -31,12 +33,7 @@ export interface LoginToken {
   expires_in: number
 }
 
-export interface User {
-  id: string
-  email: string
-  display_name: string
-  role?: ServerRole
-}
+export { default as User } from '@/users/classes/User'
 
 export interface ManagedUserSummary {
   id: string
@@ -67,57 +64,22 @@ export interface UpdateUserRequest {
 
 // ─── Permissions ─────────────────────────────────────────────────────────────
 
-export type NotePermission = 'restricted' | 'comment' | 'edit'
-
-export type ServerRole = 'admin' | 'user'
-
-export type TeamRole = 'owner' | 'admin' | 'member'
+export { NotePermission, ServerRole, TeamRole, GlobalBrowseSortMode, CommentAttachment, CommentVisibility, AuthMode, WorkspaceProfileType, RemoteConnectionStatus, ProfileSessionState } from './enums'
 
 // ─── Vaults ──────────────────────────────────────────────────────────────────
 
-export interface Vault {
-  id: string
-  slug: string
-  name: string
-  description?: string
-  owner: VaultOwner
-  permission: NotePermission
-  icon?: string
-}
+export { default as Vault } from '@/vaults/classes/Vault'
 
 export type VaultOwner =
-  | { type: 'home'; server_slug: string; home_slug: string }
-  | { type: 'server'; server_slug: string }
-  | { type: 'local' }
+  | { type: VaultOwnerType.Home; server_slug: string; home_slug: string }
+  | { type: VaultOwnerType.Server; server_slug: string }
+  | { type: VaultOwnerType.Local }
 
 // ─── Notes ───────────────────────────────────────────────────────────────────
 
-export interface NoteMeta {
-  id: string
-  vault_id: string
-  title: string
-  description?: string
-  author_id: string
-  images: string[]
-  tags: string[]
-  category: string | null
-  created_at: string // ISO 8601
-  updated_at: string // ISO 8601
-  is_encrypted: boolean
-  permission: NotePermission
-  feedback_type?: string | null
-  app_location?: string | null
-  storage_path?: string | null
-  console_output?: string | null
-  interaction_trail?: string | null
-}
-
-export interface Note {
-  meta: NoteMeta
-  content: string
-}
-
-export type GlobalBrowseSortMode = 'best_match' | 'recent' | 'grouped'
+export { default as NoteMeta } from '@/notes/classes/NoteMeta'
+export { default as Note } from '@/notes/classes/Note'
+export { default as FeedbackNote } from '@/feedback/classes/FeedbackNote'
 
 export interface NoteOriginContext {
   profile_id: string
@@ -177,34 +139,8 @@ export interface CommentReply {
   created_at: string
 }
 
-export type CommentAttachment = 'attached' | 'detached'
-
-export type CommentVisibility = 'visible' | 'hidden_legacy'
-
-export interface CommentAnchor {
-  text: string
-  prefix: string
-  suffix: string
-  range_from: number
-  range_to: number
-  attachment: CommentAttachment
-  line_preview: string
-  last_matched_at?: string
-}
-
-export interface Comment {
-  id: string
-  note_id: string
-  author_id: string
-  author_name: string
-  body: string
-  anchor: CommentAnchor
-  resolved: boolean
-  visibility: CommentVisibility
-  created_at: string
-  updated_at: string
-  replies: CommentReply[]
-}
+export { default as CommentAnchor } from '@/comments/classes/CommentAnchor'
+export { default as Comment } from '@/comments/classes/Comment'
 
 export interface CreateCommentRequest {
   body: string

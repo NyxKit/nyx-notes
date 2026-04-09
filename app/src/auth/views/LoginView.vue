@@ -4,8 +4,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { NyxCard } from 'nyx-kit/components'
 import { InitialSetupForm, InstallationModeStep, RemoteProfileForm, SignInForm, useAuth } from '@/auth'
 import { useWorkspaceProfiles } from '@/shared/composables'
-import type { InstallationMode } from '@/auth/types/profileSetup'
-import type { ServerSetupChoice } from '@/auth/types/profileSetup'
+import { InstallationMode, ServerSetupChoice } from '@/auth/types/profileSetup'
+import { AuthMode, RoutePath, RouteQueryKey, RouteQueryValue, WorkspaceProfileType } from '@/shared/types'
 import type { RemoteProfileDraft } from '@/shared/types'
 import { RouteName } from '@/shared/types/router'
 
@@ -21,10 +21,10 @@ const loading = ref(false)
 const initialized = ref<boolean | null>(null)
 
 const hasProfiles = computed(() => workspaceProfiles.profiles.value.length > 0)
-const addingRemoteProfile = computed(() => route.query.add === 'remote')
-const managingActiveRemote = computed(() => route.query.manage === 'active')
+const addingRemoteProfile = computed(() => route.query[RouteQueryKey.Add] === RouteQueryValue.Remote)
+const managingActiveRemote = computed(() => route.query[RouteQueryKey.Manage] === RouteQueryValue.Active)
 const activeRemoteProfile = computed(() =>
-  workspaceProfiles.activeProfile.value?.type === 'remote'
+  workspaceProfiles.activeProfile.value?.type === WorkspaceProfileType.Remote
     ? workspaceProfiles.activeProfile.value
     : null
 )
@@ -35,7 +35,7 @@ const needsSetup = computed(() =>
 )
 
 onMounted(async () => {
-  if (route.path === '/setup') {
+  if (route.path === RoutePath.Setup) {
     return
   }
   if (hasProfiles.value) {
@@ -44,7 +44,7 @@ onMounted(async () => {
 })
 
 watch(() => route.path, async (path) => {
-  if (path === '/setup') {
+  if (path === RoutePath.Setup) {
     return
   }
   if (hasProfiles.value && initialized.value === null) {
@@ -75,7 +75,7 @@ async function completeLocalSetup() {
 }
 
 function chooseServerMode(choice: ServerSetupChoice) {
-  selectedMode.value = 'server'
+  selectedMode.value = InstallationMode.Server
   serverChoice.value = choice
   error.value = null
 }
@@ -83,7 +83,7 @@ function chooseServerMode(choice: ServerSetupChoice) {
 function chooseMode(mode: InstallationMode) {
   selectedMode.value = mode
 
-  if (mode === 'local') {
+  if (mode === InstallationMode.Local) {
     void completeLocalSetup()
     return
   }
@@ -100,11 +100,11 @@ async function connectExistingServer(draft: RemoteProfileDraft) {
     await auth.bootstrapActiveProfile()
 
     if (auth.isAuthenticated.value) {
-      await router.push((route.query.redirect as string) ?? '/')
+      await router.push((route.query[RouteQueryKey.Redirect] as string) ?? RoutePath.Home)
       return
     }
 
-    if (auth.authMode.value === 'oidc') {
+    if (auth.authMode.value === AuthMode.Oidc) {
       error.value = 'This remote server uses OIDC, which is not supported in the multi-profile flow yet.'
     }
   } catch (cause) {
@@ -121,7 +121,7 @@ async function signInRemoteProfile(draft: RemoteProfileDraft) {
   try {
     const serverUrl = draft.server_url
     await auth.login(draft.username, draft.password, serverUrl)
-    await router.push((route.query.redirect as string) ?? '/')
+    await router.push((route.query[RouteQueryKey.Redirect] as string) ?? RoutePath.Home)
   } catch {
     error.value = 'Invalid credentials'
   } finally {
@@ -155,14 +155,14 @@ async function signIn(data: { username: string; password: string }) {
           @select-server-choice="chooseServerMode"
         />
 
-        <NyxCard v-if="serverChoice === 'setup_new_server'" class="login__subcard">
+        <NyxCard v-if="serverChoice === ServerSetupChoice.SetupNewServer" class="login__subcard">
           <h2>Set Up a New Server</h2>
           <p>Use Docker or a server binary to start Nyx Notes with `AUTH_MODE=secret_key` on your NAS or home server, then come back here and connect to it.</p>
-          <NyxButton @click="serverChoice = 'connect_existing_server'">Continue to Connection</NyxButton>
+          <NyxButton @click="serverChoice = ServerSetupChoice.ConnectExistingServer">Continue to Connection</NyxButton>
         </NyxCard>
 
         <RemoteProfileForm
-          v-if="serverChoice === 'connect_existing_server'"
+          v-if="serverChoice === ServerSetupChoice.ConnectExistingServer"
           submit-label="Connect Server"
           :loading="loading"
           @submit="connectExistingServer"
@@ -206,7 +206,7 @@ async function signIn(data: { username: string; password: string }) {
         />
       </template>
 
-      <template v-else-if="auth.authMode.value === 'secret_key' && !auth.isAuthenticated.value">
+      <template v-else-if="auth.authMode.value === AuthMode.SecretKey && !auth.isAuthenticated.value">
         <SignInForm
           :loading="loading || auth.bootstrapping.value"
           @submit="signIn"

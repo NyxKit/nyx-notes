@@ -9,7 +9,8 @@ import {
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { readProfilePassword } from '@/shared/utils'
 import { RouteName } from '@/shared/types'
-import type { AuthMode, ProfileSession, RemoteWorkspaceProfile, ServerMetadata, User } from '@/shared/types'
+import { AuthMode, ProfileSessionState, RemoteConnectionStatus, WorkspaceProfileType } from '@/shared/types'
+import type { ProfileSession, RemoteWorkspaceProfile, ServerMetadata, User } from '@/shared/types'
 
 const SESSION_STORAGE_KEY = 'nyx_profile_sessions'
 
@@ -71,7 +72,7 @@ export function useAuth() {
   const { activeProfile, updateRemoteProfileStatus, updateProfileDisplayName } = workspaceProfiles
 
   const isAuthenticated = computed(() =>
-    authMode.value === 'local' || token.value !== null
+    authMode.value === AuthMode.Local || token.value !== null
   )
 
   const hasProfiles = computed(() => workspaceProfiles.profiles.value.length > 0)
@@ -87,10 +88,10 @@ export function useAuth() {
 
   function classifyConnectionError(error: unknown) {
     if (error instanceof Error && /404|Unexpected token|JSON/i.test(error.message)) {
-      return 'invalid_server'
+      return RemoteConnectionStatus.InvalidServer
     }
 
-    return 'unreachable'
+    return RemoteConnectionStatus.Unreachable
   }
 
   async function discoverMode(profile: RemoteWorkspaceProfile) {
@@ -101,8 +102,8 @@ export function useAuth() {
       server_id: response.server_id,
       server_label: response.server_name,
       api_version: response.api_version,
-      connection_status: response.mode === 'secret_key' ? 'reachable' : 'unsupported_auth',
-      last_error: response.mode === 'secret_key' ? undefined : 'This remote auth mode is not supported in the multi-profile flow yet.',
+      connection_status: response.mode === AuthMode.SecretKey ? RemoteConnectionStatus.Reachable : RemoteConnectionStatus.UnsupportedAuth,
+      last_error: response.mode === AuthMode.SecretKey ? undefined : 'This remote auth mode is not supported in the multi-profile flow yet.',
     })
 
     authMode.value = response.mode
@@ -126,19 +127,19 @@ export function useAuth() {
       return null
     }
 
-    if (profile.type === 'local') {
+    if (profile.type === WorkspaceProfileType.Local) {
       let response = null
       try {
         response = await fetchAuthMode()
       } catch {
         response = null
       }
-      authMode.value = response?.mode ?? 'local'
+      authMode.value = response?.mode ?? AuthMode.Local
       if (response?.server_name) {
         updateProfileDisplayName(profile.id, response.server_name)
       }
 
-      if (authMode.value === 'local') {
+      if (authMode.value === AuthMode.Local) {
         applyApiContext(null, null)
         await refreshServerMetadata()
         bootstrapping.value = false
@@ -151,8 +152,8 @@ export function useAuth() {
         applyApiContext(null, storedSession.token)
         await refreshServerMetadata()
         updateSession(profile.id, {
-          state: 'signed_in',
-          auth_mode: response?.mode ?? 'secret_key',
+          state: ProfileSessionState.SignedIn,
+          auth_mode: response?.mode ?? AuthMode.SecretKey,
         })
         bootstrapping.value = false
         return profile
@@ -165,8 +166,8 @@ export function useAuth() {
       } else {
         applyApiContext(null, null)
         updateSession(profile.id, {
-          state: 'signed_out',
-          auth_mode: response?.mode ?? 'secret_key',
+          state: ProfileSessionState.SignedOut,
+          auth_mode: response?.mode ?? AuthMode.SecretKey,
           last_error: undefined,
         })
       }
@@ -176,14 +177,14 @@ export function useAuth() {
     }
 
     applyApiContext(profile.server_url, null)
-    updateSession(profile.id, { state: 'probing', auth_mode: profile.auth_mode })
+    updateSession(profile.id, { state: ProfileSessionState.Probing, auth_mode: profile.auth_mode })
 
     try {
       const response = await discoverMode(profile)
 
-      if (response.mode !== 'secret_key') {
+      if (response.mode !== AuthMode.SecretKey) {
         updateSession(profile.id, {
-          state: 'error',
+          state: ProfileSessionState.Error,
           auth_mode: response.mode,
           token: undefined,
           last_error: 'Unsupported auth mode for remote profiles',
@@ -198,7 +199,7 @@ export function useAuth() {
         applyApiContext(profile.server_url, storedSession.token)
         await refreshServerMetadata()
         updateSession(profile.id, {
-          state: 'signed_in',
+          state: ProfileSessionState.SignedIn,
           auth_mode: response.mode,
         })
         bootstrapping.value = false
@@ -210,7 +211,7 @@ export function useAuth() {
         await login(profile.username, password)
       } else {
         updateSession(profile.id, {
-          state: 'signed_out',
+          state: ProfileSessionState.SignedOut,
           auth_mode: response.mode,
           last_error: undefined,
         })
@@ -222,7 +223,7 @@ export function useAuth() {
         last_error: message,
       })
       updateSession(profile.id, {
-        state: 'error',
+        state: ProfileSessionState.Error,
         token: undefined,
         last_error: message,
       })
@@ -236,13 +237,13 @@ export function useAuth() {
   async function login(username: string, password: string, serverUrl?: string) {
     const profile = activeProfile.value
     if (!profile) throw new Error('No active profile')
-    const isRemote = profile.type === 'remote'
-    
+    const isRemote = profile.type === WorkspaceProfileType.Remote
+
     const targetServerUrl = serverUrl ?? (isRemote ? profile.server_url : null)
     
     if (isRemote) {
       updateSession(profile.id, {
-        state: 'signing_in',
+        state: ProfileSessionState.SigningIn,
         auth_mode: profile.auth_mode ?? authMode.value ?? undefined,
         last_error: undefined,
       })
@@ -258,13 +259,13 @@ export function useAuth() {
       
       if (isRemote) {
         updateRemoteProfileStatus(profile.id, {
-          connection_status: 'reachable',
+          connection_status: RemoteConnectionStatus.Reachable,
           last_error: undefined,
         })
       }
       updateSession(profile.id, {
-        state: 'signed_in',
-        auth_mode: 'secret_key',
+        state: ProfileSessionState.SignedIn,
+        auth_mode: AuthMode.SecretKey,
         token: res.token,
         username,
         expires_at: expiresAt,
@@ -276,12 +277,12 @@ export function useAuth() {
       applyApiContext(targetServerUrl, null)
       if (isRemote) {
         updateRemoteProfileStatus(profile.id, {
-          connection_status: 'auth_failed',
+          connection_status: RemoteConnectionStatus.AuthFailed,
           last_error: 'Invalid credentials',
         })
       }
       updateSession(profile.id, {
-        state: 'signed_out',
+        state: ProfileSessionState.SignedOut,
         last_error: 'Invalid credentials',
       })
       throw error
@@ -300,12 +301,12 @@ export function useAuth() {
       return
     }
 
-    if (profile.type === 'remote') {
-      updateSession(profile.id, {
-        state: 'signed_out',
-        token: undefined,
-        expires_at: undefined,
-      })
+    if (profile.type === WorkspaceProfileType.Remote) {
+    updateSession(profile.id, {
+      state: ProfileSessionState.SignedOut,
+      token: undefined,
+      expires_at: undefined,
+    })
       updateRemoteProfileStatus(profile.id, {
         last_error: undefined,
       })
@@ -313,11 +314,11 @@ export function useAuth() {
       return
     }
 
-    updateSession(profile.id, {
-      state: 'signed_out',
-      token: undefined,
-      expires_at: undefined,
-    })
+      updateSession(profile.id, {
+        state: ProfileSessionState.SignedOut,
+        token: undefined,
+        expires_at: undefined,
+      })
     applyApiContext(null, null)
   }
 

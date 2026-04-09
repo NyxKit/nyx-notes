@@ -76,10 +76,12 @@ pub trait StorageBackend: Send + Sync {
         comments: &[Comment],
     ) -> Result<(), StorageError>;
 
-    // Sync: scan all homes on disk, compare directory name (home_slug) with
-    // vault/note author_ids, and rewrite author_ids to the correct user_id
-    // from .home.json. Returns (homes_scanned, notes_fixed, vaults_fixed).
-    fn sync_all_homes_author_id(&self) -> Result<SyncResult, StorageError>;
+    // Sync: scan all homes on disk, resolve each home slug to the canonical
+    // user ID, and rewrite vault/note author_ids to that ID.
+    fn sync_all_homes_author_id(
+        &self,
+        resolve_user_id: &dyn Fn(&str) -> Option<String>,
+    ) -> Result<SyncResult, StorageError>;
 
     // Destructive cleanup operations (admin-only, no undo)
     fn remove_all_notes(&self) -> Result<usize, StorageError>;

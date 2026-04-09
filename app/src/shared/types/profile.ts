@@ -1,22 +1,4 @@
-export type AuthMode = 'local' | 'secret_key' | 'oidc'
-
-export type WorkspaceProfileType = 'local' | 'remote'
-
-export type RemoteConnectionStatus =
-  | 'unknown'
-  | 'reachable'
-  | 'unreachable'
-  | 'invalid_server'
-  | 'unsupported_auth'
-  | 'auth_failed'
-
-export type ProfileSessionState =
-  | 'signed_out'
-  | 'probing'
-  | 'signing_in'
-  | 'signed_in'
-  | 'expired'
-  | 'error'
+import type { AuthMode, ProfileSessionState, RemoteConnectionStatus, WorkspaceProfileType } from './enums'
 
 export interface WorkspaceProfile {
   id: string
@@ -27,11 +9,11 @@ export interface WorkspaceProfile {
 }
 
 export interface LocalWorkspaceProfile extends WorkspaceProfile {
-  type: 'local'
+  type: WorkspaceProfileType.Local
 }
 
 export interface RemoteWorkspaceProfile extends WorkspaceProfile {
-  type: 'remote'
+  type: WorkspaceProfileType.Remote
   server_url: string
   username: string
   server_label?: string

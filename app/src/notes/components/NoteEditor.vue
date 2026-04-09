@@ -14,7 +14,8 @@ import { useAuth } from '@/auth/composables'
 import { useNotesStore } from '@/notes/stores'
 import { useEditorStore } from '@/notes/stores'
 import NoteToolbar from './NoteToolbar.vue'
-import type { Note, NotePermission } from '@/shared/types'
+import { AuthMode, NotePermission } from '@/shared/types'
+import type { Note } from '@/shared/types'
 
 const props = defineProps<{
   note: Note
@@ -27,7 +28,7 @@ const emit = defineEmits<{
   'blur-comment': [commentId: string]
 }>()
 
-const { authMode, currentUser } = useAuth()
+const { authMode, currentUser, serverMetadata } = useAuth()
 const notesStore = useNotesStore()
 const { saving } = storeToRefs(notesStore)
 const { save, updatePermission } = notesStore
@@ -49,13 +50,15 @@ watch(
 
 // Read-only when non-author and vault permission is not 'edit'
 const isAuthor = computed(() =>
-  authMode.value === 'local' || currentUser.value?.id === props.note.meta.author_id
+  authMode.value === AuthMode.Local
+  || currentUser.value?.id === props.note.meta.author_id
+  || serverMetadata.value?.current_user_id === props.note.meta.author_id
 )
 
 const readonly = computed(() =>
-  props.note.meta.vault_id !== 'feedback'
+    props.note.meta.vault_id !== 'feedback'
     && !isAuthor.value
-    && props.note.meta.permission !== 'edit'
+    && props.note.meta.permission !== NotePermission.Edit
 )
 
 // Auto-save with 1.5s debounce

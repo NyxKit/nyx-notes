@@ -2,25 +2,12 @@ import { ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { getApiRequestEpoch } from '@/shared/api'
 import { createFeedback, deleteFeedback, fetchFeedback, fetchFeedbackList, updateFeedback } from '@/feedback/api'
-import type { CreateFeedbackRequest, Note, NoteMeta, UpdateFeedbackRequest } from '@/shared/types'
-
-function normalizeNoteMeta(meta: NoteMeta): NoteMeta {
-  return {
-    ...meta,
-    images: meta.images ?? [],
-  }
-}
-
-function normalizeNote(note: Note): Note {
-  return {
-    meta: normalizeNoteMeta(note.meta),
-    content: note.content,
-  }
-}
+import { FeedbackNote, NoteMeta } from '@/shared/types'
+import type { CreateFeedbackRequest, UpdateFeedbackRequest } from '@/shared/types'
 
 export const useFeedbackStore = defineStore('feedback', () => {
   const feedbackItems = ref<NoteMeta[]>([])
-  const activeFeedback = ref<Note | null>(null)
+  const activeFeedback = ref<FeedbackNote | null>(null)
   const listLoading = ref(false)
   const loading = ref(false)
   const saving = ref(false)
@@ -33,7 +20,7 @@ export const useFeedbackStore = defineStore('feedback', () => {
     try {
       const items = await fetchFeedbackList()
       if (requestEpoch !== getApiRequestEpoch()) return
-      feedbackItems.value = items.map(normalizeNoteMeta)
+      feedbackItems.value = items
     } catch (e) {
       error.value = String(e)
     } finally {
@@ -48,7 +35,7 @@ export const useFeedbackStore = defineStore('feedback', () => {
     try {
       const feedback = await fetchFeedback(id)
       if (requestEpoch !== getApiRequestEpoch()) return
-      activeFeedback.value = normalizeNote(feedback)
+      activeFeedback.value = feedback
     } catch (e) {
       error.value = String(e)
     } finally {
@@ -60,9 +47,8 @@ export const useFeedbackStore = defineStore('feedback', () => {
     saving.value = true
     try {
       const meta = await createFeedback(body)
-      const normalized = normalizeNoteMeta(meta)
-      feedbackItems.value = [normalized, ...feedbackItems.value]
-      return normalized
+      feedbackItems.value = [meta, ...feedbackItems.value]
+      return meta
     } finally {
       saving.value = false
     }
@@ -72,13 +58,12 @@ export const useFeedbackStore = defineStore('feedback', () => {
     saving.value = true
     try {
       const meta = await updateFeedback(id, body)
-      const normalized = normalizeNoteMeta(meta)
       const idx = feedbackItems.value.findIndex(item => item.id === id)
-      if (idx !== -1) feedbackItems.value[idx] = normalized
+      if (idx !== -1) feedbackItems.value[idx] = meta
       if (activeFeedback.value?.meta.id === id) {
-        activeFeedback.value = { meta: normalized, content: body.description }
+        activeFeedback.value = new FeedbackNote({ meta, content: body.description })
       }
-      return normalized
+      return meta
     } finally {
       saving.value = false
     }

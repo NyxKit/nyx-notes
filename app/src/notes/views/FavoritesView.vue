@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 import type { NyxSelectOption } from 'nyx-kit/types'
 import { GlobalNoteBrowseView } from '@/notes/components'
 import { useNoteBrowsingStore } from '@/notes/stores'
+import { GlobalBrowseSortMode } from '@/shared/types'
 
 const browsingStore = useNoteBrowsingStore()
 const {
@@ -17,8 +18,8 @@ const {
 const { loadFavorites, setFavoritesSortMode } = browsingStore
 
 const sortOptions: NyxSelectOption[] = [
-  { label: 'Recent', value: 'recent' },
-  { label: 'Grouped by origin', value: 'grouped' },
+  { label: 'Recent', value: GlobalBrowseSortMode.Recent },
+  { label: 'Grouped by origin', value: GlobalBrowseSortMode.Grouped },
 ]
 
 onMounted(async () => {
@@ -40,6 +41,6 @@ watch(favoriteRefs, async () => {
     :sort-options="sortOptions"
     empty-title="No favorite notes yet"
     empty-message="Favorite notes from any reachable profile or vault to collect them here."
-    @update:sort-model-value="setFavoritesSortMode($event as 'recent' | 'grouped')"
+    @update:sort-model-value="setFavoritesSortMode($event as Exclude<GlobalBrowseSortMode, GlobalBrowseSortMode.BestMatch>)"
   />
 </template>

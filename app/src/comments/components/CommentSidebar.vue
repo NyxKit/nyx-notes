@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick } from 'vue'
 import { useAuth } from '@/auth/composables'
 import { useComments } from '@/comments/composables'
 import { CommentThread, CommentComposer } from '@/comments/components'
+import { AuthMode } from '@/shared/types'
 import type { Note } from '@/shared/types'
 import { NyxTabs } from 'nyx-kit/components'
 
@@ -10,7 +11,7 @@ const props = defineProps<{
   note: Note
 }>()
 
-const { authMode, currentUser } = useAuth()
+const { authMode, currentUser, serverMetadata } = useAuth()
 const { comments, loading, draftComment, cancelDraftComment, submitDraftComment, setActiveComment, activeCommentId, activeTab } = useComments()
 
 const showComposer = ref(false)
@@ -18,7 +19,9 @@ const submitting = ref(false)
 const threadRefs = ref<Record<string, HTMLElement | null>>({})
 
 const isNoteAuthor = computed(() =>
-  authMode.value === 'local' || currentUser.value?.id === props.note.meta.author_id
+  authMode.value === AuthMode.Local
+  || currentUser.value?.id === props.note.meta.author_id
+  || serverMetadata.value?.current_user_id === props.note.meta.author_id
 )
 
 const openComments = computed(() => comments.value.filter(c => !c.resolved))

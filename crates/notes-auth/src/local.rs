@@ -34,6 +34,14 @@ impl AuthStore for LocalAuthStore {
         }
     }
 
+    fn find_user_by_username(&self, username: &str) -> Result<Option<User>, AuthError> {
+        if username == self.user.username {
+            Ok(Some(self.user.clone()))
+        } else {
+            Ok(None)
+        }
+    }
+
     fn verify_token(&self, _token: &str) -> Result<User, AuthError> {
         Ok(self.user.clone())
     }

@@ -142,9 +142,12 @@ impl AsyncStorageAdapter {
             .map_err(Self::wrap_join_err)?
     }
 
-    pub async fn sync_all_homes_author_id(&self) -> Result<SyncResult, StorageError> {
+    pub async fn sync_all_homes_author_id(
+        &self,
+        resolve_user_id: std::sync::Arc<dyn Fn(&str) -> Option<String> + Send + Sync>,
+    ) -> Result<SyncResult, StorageError> {
         let s = Arc::clone(&self.0);
-        tokio::task::spawn_blocking(move || s.sync_all_homes_author_id())
+        tokio::task::spawn_blocking(move || s.sync_all_homes_author_id(&*resolve_user_id))
             .await
             .map_err(Self::wrap_join_err)?
     }

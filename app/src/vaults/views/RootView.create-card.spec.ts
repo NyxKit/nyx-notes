@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createVault, fetchPersonalVaults, fetchVaults } from '@/vaults/api'
+import { NotePermission, VaultOwnerType } from '@/shared/types'
 import RootView from './RootView.vue'
 
 const push = vi.fn()
@@ -36,8 +37,8 @@ describe('RootView create card', () => {
         slug: 'writing',
         name: 'Writing',
         description: 'Fresh drafts and long-form work.',
-        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
-        permission: 'edit',
+        owner: { type: VaultOwnerType.Home, server_slug: 'main-server', home_slug: 'user-1' },
+        permission: NotePermission.Edit,
         icon: 'folder',
       },
       {
@@ -45,8 +46,8 @@ describe('RootView create card', () => {
         slug: 'archive',
         name: 'Archive',
         description: 'Finished material.',
-        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
-        permission: 'edit',
+        owner: { type: VaultOwnerType.Home, server_slug: 'main-server', home_slug: 'user-1' },
+        permission: NotePermission.Edit,
         icon: 'folder',
       },
     ])
@@ -56,8 +57,8 @@ describe('RootView create card', () => {
         slug: 'writing',
         name: 'Writing',
         description: 'Fresh drafts and long-form work.',
-        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
-        permission: 'edit',
+        owner: { type: VaultOwnerType.Home, server_slug: 'main-server', home_slug: 'user-1' },
+        permission: NotePermission.Edit,
         icon: 'folder',
       },
       {
@@ -65,8 +66,8 @@ describe('RootView create card', () => {
         slug: 'archive',
         name: 'Archive',
         description: 'Finished material.',
-        owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
-        permission: 'edit',
+        owner: { type: VaultOwnerType.Home, server_slug: 'main-server', home_slug: 'user-1' },
+        permission: NotePermission.Edit,
         icon: 'folder',
       },
     ])
@@ -75,8 +76,8 @@ describe('RootView create card', () => {
       slug: 'ideas',
       name: 'Ideas',
       description: 'Quick capture for future projects.',
-      owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
-      permission: 'edit',
+      owner: { type: VaultOwnerType.Home, server_slug: 'main-server', home_slug: 'user-1' },
+      permission: NotePermission.Edit,
       icon: 'folder',
     })
   })

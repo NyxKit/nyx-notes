@@ -4,7 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
-import { RouteName } from '@/shared/types'
+import { AuthMode, ServerRole, RouteName } from '@/shared/types'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore } from '@/notes/stores'
 import { VaultSwitcher } from '@/vaults/components'
@@ -42,7 +42,7 @@ async function refreshWorkspace() {
 }
 
 function openFeedback() {
-  if (serverMetadata.value?.role === 'admin') {
+  if (serverMetadata.value?.role === ServerRole.Admin) {
     router.push({ name: RouteName.Feedback, params: { server_slug: serverMetadata.value.slug } })
     return
   }
@@ -83,7 +83,7 @@ watch(
         <SidebarNav />
         <NoteList />
         <SidebarNavItem
-          v-if="serverMetadata?.role === 'admin'"
+          v-if="serverMetadata?.role === ServerRole.Admin"
           :to="{ name: RouteName.Feedback, params: { server_slug: serverMetadata.slug } }"
           class="app-shell__settings-link app-shell__feedback-link"
           icon="bug"
@@ -101,7 +101,7 @@ watch(
         </SidebarNavItem>
 
         <SidebarNavItem
-          v-if="authMode === 'secret_key' && serverMetadata?.role === 'admin'"
+          v-if="authMode === AuthMode.SecretKey && serverMetadata?.role === ServerRole.Admin"
           :to="{ name: RouteName.Users }"
           icon="users"
           class="app-shell__settings-link app-shell__users-link"

@@ -27,6 +27,8 @@ withDefaults(defineProps<{
           <p v-if="note.description" class="note-card__description">{{ note.description }}</p>
         </div>
 
+        <p v-if="note.tags.length" class="note-card__tags">{{ note.tags.join(' · ') }}</p>
+
 
         <footer class="note-card__meta">
           <span class="note-card__meta-origin">
@@ -127,6 +129,15 @@ withDefaults(defineProps<{
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
   line-clamp: 4;
+}
+
+.note-card__tags {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--nyx-browse-card-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .note-card__date {

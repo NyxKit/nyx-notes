@@ -2,11 +2,12 @@ import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
 import FavoritesView from './FavoritesView.vue'
+import { GlobalBrowseSortMode } from '@/shared/types'
 
 const loadFavorites = vi.fn()
 const favoriteResults = ref([])
 const favoriteRefs = ref([])
-const favoritesSortMode = ref<'recent' | 'grouped'>('recent')
+const favoritesSortMode = ref<GlobalBrowseSortMode>(GlobalBrowseSortMode.Recent)
 const favoritesLoading = ref(false)
 const favoritesError = ref<string | null>(null)
 const favoritesExcludedProfilesCount = ref(0)

@@ -1,7 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
-import { RouteName } from '@/shared/types/router'
+import { RouteName, RoutePath, RouteQueryKey } from '@/shared/types/router'
+import { AuthMode, ServerRole } from '@/shared/types'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -17,12 +18,12 @@ const router = createRouter({
           component: () => import('@/vaults/views').then(({ HomeView }) => HomeView),
         },
         {
-          path: 'search',
+          path: RoutePath.Search,
           name: RouteName.Search,
           component: () => import('@/notes/views').then(({ GlobalSearchView }) => GlobalSearchView),
         },
         {
-          path: 'favorites',
+          path: RoutePath.Favorites,
           name: RouteName.Favorites,
           component: () => import('@/notes/views').then(({ FavoritesView }) => FavoritesView),
         },
@@ -79,24 +80,24 @@ const router = createRouter({
           component: () => import('@/vaults/views').then(({ VaultSettingsView }) => VaultSettingsView),
         },
         {
-          path: 'settings',
+          path: RoutePath.Settings,
           name: RouteName.Settings,
           component: () => import('@/settings/views').then(({ SettingsView }) => SettingsView),
         },
         {
-          path: 'users',
+          path: RoutePath.Users,
           name: RouteName.Users,
           component: () => import('@/users/views').then(({ UsersView }) => UsersView),
         },
       ],
     },
     {
-      path: '/login',
+      path: RoutePath.Login,
       name: RouteName.Login,
       component: () => import('@/auth/views').then(({ LoginView }) => LoginView),
     },
     {
-      path: '/setup',
+      path: RoutePath.Setup,
       name: RouteName.Setup,
       component: () => import('@/auth/views').then(({ SetupView }) => SetupView),
     },
@@ -108,8 +109,8 @@ router.beforeEach(async (to) => {
   const { authMode, isAuthenticated, bootstrapActiveProfile, checkInitialized, serverMetadata } = useAuth()
   let switchedProfile = false
 
-  if (typeof to.query.profile === 'string' && to.query.profile !== activeProfile.value?.id) {
-    const nextProfile = setActiveProfile(to.query.profile)
+  if (typeof to.query[RouteQueryKey.Profile] === 'string' && to.query[RouteQueryKey.Profile] !== activeProfile.value?.id) {
+    const nextProfile = setActiveProfile(to.query[RouteQueryKey.Profile])
     if (!nextProfile) {
       return { path: '/' }
     }
@@ -117,48 +118,48 @@ router.beforeEach(async (to) => {
   }
 
   if (!activeProfile.value) {
-    if (to.path === '/login') return true
-    return { path: '/login', query: { redirect: to.fullPath } }
+    if (to.path === RoutePath.Login) return true
+    return { path: RoutePath.Login, query: { [RouteQueryKey.Redirect]: to.fullPath } }
   }
 
   if (switchedProfile || authMode.value === null) {
     await bootstrapActiveProfile()
   }
 
-  if ((to.name === RouteName.Feedback || to.name === RouteName.FeedbackNote) && serverMetadata.value && serverMetadata.value.role !== 'admin') {
+  if ((to.name === RouteName.Feedback || to.name === RouteName.FeedbackNote) && serverMetadata.value && serverMetadata.value.role !== ServerRole.Admin) {
     return { path: '/' }
   }
 
-  if (authMode.value === 'local') return true
+  if (authMode.value === AuthMode.Local) return true
 
-  if (to.path === '/login') return true
+  if (to.path === RoutePath.Login) return true
 
-  if (to.path === '/setup') {
+  if (to.path === RoutePath.Setup) {
     const initialized = await checkInitialized()
     if (initialized) {
-      return { path: '/login' }
+      return { path: RoutePath.Login }
     }
     return true
   }
 
   const initialized = await checkInitialized()
   if (!initialized) {
-    return { path: '/setup' }
+    return { path: RoutePath.Setup }
   }
 
   if (to.meta.requiresAuth && !isAuthenticated.value) {
-    return { path: '/login', query: { redirect: to.fullPath } }
+    return { path: RoutePath.Login, query: { [RouteQueryKey.Redirect]: to.fullPath } }
   }
 
-  if (to.path === '/login' && isAuthenticated.value && !('add' in to.query) && !('manage' in to.query)) {
-    return { path: '/' }
+  if (to.path === RoutePath.Login && isAuthenticated.value && !(RouteQueryKey.Add in to.query) && !(RouteQueryKey.Manage in to.query)) {
+    return { path: RoutePath.Home }
   }
 })
 
 router.afterEach((to) => {
   const { activeProfile, updateProfileRoute } = useWorkspaceProfiles()
   if (!activeProfile.value) return
-  if (to.path === '/login') return
+  if (to.path === RoutePath.Login) return
   updateProfileRoute(activeProfile.value.id, to.fullPath)
 })
 

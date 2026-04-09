@@ -1,4 +1,5 @@
 import type { AnyWorkspaceProfile, StoredWorkspaceProfiles } from '@/shared/types'
+import { WorkspaceProfileType } from '@/shared/types'
 
 const STORAGE_KEY = 'nyx_workspace_profiles'
 const LOCAL_PROFILE_ID = 'local'
@@ -63,7 +64,7 @@ export function remoteProfileKey(serverUrl: string, username: string) {
 
 export function sortProfiles(profiles: AnyWorkspaceProfile[]) {
   return [...profiles].sort((left, right) => {
-    if (left.type !== right.type) return left.type === 'local' ? -1 : 1
+    if (left.type !== right.type) return left.type === WorkspaceProfileType.Local ? -1 : 1
     return left.display_name.localeCompare(right.display_name)
   })
 }

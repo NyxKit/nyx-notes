@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import type { Vault } from '@/shared/types'
+import { NotePermission, VaultOwnerType } from '@/shared/types'
 import VaultCard from './VaultCard.vue'
 
 describe('VaultCard', () => {
@@ -9,8 +10,8 @@ describe('VaultCard', () => {
     slug: 'research-notes',
     name: 'Research Notes',
     description: 'Drafts, references, and interview transcripts.',
-    owner: { type: 'home', server_slug: 'main-server', home_slug: 'user-1' },
-    permission: 'edit',
+    owner: { type: VaultOwnerType.Home, server_slug: 'main-server', home_slug: 'user-1' },
+    permission: NotePermission.Edit,
     icon: 'folder',
   }
 

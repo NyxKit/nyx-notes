@@ -5,6 +5,7 @@ import type {
   RemoteProfileDraft,
   RemoteWorkspaceProfile,
 } from '@/shared/types'
+import { RemoteConnectionStatus, WorkspaceProfileType } from '@/shared/types'
 import {
   LOCAL_PROFILE_ID,
   createProfileId,
@@ -27,7 +28,7 @@ if (!initialActiveId || !initialProfiles.some(p => p.id === initialActiveId)) {
   if (!existingLocal) {
     initialProfiles = sortProfiles([
       ...initialProfiles,
-      { id: LOCAL_PROFILE_ID, type: 'local', display_name: 'Main Server' },
+      { id: LOCAL_PROFILE_ID, type: WorkspaceProfileType.Local, display_name: 'Main Server' },
     ])
   }
   initialActiveId = LOCAL_PROFILE_ID
@@ -65,7 +66,7 @@ export function useWorkspaceProfiles() {
   )
 
   const remoteProfiles = computed(() =>
-    profiles.value.filter((profile): profile is RemoteWorkspaceProfile => profile.type === 'remote')
+    profiles.value.filter((profile): profile is RemoteWorkspaceProfile => profile.type === WorkspaceProfileType.Remote)
   )
 
   function setActiveProfile(profileId: string): ProfileActivationResult | null {
@@ -77,7 +78,7 @@ export function useWorkspaceProfiles() {
 
     return {
       profile,
-      requires_login: profile.type === 'remote',
+      requires_login: profile.type === WorkspaceProfileType.Remote,
     }
   }
 
@@ -86,7 +87,7 @@ export function useWorkspaceProfiles() {
     if (!existingLocal) {
       profiles.value = sortProfiles([
         ...profiles.value,
-        { id: LOCAL_PROFILE_ID, type: 'local', display_name: 'Main Server' },
+        { id: LOCAL_PROFILE_ID, type: WorkspaceProfileType.Local, display_name: 'Main Server' },
       ])
     }
 
@@ -108,11 +109,11 @@ export function useWorkspaceProfiles() {
 
     const profile: RemoteWorkspaceProfile = {
       id: createProfileId(),
-      type: 'remote',
+      type: WorkspaceProfileType.Remote,
       display_name: draft.display_name.trim() || draft.username.trim() || normalizedUrl,
       server_url: normalizedUrl,
       username: draft.username.trim(),
-      connection_status: 'unknown',
+      connection_status: RemoteConnectionStatus.Unknown,
     }
 
     profiles.value = sortProfiles([...profiles.value, profile])
@@ -140,7 +141,7 @@ export function useWorkspaceProfiles() {
       display_name: draft.display_name.trim() || draft.username.trim() || normalizedUrl,
       server_url: normalizedUrl,
       username: draft.username.trim(),
-      connection_status: 'unknown',
+      connection_status: RemoteConnectionStatus.Unknown,
       last_error: undefined,
     })
     storeProfilePassword(profileId, draft.password)
