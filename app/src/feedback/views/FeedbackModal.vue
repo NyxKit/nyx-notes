@@ -18,6 +18,7 @@ const form = reactive({
   feedback_type: 'feedback',
   images: [] as FeedbackImageUpload[],
 })
+const submitError = reactive({ message: '' })
 
 watch(
   feedbackDialogOpen,
@@ -27,19 +28,26 @@ watch(
     form.description = ''
     form.feedback_type = 'feedback'
     form.images = []
+    submitError.message = ''
   },
   { immediate: true }
 )
 
 async function submit() {
-  await store.create(defaultFeedbackRequest({
-    title: form.title,
-    description: form.description,
-    feedback_type: form.feedback_type,
-    images: form.images,
-  }))
+  submitError.message = ''
 
-  closeFeedbackDialog()
+  try {
+    await store.create(defaultFeedbackRequest({
+      title: form.title,
+      description: form.description,
+      feedback_type: form.feedback_type,
+      images: JSON.parse(JSON.stringify(form.images)) as FeedbackImageUpload[],
+    }))
+
+    closeFeedbackDialog()
+  } catch (error) {
+    submitError.message = error instanceof Error ? error.message : 'Unable to submit feedback'
+  }
 }
 </script>
 
@@ -73,6 +81,10 @@ async function submit() {
 
       <FeedbackAttachments v-model:images="form.images" />
 
+      <div v-if="submitError.message" class="feedback-modal__error">
+        {{ submitError.message }}
+      </div>
+
       <div class="feedback-modal__actions">
         <NyxButton type="button" :variant="NyxVariant.Soft" @click="closeFeedbackDialog">Cancel</NyxButton>
         <NyxButton :gradient="true" :theme="NyxTheme.Primary" type="submit">Submit Feedback</NyxButton>
@@ -91,5 +103,13 @@ async function submit() {
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.feedback-modal__error {
+  padding: 0.75rem 0.875rem;
+  border-radius: var(--nyx-radius-md);
+  background: rgba(239, 68, 68, 0.12);
+  color: #fda4af;
+  font-size: 0.875rem;
 }
 </style>

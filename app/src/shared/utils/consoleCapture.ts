@@ -1,4 +1,4 @@
-const MAX_LINES = 200
+const MAX_LINES = 80
 
 const buffer: string[] = []
 let installed = false
@@ -24,7 +24,7 @@ export function installConsoleCapture() {
   if (installed || typeof console === 'undefined') return
   installed = true
 
-  for (const method of ['log', 'info', 'warn', 'error', 'debug'] as const) {
+  for (const method of ['warn', 'error'] as const) {
     const original = console[method].bind(console)
     console[method] = (...args: unknown[]) => {
       pushEntry(method, args)
