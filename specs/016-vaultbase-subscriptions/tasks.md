@@ -77,16 +77,16 @@
 
 ### Tests for User Story 2
 
-- [ ] T023 [P] [US2] Add frontend ref-counting and dedupe tests in app/src/shared/api/subscriptionManager.dedupe.spec.ts
-- [ ] T024 [P] [US2] Add backend broker fanout tests for duplicate listeners in crates/notes-server-axum/tests/subscriptions_fanout.rs
+- [X] T023 [P] [US2] Add frontend ref-counting and dedupe tests in app/src/shared/api/subscriptionManager.dedupe.spec.ts
+- [X] T024 [P] [US2] Add backend broker fanout tests for duplicate listeners in crates/notes-server-axum/tests/subscriptions_api.rs
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Implement canonical query-key normalization and registry ownership in app/src/shared/api/subscriptionManager.ts
-- [ ] T026 [US2] Add shared handle reference tracking and delayed release behavior in app/src/shared/api/subscriptionManager.ts
-- [ ] T027 [US2] Replay latest shared snapshots to late subscribers in app/src/shared/api/subscriptionManager.ts and app/src/shared/api/vaultBase.ts
-- [ ] T028 [US2] Ensure backend broker reuses one upstream scope per normalized key in crates/notes-server-axum/src/live/broker.rs and crates/notes-server-axum/src/live/scopes.rs
-- [ ] T029 [US2] Integrate shared subscription reuse into vault and note store/composable orchestration in app/src/vaults/stores/vaults.ts, app/src/notes/stores/notes.ts, app/src/vaults/composables/useVaults.ts, and app/src/notes/composables/useGlobalNoteBrowsing.ts
+- [X] T025 [US2] Implement canonical query-key normalization and registry ownership in app/src/shared/api/subscriptionManager.ts
+- [X] T026 [US2] Add shared handle reference tracking and delayed release behavior in app/src/shared/api/subscriptionManager.ts
+- [X] T027 [US2] Replay latest shared snapshots to late subscribers in app/src/shared/api/subscriptionManager.ts and app/src/shared/api/vaultBase.ts
+- [X] T028 [US2] Ensure backend broker reuses one upstream scope per normalized key in crates/notes-server-axum/src/live/broker.rs and crates/notes-server-axum/src/live/scopes.rs
+- [X] T029 [US2] Integrate shared subscription reuse into vault and note store/composable orchestration in app/src/vaults/stores/vaults.ts, app/src/notes/stores/notes.ts, app/src/vaults/composables/useVaults.ts, and app/src/notes/composables/useGlobalNoteBrowsing.ts
 
 **Checkpoint**: User Stories 1 and 2 should both work independently, with shared subscriptions deduplicated across consumers.
 
@@ -100,15 +100,15 @@
 
 ### Tests for User Story 3
 
-- [ ] T030 [P] [US3] Add composable lifecycle and query-switch tests in app/src/shared/composables/useSubscription.spec.ts
-- [ ] T031 [P] [US3] Add stale-event rejection tests in app/src/shared/api/subscriptionManager.generation.spec.ts
+- [X] T030 [P] [US3] Add composable lifecycle and query-switch tests in app/src/shared/composables/useSubscription.spec.ts
+- [X] T031 [P] [US3] Add stale-event rejection tests in app/src/shared/api/subscriptionManager.generation.spec.ts
 
 ### Implementation for User Story 3
 
-- [ ] T032 [US3] Add generation fencing and stale-event rejection to the subscription manager in app/src/shared/api/subscriptionManager.ts
-- [ ] T033 [US3] Implement reusable mount/unmount and query-switch lifecycle helpers in app/src/shared/composables/useSubscription.ts
-- [ ] T034 [US3] Refactor useVaults to rely only on shared lifecycle helpers and store subscribe/select patterns in app/src/vaults/composables/useVaults.ts
-- [ ] T035 [US3] Refactor note-related composables to rely only on shared lifecycle helpers and store subscribe/select patterns in app/src/notes/composables/useGlobalNoteBrowsing.ts and app/src/notes/composables/index.ts
+- [X] T032 [US3] Add generation fencing and stale-event rejection to the subscription manager in app/src/shared/api/subscriptionManager.ts
+- [X] T033 [US3] Implement reusable mount/unmount and query-switch lifecycle helpers in app/src/shared/composables/useSubscription.ts
+- [X] T034 [US3] Refactor useVaults to rely only on shared lifecycle helpers and store subscribe/select patterns in app/src/vaults/composables/useVaults.ts
+- [X] T035 [US3] Refactor note-related composables to rely only on shared lifecycle helpers and store subscribe/select patterns in app/src/notes/composables/useGlobalNoteBrowsing.ts and app/src/notes/composables/index.ts
 - [ ] T036 [US3] Document the composable adoption pattern for future domains in docs/interface/frontend.md and specs/016-vaultbase-subscriptions/quickstart.md
 
 **Checkpoint**: All user stories should now be independently functional.

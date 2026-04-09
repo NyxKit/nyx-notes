@@ -151,3 +151,46 @@ async fn live_note_scope_requires_note_id_for_document_queries() {
 
     let _ = std::fs::remove_dir_all(root);
 }
+
+#[tokio::test]
+async fn live_broker_fanout_multiple_listeners() {
+    use notes_server_axum::live::broker::LiveBroker;
+
+    let broker = LiveBroker::default();
+    let key = "test-scope";
+
+    let count1 = broker.attach(key);
+    assert_eq!(count1, 1);
+
+    let count2 = broker.attach(key);
+    assert_eq!(count2, 2);
+
+    let count3 = broker.listeners(key);
+    assert_eq!(count3, 2);
+
+    let remaining = broker.release(key);
+    assert_eq!(remaining, 1);
+
+    let final_count = broker.release(key);
+    assert_eq!(final_count, 0);
+}
+
+#[tokio::test]
+async fn live_broker_version_increments_on_publish() {
+    use notes_server_axum::live::broker::LiveBroker;
+
+    let broker = LiveBroker::default();
+    let key = "test-scope";
+
+    let v1 = broker.publish(key);
+    assert_eq!(v1, 1);
+
+    let v2 = broker.version(key);
+    assert_eq!(v2, 1);
+
+    let v3 = broker.publish(key);
+    assert_eq!(v3, 2);
+
+    let v4 = broker.version(key);
+    assert_eq!(v4, 2);
+}
