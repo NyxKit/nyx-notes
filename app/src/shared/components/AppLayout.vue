@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuth } from '@/auth/composables'
 import { useWorkspaceProfiles } from '@/shared/composables'
@@ -13,12 +13,16 @@ import SidebarNav from './SidebarNav.vue'
 import SidebarNavItem from './SidebarNavItem.vue'
 import { NoteList, NoteSearch } from '@/notes/components'
 import type { Vault } from '@/shared/types'
+import { useFeedbackDialog } from '@/feedback/composables'
+import { FeedbackModal } from '@/feedback/views'
 
 const route = useRoute()
+const router = useRouter()
 const vaultStore = useVaultStore()
 const notesStore = useNotesStore()
 const { apiEpoch, isAuthenticated, authMode, serverMetadata } = useAuth()
 const { activeProfile } = useWorkspaceProfiles()
+const { openFeedbackDialog } = useFeedbackDialog()
 const { vaults } = storeToRefs(vaultStore)
 const { load } = vaultStore
 const { loadAll } = notesStore
@@ -37,7 +41,16 @@ async function refreshWorkspace() {
   }
 }
 
-watch([activeProfile, apiEpoch], async () => {
+function openFeedback() {
+  if (serverMetadata.value?.role === 'admin') {
+    router.push({ name: RouteName.Feedback, params: { server_slug: serverMetadata.value.slug } })
+    return
+  }
+
+  openFeedbackDialog()
+}
+
+watch([activeProfile, apiEpoch, authMode], async () => {
   await refreshWorkspace()
 }, {
   immediate: true,
@@ -70,6 +83,24 @@ watch(
         <SidebarNav />
         <NoteList />
         <SidebarNavItem
+          v-if="serverMetadata?.role === 'admin'"
+          :to="{ name: RouteName.Feedback, params: { server_slug: serverMetadata.slug } }"
+          class="app-shell__settings-link app-shell__feedback-link"
+          icon="bug"
+          :active="route.name === RouteName.Feedback || route.name === RouteName.FeedbackNote"
+        >
+          Feedback
+        </SidebarNavItem>
+        <SidebarNavItem
+          v-else
+          class="app-shell__settings-link app-shell__feedback-link"
+          icon="bug"
+          @click="openFeedback"
+        >
+          Feedback
+        </SidebarNavItem>
+
+        <SidebarNavItem
           v-if="authMode === 'secret_key' && serverMetadata?.role === 'admin'"
           :to="{ name: RouteName.Users }"
           icon="users"
@@ -96,13 +127,18 @@ watch(
     </header>
 
     <RouterView class="app-shell__body" />
+    <FeedbackModal />
   </div>
 </template>
 
 <style scoped>
 .app-shell__settings-link {
   margin: 0 0.75rem 0.75rem;
-  border-top: 1px solid var(--nyx-c-divider);
+  flex-shrink: 0;
+}
+
+.app-shell__feedback-link {
+  margin: 0 0.75rem 0.75rem;
   flex-shrink: 0;
 }
 

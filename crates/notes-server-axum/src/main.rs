@@ -69,6 +69,7 @@ async fn main() {
         storage: AsyncStorageAdapter::new(Arc::new(FsStorage::new(notes_root_path))),
         auth,
         auth_config,
+        root_path: notes_root_path.to_path_buf(),
     };
 
     let static_dir = std::env::var("STATIC_DIR").unwrap_or_else(|_| "./dist".into());

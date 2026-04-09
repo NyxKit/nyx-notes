@@ -81,7 +81,9 @@ pub async fn list_vaults(
             server_slug: current_server_slug(),
         })
         .await?;
-    vaults.extend(shared_vaults);
+    vaults.extend(shared_vaults.into_iter().filter(|vault| {
+        matches!(user.role, ServerRole::Admin) || vault.slug != "feedback"
+    }));
 
     Ok(Json(vaults))
 }
@@ -103,14 +105,17 @@ pub async fn list_personal_vaults(
 
 pub async fn list_server_vaults(
     State(state): State<AppState>,
-    _user: AuthenticatedUser,
+    AuthenticatedUser(user): AuthenticatedUser,
 ) -> Result<Json<Vec<Vault>>, AppError> {
     let vaults = state
         .storage
         .list_vaults(VaultOwner::Server {
             server_slug: current_server_slug(),
         })
-        .await?;
+        .await?
+        .into_iter()
+        .filter(|vault| matches!(user.role, ServerRole::Admin) || vault.slug != "feedback")
+        .collect();
 
     Ok(Json(vaults))
 }

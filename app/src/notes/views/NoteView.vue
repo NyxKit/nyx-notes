@@ -13,6 +13,7 @@ import { NyxModal, NyxButton, NyxIcon } from 'nyx-kit/components'
 import { NyxTheme, NyxShape, NyxVariant } from 'nyx-kit/types'
 import { NoteEditor } from '@/notes/components'
 import { CommentSidebar } from '@/comments/components'
+import { ImageShelf } from '@/shared/components'
 
 const route = useRoute()
 const router = useRouter()
@@ -188,6 +189,7 @@ watch(
             @focus-comment="onFocusComment"
             @blur-comment="setActiveComment(null)"
           />
+          <ImageShelf v-if="activeNote" :images="activeNote.meta.images ?? []" title="Images" />
           <div v-else class="note-view__placeholder">Select a note</div>
         </template>
         <div v-else class="note-view__wip">

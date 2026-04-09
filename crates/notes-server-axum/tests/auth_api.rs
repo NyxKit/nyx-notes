@@ -2,7 +2,7 @@ use std::{path::PathBuf, sync::Arc, time::{SystemTime, UNIX_EPOCH}};
 
 use axum::{body::{to_bytes, Body}, http::{Request, StatusCode}};
 use notes_auth::{LocalAuthStore, SecretKeyAuthStore};
-use notes_core::AuthStore;
+use notes_core::{AuthStore, CreateUserInput};
 use notes_server_axum::{routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
 use notes_storage_fs::FsStorage;
 use tower::ServiceExt;
@@ -24,6 +24,7 @@ async fn auth_mode_reports_optional_api_version_metadata() {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
         auth: Arc::new(LocalAuthStore::new("local".into(), "Local User".into())),
         auth_config: AuthConfig::SecretKey,
+        root_path: root.clone(),
     });
 
     let response = app
@@ -50,6 +51,7 @@ async fn login_returns_422_when_auth_mode_does_not_support_password_login() {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
         auth: Arc::new(LocalAuthStore::new("local".into(), "Local User".into())),
         auth_config: AuthConfig::Local,
+        root_path: root.clone(),
     });
 
     let response = app
@@ -71,14 +73,21 @@ async fn login_returns_401_for_invalid_secret_key_credentials() {
     let root = temp_root();
     let _ = std::fs::create_dir_all(&root);
     let storage = FsStorage::new(&root);
-    let auth: Arc<dyn AuthStore> = Arc::new(
-        SecretKeyAuthStore::new(&root, &[7; 32], Some("Correct-password1")).unwrap(),
-    );
+    let auth_store = SecretKeyAuthStore::new(&root, &[7; 32], "main-server").unwrap();
+    auth_store.setup_initial_user(CreateUserInput {
+        username: "admin".into(),
+        email: "admin@example.com".into(),
+        display_name: "Admin".into(),
+        role: Some(notes_core::ServerRole::Admin),
+        password: "Correct-password1".into(),
+    }).unwrap();
+    let auth: Arc<dyn AuthStore> = Arc::new(auth_store);
 
     let app = routes::router().with_state(AppState {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
         auth,
         auth_config: AuthConfig::SecretKey,
+        root_path: root.clone(),
     });
 
     let response = app

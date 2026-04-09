@@ -27,6 +27,16 @@ const router = createRouter({
           component: () => import('@/notes/views').then(({ FavoritesView }) => FavoritesView),
         },
         {
+          path: ':server_slug/feedback',
+          name: RouteName.Feedback,
+          component: () => import('@/feedback/views').then(({ FeedbackVaultView }) => FeedbackVaultView),
+        },
+        {
+          path: ':server_slug/feedback/:id',
+          name: RouteName.FeedbackNote,
+          component: () => import('@/feedback/views').then(({ FeedbackNoteView }) => FeedbackNoteView),
+        },
+        {
           path: ':server_slug/homes/:home_slug',
           name: RouteName.UserRoot,
           component: () => import('@/vaults/views').then(({ RootView }) => RootView),
@@ -95,7 +105,7 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const { activeProfile, setActiveProfile } = useWorkspaceProfiles()
-  const { authMode, isAuthenticated, bootstrapActiveProfile, checkInitialized } = useAuth()
+  const { authMode, isAuthenticated, bootstrapActiveProfile, checkInitialized, serverMetadata } = useAuth()
   let switchedProfile = false
 
   if (typeof to.query.profile === 'string' && to.query.profile !== activeProfile.value?.id) {
@@ -115,10 +125,14 @@ router.beforeEach(async (to) => {
     await bootstrapActiveProfile()
   }
 
+  if ((to.name === RouteName.Feedback || to.name === RouteName.FeedbackNote) && serverMetadata.value && serverMetadata.value.role !== 'admin') {
+    return { path: '/' }
+  }
+
   if (authMode.value === 'local') return true
 
   if (to.path === '/login') return true
-  
+
   if (to.path === '/setup') {
     const initialized = await checkInitialized()
     if (initialized) {

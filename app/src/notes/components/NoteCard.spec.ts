@@ -13,6 +13,7 @@ describe('NoteCard', () => {
           title: 'Origin test',
           description: 'Card body',
           tags: ['alpha'],
+          images: [],
           updated_at: '2026-04-01T10:00:00Z',
           updated_label: '2h ago',
           href: '/vaults/vault-1/notes/note-1?profile=profile-1',

@@ -43,6 +43,7 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
     { name: RouteName.Favorites, label: 'Favorites' },
     { name: RouteName.Search, label: 'Search' },
     { name: RouteName.Settings, label: 'Settings' },
+    { name: RouteName.Feedback, label: 'Feedback' },
   ]
 
   if (genericRoutes.some((r) => r.name === route.name)) {
@@ -66,7 +67,14 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
     })
   }
 
-  if ([RouteName.UserNote, RouteName.ServerNote].includes(route.name as RouteName) && activeNote.value) {
+  if (route.name === RouteName.FeedbackNote) {
+    breadcrumbs.push({
+      label: 'Feedback',
+      route: { name: RouteName.Feedback, params: { server_slug: serverSlug } },
+    })
+  }
+
+  if ([RouteName.UserNote, RouteName.ServerNote, RouteName.FeedbackNote].includes(route.name as RouteName) && activeNote.value) {
     breadcrumbs.push({
       label: activeNote.value.meta.title || DEFAULT_NOTE_TITLE,
       route: noteCrumbRouteFromParams(

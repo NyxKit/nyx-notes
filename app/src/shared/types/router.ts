@@ -10,6 +10,8 @@ export enum RouteName {
   UserVaultSettings = 'user-vault-settings',
   Search = 'search',
   Favorites = 'favorites',
+  Feedback = 'feedback',
+  FeedbackNote = 'feedback-note',
   Users = 'users',
   Settings = 'settings',
   Login = 'login',

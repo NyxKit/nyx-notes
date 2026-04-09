@@ -79,6 +79,8 @@ pub struct CreateNoteRequest {
     #[serde(default)]
     pub tags: Vec<String>,
     pub category: Option<String>,
+    #[serde(default)]
+    pub images: Vec<String>,
     /// Defaults to the vault's permission if omitted; not yet enforced server-side.
     pub permission: Option<NotePermission>,
 }
@@ -90,6 +92,43 @@ pub struct UpdateNoteRequest {
     #[serde(default)]
     pub tags: Vec<String>,
     pub category: Option<String>,
+    #[serde(default)]
+    pub images: Vec<String>,
+}
+
+#[derive(Deserialize)]
+pub struct FeedbackImageUpload {
+    pub name: String,
+    pub mime_type: String,
+    pub data: String,
+}
+
+#[derive(Deserialize)]
+pub struct CreateFeedbackRequest {
+    pub title: String,
+    pub description: String,
+    pub feedback_type: String,
+    pub app_location: String,
+    pub storage_path: String,
+    pub console_output: String,
+    #[serde(default)]
+    pub interaction_trail: Option<String>,
+    #[serde(default)]
+    pub images: Vec<FeedbackImageUpload>,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateFeedbackRequest {
+    pub title: String,
+    pub description: String,
+    pub feedback_type: String,
+    pub app_location: String,
+    pub storage_path: String,
+    pub console_output: String,
+    #[serde(default)]
+    pub interaction_trail: Option<String>,
+    #[serde(default)]
+    pub images: Vec<FeedbackImageUpload>,
 }
 
 #[derive(Deserialize)]

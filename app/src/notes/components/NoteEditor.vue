@@ -53,7 +53,9 @@ const isAuthor = computed(() =>
 )
 
 const readonly = computed(() =>
-  !isAuthor.value && props.note.meta.permission !== 'edit'
+  props.note.meta.vault_id !== 'feedback'
+    && !isAuthor.value
+    && props.note.meta.permission !== 'edit'
 )
 
 // Auto-save with 1.5s debounce
