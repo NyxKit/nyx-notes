@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { NyxBadge, NyxCard } from 'nyx-kit/components'
-import { NyxTheme, NyxVariant } from 'nyx-kit/types'
+import { NyxCard } from 'nyx-kit/components'
+import { NyxTheme } from 'nyx-kit/types'
 import type { BrowseNoteCardModel } from '@/shared/types'
 import { DEFAULT_NOTE_TITLE } from '..'
 
-defineProps<{
+withDefaults(defineProps<{
   note: BrowseNoteCardModel
-}>()
+  theme?: NyxTheme
+  image?: string
+}>(), {
+  theme: NyxTheme.Info,
+})
 </script>
 
 <template>
@@ -16,22 +20,11 @@ defineProps<{
     :to="note.href"
     :aria-label="`Open ${note.title || DEFAULT_NOTE_TITLE} note`"
   >
-    <NyxCard class="note-card__shell">
+    <NyxCard class="note-card__shell" :theme="theme" :src="image">
       <div class="note-card__content">
         <div class="note-card__text">
           <h3 class="note-card__title">{{ note.title || DEFAULT_NOTE_TITLE }}</h3>
           <p v-if="note.description" class="note-card__description">{{ note.description }}</p>
-        </div>
-
-        <div v-if="note.tags.length" class="note-card__tags">
-          <NyxBadge
-            v-for="tag in note.tags.slice(0, 3)"
-            :key="tag"
-            :theme="NyxTheme.Primary"
-            :variant="NyxVariant.Soft"
-          >
-            {{ tag }}
-          </NyxBadge>
         </div>
 
 
@@ -134,12 +127,6 @@ defineProps<{
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
   line-clamp: 4;
-}
-
-.note-card__tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
 }
 
 .note-card__date {

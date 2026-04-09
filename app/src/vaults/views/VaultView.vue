@@ -42,20 +42,21 @@ const sortedNotes = computed<BrowseNoteCardModel[]>(() =>
       return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
     })
     .map(note => ({
-      note_id: note.id,
-      vault_id: note.vault_id,
-      profile_id: activeProfile.value?.id ?? 'local',
-      title: note.title || 'Untitled',
-      description: note.description,
-      tags: note.tags,
-      updated_at: note.updated_at,
-      updated_label: formatDate(note.updated_at),
+        note_id: note.id,
+        vault_id: note.vault_id,
+        profile_id: activeProfile.value?.id ?? 'local',
+        title: note.title || 'Untitled',
+        description: note.description,
+        tags: note.tags,
+        images: note.images ?? [],
+        updated_at: note.updated_at,
+        updated_label: formatDate(note.updated_at),
         href: noteRoute(activeVault.value!, note.id),
-      server_label: activeProfile.value?.display_name ?? 'Main Server',
-      server_id: activeProfile.value?.type === 'remote' ? activeProfile.value.server_id : undefined,
-      vault_name: activeVault.value?.name ?? 'Vault',
-      vault_slug: activeVault.value?.slug ?? '',
-      is_favorite: noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', note.vault_id, note.id),
+        server_label: activeProfile.value?.display_name ?? 'Main Server',
+        server_id: activeProfile.value?.type === 'remote' ? activeProfile.value.server_id : undefined,
+        vault_name: activeVault.value?.name ?? 'Vault',
+        vault_slug: activeVault.value?.slug ?? '',
+        is_favorite: noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', note.vault_id, note.id),
     }))
 )
 
@@ -105,6 +106,7 @@ async function createFirst() {
             v-for="note in sortedNotes"
             :key="note.note_id"
             :note="note"
+            :image="note.images?.[0]"
           />
         </NyxGrid>
       </div>

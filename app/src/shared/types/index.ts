@@ -142,6 +142,7 @@ export interface BrowseNoteCardModel {
   title: string
   description?: string
   tags: string[]
+  images: string[]
   updated_at: string
   updated_label: string
   href: RouteLocationRaw

@@ -64,6 +64,7 @@ const sortValue = computed({
           v-for="note in notes"
           :key="`${note.profile_id}:${note.vault_id}:${note.note_id}`"
           :note="note"
+          :image="note.images?.[0]"
         />
       </NyxGrid>
     </main>

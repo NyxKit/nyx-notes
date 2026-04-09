@@ -12,7 +12,7 @@
 - `created_at`: creation timestamp
 - `updated_at`: last change timestamp
 
-## FeedbackItem
+## FeedbackNote
 
 - `id`: stable item identifier
 - `note`: inherited note fields and behavior

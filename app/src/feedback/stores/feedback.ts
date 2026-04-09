@@ -4,6 +4,20 @@ import { getApiRequestEpoch } from '@/shared/api'
 import { createFeedback, deleteFeedback, fetchFeedback, fetchFeedbackList, updateFeedback } from '@/feedback/api'
 import type { CreateFeedbackRequest, Note, NoteMeta, UpdateFeedbackRequest } from '@/shared/types'
 
+function normalizeNoteMeta(meta: NoteMeta): NoteMeta {
+  return {
+    ...meta,
+    images: meta.images ?? [],
+  }
+}
+
+function normalizeNote(note: Note): Note {
+  return {
+    meta: normalizeNoteMeta(note.meta),
+    content: note.content,
+  }
+}
+
 export const useFeedbackStore = defineStore('feedback', () => {
   const feedbackItems = ref<NoteMeta[]>([])
   const activeFeedback = ref<Note | null>(null)
@@ -19,7 +33,7 @@ export const useFeedbackStore = defineStore('feedback', () => {
     try {
       const items = await fetchFeedbackList()
       if (requestEpoch !== getApiRequestEpoch()) return
-      feedbackItems.value = items
+      feedbackItems.value = items.map(normalizeNoteMeta)
     } catch (e) {
       error.value = String(e)
     } finally {
@@ -34,7 +48,7 @@ export const useFeedbackStore = defineStore('feedback', () => {
     try {
       const feedback = await fetchFeedback(id)
       if (requestEpoch !== getApiRequestEpoch()) return
-      activeFeedback.value = feedback
+      activeFeedback.value = normalizeNote(feedback)
     } catch (e) {
       error.value = String(e)
     } finally {
@@ -46,8 +60,9 @@ export const useFeedbackStore = defineStore('feedback', () => {
     saving.value = true
     try {
       const meta = await createFeedback(body)
-      feedbackItems.value = [meta, ...feedbackItems.value]
-      return meta
+      const normalized = normalizeNoteMeta(meta)
+      feedbackItems.value = [normalized, ...feedbackItems.value]
+      return normalized
     } finally {
       saving.value = false
     }
@@ -57,12 +72,13 @@ export const useFeedbackStore = defineStore('feedback', () => {
     saving.value = true
     try {
       const meta = await updateFeedback(id, body)
+      const normalized = normalizeNoteMeta(meta)
       const idx = feedbackItems.value.findIndex(item => item.id === id)
-      if (idx !== -1) feedbackItems.value[idx] = meta
+      if (idx !== -1) feedbackItems.value[idx] = normalized
       if (activeFeedback.value?.meta.id === id) {
-        activeFeedback.value = { meta, content: body.description }
+        activeFeedback.value = { meta: normalized, content: body.description }
       }
-      return meta
+      return normalized
     } finally {
       saving.value = false
     }

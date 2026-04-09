@@ -248,9 +248,9 @@ The frontend uses a shared browse-card family for browse-and-select surfaces onl
 
 - Admin-only shared feedback overview
 - Uses a masonry grid of note cards
-- Clicking a card opens `FeedbackItemView`
+- Clicking a card opens `FeedbackNoteView`
 
-### `FeedbackItemView` (`/feedback/:id`)
+### `FeedbackNoteView` (`/feedback/:id`)
 
 - Admin-only feedback detail view
 - Reuses the note editor shell for title/body editing

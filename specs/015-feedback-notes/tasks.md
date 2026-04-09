@@ -87,7 +87,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T023 [P] [US3] Add the feedback detail route and note-style editor view in `app/src/feedback/views/FeedbackItemView.vue`
+- [ ] T023 [P] [US3] Add the feedback detail route and note-style editor view in `app/src/feedback/views/FeedbackNoteView.vue`
 - [ ] T024 [P] [US3] Add feedback detail API and update flows in `app/src/feedback/api/feedback.ts`
 - [ ] T025 [US3] Reuse the existing comment sidebar and note editing components for feedback items in `app/src/comments/` and `app/src/notes/components/`
 - [ ] T026 [US3] Implement admin feedback update and comment handling in `crates/notes-server-axum/`

@@ -50,7 +50,7 @@ function openFeedback() {
   openFeedbackDialog()
 }
 
-watch([activeProfile, apiEpoch], async () => {
+watch([activeProfile, apiEpoch, authMode], async () => {
   await refreshWorkspace()
 }, {
   immediate: true,
@@ -87,7 +87,7 @@ watch(
           :to="{ name: RouteName.Feedback, params: { server_slug: serverMetadata.slug } }"
           class="app-shell__settings-link app-shell__feedback-link"
           icon="bug"
-          :active="route.name === RouteName.Feedback || route.name === RouteName.FeedbackItem"
+          :active="route.name === RouteName.Feedback || route.name === RouteName.FeedbackNote"
         >
           Feedback
         </SidebarNavItem>

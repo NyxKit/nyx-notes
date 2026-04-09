@@ -108,7 +108,7 @@ As an admin, I can open a feedback item and manage it with the same capabilities
 ### Key Entities *(include if feature involves data)*
 
 - **Note**: A user-authored content item with a title, description, comments, and zero or more images.
-- **FeedbackItem**: A note-derived item used for feedback or bug reports, with feedback type, location context, console output, and optional extra diagnostic context.
+- **FeedbackNote**: A note-derived item used for feedback or bug reports, with feedback type, location context, console output, and optional extra diagnostic context.
 - **ImageAttachment**: An image associated with a note or feedback item.
 - **SubmissionContext**: The location and diagnostic information captured when feedback is submitted.
 

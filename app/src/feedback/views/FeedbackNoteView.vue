@@ -7,6 +7,7 @@ import { NyxTheme, NyxVariant } from 'nyx-kit/types'
 import { useFeedbackStore } from '@/feedback/stores'
 import { useFeedbackSubmissionContext } from '@/feedback/composables'
 import { CreateEditNote } from '@/notes/components'
+import { ImageShelf } from '@/shared/components'
 import { RouteName } from '@/shared/types'
 
 const route = useRoute()
@@ -74,25 +75,22 @@ watch(feedbackId, async (id) => {
 </script>
 
 <template>
-  <div class="feedback-item-view">
-    <main class="feedback-item-view__body">
-      <div v-if="loading" class="feedback-item-view__loading">Loading feedback…</div>
+<div class="feedback-note-view">
+    <main class="feedback-note-view__body">
+      <div v-if="loading" class="feedback-note-view__loading">Loading feedback…</div>
 
       <template v-else-if="activeFeedback">
         <CreateEditNote v-model:title="title" v-model:content="description" />
 
-        <div class="feedback-item-view__meta">
-          <div class="feedback-item-view__details">
-            <div class="feedback-item-view__detail">Type: {{ activeFeedback.meta.feedback_type ?? 'feedback' }}</div>
-            <div class="feedback-item-view__detail">Location: {{ activeFeedback.meta.app_location ?? 'Unknown location' }}</div>
-            <div class="feedback-item-view__detail">Storage: {{ activeFeedback.meta.storage_path ?? 'Unknown storage path' }}</div>
-            <div class="feedback-item-view__detail feedback-item-view__detail--mono">Console: {{ activeFeedback.meta.console_output ?? '' }}</div>
-            <div class="feedback-item-view__detail">
-              Images:
-              <span v-if="activeFeedback.meta.images.length">{{ activeFeedback.meta.images.join(', ') }}</span>
-              <span v-else>None</span>
-            </div>
+        <div class="feedback-note-view__meta">
+          <div class="feedback-note-view__details">
+            <div class="feedback-note-view__detail">Type: {{ activeFeedback.meta.feedback_type ?? 'feedback' }}</div>
+            <div class="feedback-note-view__detail">Location: {{ activeFeedback.meta.app_location ?? 'Unknown location' }}</div>
+            <div class="feedback-note-view__detail">Storage: {{ activeFeedback.meta.storage_path ?? 'Unknown storage path' }}</div>
+            <div class="feedback-note-view__detail feedback-note-view__detail--mono">Console: {{ activeFeedback.meta.console_output ?? '' }}</div>
           </div>
+
+          <ImageShelf :images="activeFeedback.meta.images ?? []" title="Images" />
         </div>
       </template>
     </main>
@@ -105,7 +103,7 @@ watch(feedbackId, async (id) => {
 </template>
 
 <style scoped>
-.feedback-item-view {
+.feedback-note-view {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -113,30 +111,30 @@ watch(feedbackId, async (id) => {
   min-width: 0;
 }
 
-.feedback-item-view__body {
+.feedback-note-view__body {
   flex: 1;
   overflow: auto;
   padding: 1.5rem;
 }
 
-.feedback-item-view__loading {
+.feedback-note-view__loading {
   color: var(--nyx-c-text-3);
 }
 
-.feedback-item-view__meta {
+.feedback-note-view__meta {
   max-width: 768px;
   margin: 1rem auto 0;
   display: grid;
   gap: 1rem;
 }
 
-.feedback-item-view__detail {
+.feedback-note-view__detail {
   padding: 0.75rem 0.875rem;
   border-radius: var(--nyx-radius-md);
   background: var(--nyx-c-bg-soft);
 }
 
-.feedback-item-view__detail--mono {
+.feedback-note-view__detail--mono {
   font-family: monospace;
   white-space: pre-wrap;
 }

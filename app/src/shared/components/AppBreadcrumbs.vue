@@ -54,7 +54,7 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
     return breadcrumbs
   }
 
-  if ([RouteName.UserVault, RouteName.ServerVault, RouteName.UserNote, RouteName.ServerNote, RouteName.Feedback, RouteName.FeedbackItem].includes(route.name as RouteName)) {
+  if ([RouteName.UserVault, RouteName.ServerVault, RouteName.UserNote, RouteName.ServerNote].includes(route.name as RouteName)) {
     const vaultId = String(route.params.vault_id ?? '')
     const vaultName = vaults.value.find(v => v.slug === vaultId)?.name ?? String(route.params.vault_id ?? '')
     breadcrumbs.push({
@@ -67,7 +67,14 @@ const breadcrumbs = computed((): NyxBreadcrumb[] => {
     })
   }
 
-  if ([RouteName.UserNote, RouteName.ServerNote, RouteName.FeedbackItem].includes(route.name as RouteName) && activeNote.value) {
+  if (route.name === RouteName.FeedbackNote) {
+    breadcrumbs.push({
+      label: 'Feedback',
+      route: { name: RouteName.Feedback, params: { server_slug: serverSlug } },
+    })
+  }
+
+  if ([RouteName.UserNote, RouteName.ServerNote, RouteName.FeedbackNote].includes(route.name as RouteName) && activeNote.value) {
     breadcrumbs.push({
       label: activeNote.value.meta.title || DEFAULT_NOTE_TITLE,
       route: noteCrumbRouteFromParams(

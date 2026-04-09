@@ -11,7 +11,7 @@ export enum RouteName {
   Search = 'search',
   Favorites = 'favorites',
   Feedback = 'feedback',
-  FeedbackItem = 'feedback-item',
+  FeedbackNote = 'feedback-note',
   Users = 'users',
   Settings = 'settings',
   Login = 'login',

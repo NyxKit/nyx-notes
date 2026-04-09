@@ -35,6 +35,10 @@ fn server_owner() -> VaultOwner {
     }
 }
 
+fn is_owned_by_user(author_id: &str, user: &User) -> bool {
+    author_id == user.id || author_id == user.username
+}
+
 async fn resolve_vault_owner(
     storage: &AsyncStorageAdapter,
     vault_id: &str,
@@ -70,7 +74,7 @@ async fn assert_can_read(
         .load_note(owner.clone(), vault_id.to_string(), note_id.to_string())
         .await?;
     if !matches!(owner, VaultOwner::Server { .. })
-        && note.meta.author_id != user.id
+        && !is_owned_by_user(&note.meta.author_id, &user)
         && note.meta.permission == NotePermission::Restricted
     {
         return Err(AppError::Forbidden);
@@ -106,7 +110,7 @@ pub async fn create_comment(
 
     // Shared server vault notes are commentable by all authenticated users.
     if !matches!(owner, VaultOwner::Server { .. })
-        && note.meta.author_id != user.id
+        && !is_owned_by_user(&note.meta.author_id, &user)
         && note.meta.permission == NotePermission::Restricted
     {
         return Err(AppError::Forbidden);
@@ -168,7 +172,7 @@ pub async fn delete_comment(
         .ok_or(AppError::NotFound)?;
 
     // Comment author or note author may delete.
-    if comments[pos].author_id != user.id && note.meta.author_id != user.id {
+    if comments[pos].author_id != user.id && !is_owned_by_user(&note.meta.author_id, &user) {
         return Err(AppError::Forbidden);
     }
 
@@ -190,7 +194,7 @@ pub async fn patch_comment(
     let (note, owner) = assert_can_read(&state, &user, &vault_id, &note_id).await?;
 
     // Only the note author may resolve/unresolve.
-    if note.meta.author_id != user.id {
+    if !is_owned_by_user(&note.meta.author_id, &user) {
         return Err(AppError::Forbidden);
     }
 
@@ -224,7 +228,7 @@ pub async fn create_reply(
 ) -> Result<(StatusCode, Json<CommentReply>), AppError> {
     let (note, owner) = assert_can_read(&state, &user, &vault_id, &note_id).await?;
 
-    if note.meta.author_id != user.id && note.meta.permission == NotePermission::Restricted {
+    if !is_owned_by_user(&note.meta.author_id, &user) && note.meta.permission == NotePermission::Restricted {
         return Err(AppError::Forbidden);
     }
 
@@ -281,7 +285,7 @@ pub async fn delete_reply(
         .ok_or(AppError::NotFound)?;
 
     // Reply author or note author may delete.
-    if comment.replies[pos].author_id != user.id && note.meta.author_id != user.id {
+    if comment.replies[pos].author_id != user.id && !is_owned_by_user(&note.meta.author_id, &user) {
         return Err(AppError::Forbidden);
     }
 

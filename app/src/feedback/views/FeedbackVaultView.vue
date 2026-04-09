@@ -3,7 +3,7 @@ import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 import { NyxButton, NyxGrid, NyxIcon } from 'nyx-kit/components'
-import { NyxGridMode } from 'nyx-kit/types'
+import { NyxGridMode, NyxTheme } from 'nyx-kit/types'
 import { noteRoute } from '@/shared/utils'
 import { useAuth } from '@/auth/composables'
 import { useFeedbackStore } from '@/feedback/stores'
@@ -34,16 +34,17 @@ const sortedFeedback = computed<BrowseNoteCardModel[]>(() =>
   feedbackItems.value
     .slice()
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-    .map(item => ({
-      note_id: item.id,
-      vault_id: item.vault_id,
-      profile_id: serverMetadata.value?.slug ?? 'main-server',
-      title: item.title || 'Untitled',
-      description: item.description,
-      tags: item.tags,
-      updated_at: item.updated_at,
-      updated_label: formatDate(item.updated_at),
-      href: noteRoute(feedbackVault.value, item.id),
+      .map(item => ({
+        note_id: item.id,
+        vault_id: item.vault_id,
+        profile_id: serverMetadata.value?.slug ?? 'main-server',
+        title: item.title || 'Untitled',
+        description: item.description,
+        tags: item.tags,
+        images: item.images ?? [],
+        updated_at: item.updated_at,
+        updated_label: formatDate(item.updated_at),
+        href: noteRoute(feedbackVault.value, item.id),
       server_label: serverMetadata.value?.name ?? 'Main Server',
       server_id: serverMetadata.value?.slug,
       vault_name: 'Feedback',
@@ -110,6 +111,8 @@ async function createDraft() {
             v-for="item in sortedFeedback"
             :key="item.note_id"
             :note="item"
+            :theme="item.tags.includes('bug') ? NyxTheme.Danger : NyxTheme.Info"
+            :image="item.images?.[0]"
           />
         </NyxGrid>
       </div>

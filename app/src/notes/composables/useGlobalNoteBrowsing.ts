@@ -106,6 +106,7 @@ function buildBrowseNote(
     title: note.title || 'Untitled',
     description: note.description,
     tags: note.tags,
+    images: note.images ?? [],
     updated_at: note.updated_at,
     updated_label: formatUpdatedLabel(note.updated_at),
     href: noteRoute(vault, note.id),

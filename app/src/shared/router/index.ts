@@ -33,8 +33,8 @@ const router = createRouter({
         },
         {
           path: ':server_slug/feedback/:id',
-          name: RouteName.FeedbackItem,
-          component: () => import('@/feedback/views').then(({ FeedbackItemView }) => FeedbackItemView),
+          name: RouteName.FeedbackNote,
+          component: () => import('@/feedback/views').then(({ FeedbackNoteView }) => FeedbackNoteView),
         },
         {
           path: ':server_slug/homes/:home_slug',
@@ -125,7 +125,7 @@ router.beforeEach(async (to) => {
     await bootstrapActiveProfile()
   }
 
-  if ((to.name === RouteName.Feedback || to.name === RouteName.FeedbackItem) && serverMetadata.value?.role !== 'admin') {
+  if ((to.name === RouteName.Feedback || to.name === RouteName.FeedbackNote) && serverMetadata.value && serverMetadata.value.role !== 'admin') {
     return { path: '/' }
   }
 
