@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
-import { getApiRequestEpoch } from '@/shared/api'
+import { getApiRequestEpoch, VaultBase } from '@/shared/api'
 import {
   fetchNotes,
   fetchNote,
@@ -17,6 +17,8 @@ export const useNotesStore = defineStore('notes', () => {
   const activeNote = ref<Note | null>(null)
   const listLoading = ref(false)
   const loading = ref(false)
+  const listSubscriptionKeys = ref<Record<string, string>>({})
+  const noteSubscriptionKey = ref<string | null>(null)
   const saving = ref(false)
   const error = ref<string | null>(null)
 
@@ -51,6 +53,17 @@ export const useNotesStore = defineStore('notes', () => {
     }
   }
 
+  function subscribeList(serverSlug: string, vaultId: string) {
+    const handle = VaultBase.subscribe<NoteMeta[]>(
+      VaultBase.createNoteListQuery(serverSlug, vaultId),
+      snapshot => {
+        notesByVault.value[vaultId] = snapshot
+      },
+    )
+    listSubscriptionKeys.value[vaultId] = handle.key
+    return handle
+  }
+
   async function loadNote(vaultId: string, id: string) {
     const requestEpoch = getApiRequestEpoch()
     loading.value = true
@@ -64,6 +77,17 @@ export const useNotesStore = defineStore('notes', () => {
     } finally {
       loading.value = false
     }
+  }
+
+  function subscribeNote(serverSlug: string, vaultId: string, id: string) {
+    const handle = VaultBase.subscribe<Note>(
+      VaultBase.createNoteQuery(serverSlug, vaultId, id),
+      snapshot => {
+        activeNote.value = snapshot
+      },
+    )
+    noteSubscriptionKey.value = handle.key
+    return handle
   }
 
   async function create(vaultId: string, body: CreateNoteRequest) {
@@ -120,6 +144,8 @@ export const useNotesStore = defineStore('notes', () => {
     activeNote.value = null
     listLoading.value = false
     loading.value = false
+    listSubscriptionKeys.value = {}
+    noteSubscriptionKey.value = null
     saving.value = false
     error.value = null
   }
@@ -129,12 +155,16 @@ export const useNotesStore = defineStore('notes', () => {
     activeNote,
     listLoading,
     loading,
+    listSubscriptionKeys,
+    noteSubscriptionKey,
     saving,
     error,
     notesFor,
     loadAll,
     loadList,
+    subscribeList,
     loadNote,
+    subscribeNote,
     create,
     save,
     remove,

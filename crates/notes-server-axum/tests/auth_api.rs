@@ -3,7 +3,7 @@ use std::{path::PathBuf, sync::Arc, time::{SystemTime, UNIX_EPOCH}};
 use axum::{body::{to_bytes, Body}, http::{Request, StatusCode}};
 use notes_auth::{LocalAuthStore, SecretKeyAuthStore};
 use notes_core::{AuthStore, CreateUserInput};
-use notes_server_axum::{routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
+use notes_server_axum::{live::broker::LiveBroker, routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
 use notes_storage_fs::FsStorage;
 use tower::ServiceExt;
 
@@ -22,6 +22,7 @@ async fn auth_mode_reports_optional_api_version_metadata() {
 
     let app = routes::router().with_state(AppState {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
+        live_broker: LiveBroker::default(),
         auth: Arc::new(LocalAuthStore::new("local".into(), "Local User".into())),
         auth_config: AuthConfig::SecretKey,
         root_path: root.clone(),
@@ -49,6 +50,7 @@ async fn login_returns_422_when_auth_mode_does_not_support_password_login() {
 
     let app = routes::router().with_state(AppState {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
+        live_broker: LiveBroker::default(),
         auth: Arc::new(LocalAuthStore::new("local".into(), "Local User".into())),
         auth_config: AuthConfig::Local,
         root_path: root.clone(),
@@ -85,6 +87,7 @@ async fn login_returns_401_for_invalid_secret_key_credentials() {
 
     let app = routes::router().with_state(AppState {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
+        live_broker: LiveBroker::default(),
         auth,
         auth_config: AuthConfig::SecretKey,
         root_path: root.clone(),

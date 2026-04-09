@@ -10,7 +10,7 @@ use axum::{
 };
 use notes_auth::{LocalAuthStore, SecretKeyAuthStore};
 use notes_core::{AuthStore, CreateUserInput, ServerRole};
-use notes_server_axum::{routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
+use notes_server_axum::{live::broker::LiveBroker, routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
 use notes_storage_fs::FsStorage;
 use tower::ServiceExt;
 
@@ -52,6 +52,7 @@ fn test_app() -> (axum::Router, String, String) {
 
     let app = routes::router().with_state(AppState {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
+        live_broker: LiveBroker::default(),
         auth: Arc::new(store),
         auth_config: AuthConfig::SecretKey,
         root_path: root.clone(),
@@ -66,6 +67,7 @@ async fn users_routes_return_422_in_local_mode() {
     let storage = FsStorage::new(&root);
     let app = routes::router().with_state(AppState {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
+        live_broker: LiveBroker::default(),
         auth: Arc::new(LocalAuthStore::new("local".into(), "Local User".into())),
         auth_config: AuthConfig::Local,
         root_path: root.clone(),

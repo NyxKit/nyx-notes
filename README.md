@@ -5,6 +5,7 @@ A self-hosted, Markdown-first notes app.
 - Notes are stored as plain `.md` files on disk — the filesystem is the **source of truth**
 - Backend: portable Rust server (Axum) — runs on any Linux server, NAS, or local machine
 - Frontend: Vue 3 SPA using [nyx-kit](https://github.com/nyxkit/nyx-kit) and TipTap, with one local workspace profile plus multiple remote server profiles per client, global search/favorites across reachable profiles, and note cards that show source server and vault
+- Live data flow: backend REST + SSE subscriptions feed shared frontend API wrappers, domain stores, and composable lifecycle hooks without direct component fetches
 - Review: line-based discussion threads anchored to exact selected text, with comment history stored in `.comments.json` sidecars
 - CLI: terminal-first workflows, operates directly on the filesystem with no server required
 - Auth: pluggable on the server — `local` (no auth), `secret_key` (self-hosted JWT plus backend-managed users), or `oidc` (any OIDC provider); the multi-profile client flow in this feature supports local profiles and remote `secret_key` username/password sign-in

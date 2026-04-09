@@ -38,3 +38,4 @@ Each layer depends only on the layer below it. `notes-core` has zero runtime dep
 - **Permission checks happen in the API layer**, not in the storage layer — `FsStorage` is intentionally unaware of permissions
 - **`Arc<dyn Trait>` over generics** in `AppState` — avoids monomorphization complexity in Axum handlers
 - **Native app embeds the server** — the Tauri app runs Axum as a background thread; the webview connects to `localhost`. Same HTTP API, same frontend, no separate IPC contract.
+- **Live data uses typed subscription scopes** — the backend exposes typed SSE scopes and reuses backend fanout work for equivalent listeners rather than creating ad hoc per-component polling flows

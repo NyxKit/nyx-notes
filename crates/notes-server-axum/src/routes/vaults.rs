@@ -38,6 +38,14 @@ fn server_owner() -> VaultOwner {
     }
 }
 
+fn personal_vault_list_broker_key(server_slug: &str, username: &str) -> String {
+    format!("vault_list_personal|collection|server_slug={server_slug}|user_context={username}")
+}
+
+fn shared_vault_list_broker_key(server_slug: &str) -> String {
+    format!("vault_list_shared|collection|server_slug={server_slug}")
+}
+
 /// Try to load a vault, trying user's home first, then server vault.
 async fn load_vault_with_fallback(
     storage: &AsyncStorageAdapter,
@@ -143,6 +151,7 @@ pub async fn create_vault(
         icon: body.icon,
     };
     state.storage.create_vault(vault.clone()).await?;
+    state.live_broker.publish(&personal_vault_list_broker_key(&current_server_slug(), &user.username));
     Ok((StatusCode::CREATED, Json(vault)))
 }
 
@@ -179,6 +188,15 @@ pub async fn patch_vault(
     };
     state.storage.update_vault(owner.clone(), vault_id.clone(), update).await?;
     let updated = state.storage.load_vault(owner, vault_id).await?;
+    match &updated.owner {
+        VaultOwner::Home { home_slug, server_slug } => {
+            state.live_broker.publish(&personal_vault_list_broker_key(server_slug, home_slug));
+        }
+        VaultOwner::Server { server_slug } => {
+            state.live_broker.publish(&shared_vault_list_broker_key(server_slug));
+        }
+        VaultOwner::Local => {}
+    }
     Ok(Json(updated))
 }
 
@@ -195,6 +213,7 @@ pub async fn delete_vault(
     }
 
     state.storage.delete_vault(user_home_owner(&user.username), vault_id).await?;
+    state.live_broker.publish(&personal_vault_list_broker_key(&current_server_slug(), &user.username));
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -220,6 +239,7 @@ pub async fn create_server_vault(
     };
 
     state.storage.create_vault(vault.clone()).await?;
+    state.live_broker.publish(&shared_vault_list_broker_key(&current_server_slug()));
     Ok((StatusCode::CREATED, Json(vault)))
 }
 
@@ -239,6 +259,7 @@ pub async fn delete_server_vault(
     }
 
     state.storage.delete_vault(owner, vault_id).await?;
+    state.live_broker.publish(&shared_vault_list_broker_key(&current_server_slug()));
     Ok(StatusCode::NO_CONTENT)
 }
 

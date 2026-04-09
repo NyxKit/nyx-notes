@@ -4,7 +4,7 @@ import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuth } from '@/auth/composables'
 import { vaultRoute } from '@/shared/utils'
-import { useWorkspaceProfiles } from '@/shared/composables'
+import { useSubscription, useWorkspaceProfiles } from '@/shared/composables'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore, useNoteBrowsingStore } from '@/notes/stores'
 import { useEditorStore } from '@/notes/stores'
@@ -26,6 +26,7 @@ const commentsStore = useComments()
 const { annotations, setActiveComment, beginComment, load: loadComments, clearLoadedComments } = commentsStore
 
 const { activeProfile } = useWorkspaceProfiles()
+const serverSlug = computed(() => activeProfile.value?.id || 'main-server')
 const noteBrowsingStore = useNoteBrowsingStore()
 
 function toggleFavorite() {
@@ -63,7 +64,7 @@ const { vaults } = storeToRefs(vaultStore)
 const { load: loadVaults, setActive } = vaultStore
 const notesStore = useNotesStore()
 const { activeNote } = storeToRefs(notesStore)
-const { loadNote, remove, clearActive } = notesStore
+const { loadNote, subscribeNote, remove, clearActive } = notesStore
 
 const LAST_NOTE_KEY = 'nyx_last_note'
 
@@ -123,6 +124,17 @@ watch(
     localStorage.setItem(LAST_NOTE_KEY, JSON.stringify({ vaultId, noteId }))
   },
   { immediate: true }
+)
+
+useSubscription(
+  () => ({
+    vaultId: route.params.vault_id as string | undefined,
+    noteId: route.params.id as string | undefined,
+  }),
+  value => {
+    if (!value.vaultId || !value.noteId) return null
+    return subscribeNote(serverSlug.value, value.vaultId, value.noteId)
+  },
 )
 
 // Ensure vault is set when navigating to section pages without a note id

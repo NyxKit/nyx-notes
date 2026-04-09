@@ -34,6 +34,14 @@ fn server_owner() -> VaultOwner {
     }
 }
 
+fn note_list_broker_key(server_slug: &str, vault_id: &str) -> String {
+    format!("note_list|collection|server_slug={server_slug}|vault_id={vault_id}")
+}
+
+fn note_broker_key(server_slug: &str, vault_id: &str, note_id: &str) -> String {
+    format!("note|document|server_slug={server_slug}|vault_id={vault_id}|note_id={note_id}")
+}
+
 fn is_owned_by_user(author_id: &str, user: &User) -> bool {
     author_id == user.id || author_id == user.username
 }
@@ -146,6 +154,9 @@ pub async fn create_note(
 
     let meta = note.meta.clone();
     state.storage.save_note(owner, note).await?;
+    let server_slug = current_server_slug();
+    state.live_broker.publish(&note_list_broker_key(&server_slug, &vault_id));
+    state.live_broker.publish(&note_broker_key(&server_slug, &vault_id, &meta.id));
     Ok((StatusCode::CREATED, Json(meta)))
 }
 
@@ -172,6 +183,9 @@ pub async fn update_note(
 
     let meta = note.meta.clone();
     state.storage.save_note(owner, note).await?;
+    let server_slug = current_server_slug();
+    state.live_broker.publish(&note_list_broker_key(&server_slug, &vault_id));
+    state.live_broker.publish(&note_broker_key(&server_slug, &vault_id, &meta.id));
     Ok(Json(meta))
 }
 
@@ -195,7 +209,10 @@ pub async fn delete_note(
         }
     }
 
-    state.storage.delete_note(owner, vault_id, id).await?;
+    let server_slug = current_server_slug();
+    state.storage.delete_note(owner, vault_id.clone(), id.clone()).await?;
+    state.live_broker.publish(&note_list_broker_key(&server_slug, &vault_id));
+    state.live_broker.publish(&note_broker_key(&server_slug, &vault_id, &id));
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -217,5 +234,8 @@ pub async fn patch_note_permission(
 
     let meta = note.meta.clone();
     state.storage.save_note(owner, note).await?;
+    let server_slug = current_server_slug();
+    state.live_broker.publish(&note_list_broker_key(&server_slug, &meta.vault_id));
+    state.live_broker.publish(&note_broker_key(&server_slug, &meta.vault_id, &meta.id));
     Ok(Json(meta))
 }

@@ -4,6 +4,16 @@
 
 A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to the Axum backend API, adapts its auth UI to the server's `AUTH_MODE`, and uses `NyxEditor` from `nyx-kit` for Markdown editing and line-based discussion annotations.
 
+## Data Flow
+
+Frontend data flow follows this ownership chain:
+
+- filesystem/database -> backend REST API -> frontend API wrapper -> domain store -> composable lifecycle hooks -> component
+- Shared API wrappers in `shared/api/` own transport details and raw request/response handling
+- Domain stores own domain-facing data access and normalize raw payloads into domain classes
+- Composables subscribe, unsubscribe, and react to lifecycle changes by calling store methods
+- Components render store-backed state and never call transport or API layers directly
+
 ## Stack
 
 | Concern | Technology |

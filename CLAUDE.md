@@ -46,6 +46,8 @@ Do not add a new Rust crate, npm package, or external service without flagging i
 - Filesystem for notes remains unchanged; user credentials move to a server-local embedded SQLite store with non-reversible password hashes (014-user-management)
 - Rust backend, Vue 3 + TypeScript frontend + Axum, `nyx-kit`, Vue Router, Vite, existing notes/core storage stack (015-feedback-notes)
 - Filesystem-backed notes plus new top-level `feedback/` namespace with item folders and image subfolders (015-feedback-notes)
+- TypeScript (Vue 3 SPA) and Rust (workspace crates on stable toolchain) + Vue 3 Composition API, Pinia, Vite, `ofetch`, Axum, Tokio, existing workspace auth/storage crates (016-vaultbase-subscriptions)
+- Filesystem-backed Markdown notes and JSON metadata under `NYX_ROOT`; in-memory subscription registries/brokers for active live queries (016-vaultbase-subscriptions)
 
 ## Recent Changes
 - 001-route-domains: Added TypeScript 5.x / Vue 3.5 / Vite + Vue Router 5.0, Pinia 3.0, nyx-kit 1.4.4, ofetch 1.5

@@ -3,6 +3,7 @@ pub mod comments;
 pub mod feedback;
 pub mod notes;
 pub mod server;
+pub mod subscriptions;
 pub mod users;
 pub mod vaults;
 
@@ -23,6 +24,7 @@ pub fn router() -> Router<AppState> {
         .route("/api/users", get(users::list_users).post(users::create_user))
         .route("/api/users/:user_id", patch(users::update_user).delete(users::delete_user))
         .route("/api/server", get(server::get_server))
+        .route("/api/live", get(subscriptions::subscribe))
         .route("/api/server/vaults", get(vaults::list_server_vaults).post(vaults::create_server_vault))
         .route(
             "/api/feedback",

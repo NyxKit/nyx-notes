@@ -31,7 +31,10 @@ Coding conventions, naming rules, and file organization standards for Nyx Notes.
 
 - Use the Composition API exclusively; no Options API
 - Composables return plain `ref`/`computed` values — avoid returning reactive objects with nested refs
-- All API calls go through composables, not directly from components
+- Components must not call `fetch`, transport layers, or shared API wrappers directly
+- Shared frontend API wrappers may sit beneath stores as the data-access layer
+- Stores may own API access and normalize raw payloads into domain classes
+- Composables orchestrate store lifecycle behavior such as mount/unmount subscriptions and scope changes
 - Use `nyx-kit` for all UI primitives; do not introduce additional component libraries
 - No semicolons; single quotes for strings — enforced by `pnpm lint` (in `app/`)
 

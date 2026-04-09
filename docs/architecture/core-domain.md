@@ -110,6 +110,44 @@ pub struct Comment {
     pub updated_at: chrono::DateTime<chrono::Utc>,
     pub replies: Vec<CommentReply>,
 }
+
+pub enum LiveCollection {
+    VaultListPersonal,
+    VaultListShared,
+    NoteList,
+    Note,
+}
+
+pub enum LiveScopeKind {
+    Collection,
+    Document,
+}
+
+pub enum LiveSubscriptionStatus {
+    Loading,
+    Active,
+    Reconnecting,
+    Failed,
+    Released,
+}
+
+pub struct LiveQuery {
+    pub collection: LiveCollection,
+    pub scope_kind: LiveScopeKind,
+    pub server_slug: String,
+    pub owner_context: Option<String>,
+    pub user_context: Option<String>,
+    pub vault_id: Option<String>,
+    pub note_id: Option<String>,
+    pub filters: Vec<(String, String)>,
+}
+
+pub struct CanonicalQueryKey {
+    pub resource_name: String,
+    pub scope_kind: LiveScopeKind,
+    pub normalized_identifiers: Vec<(String, String)>,
+    pub normalized_filters: Vec<(String, String)>,
+}
 ```
 
 ### Permission Matrix

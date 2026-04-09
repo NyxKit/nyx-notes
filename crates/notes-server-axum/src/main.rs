@@ -5,6 +5,7 @@ use tower_http::services::{ServeDir, ServeFile};
 use notes_auth::{load_or_generate_key, LocalAuthStore, SecretKeyAuthStore};
 use notes_core::AuthStore;
 use notes_server_axum::{
+    live::broker::LiveBroker,
     routes,
     storage_adapter::AsyncStorageAdapter,
     types::AuthConfig,
@@ -67,6 +68,7 @@ async fn main() {
 
     let state = AppState {
         storage: AsyncStorageAdapter::new(Arc::new(FsStorage::new(notes_root_path))),
+        live_broker: LiveBroker::default(),
         auth,
         auth_config,
         root_path: notes_root_path.to_path_buf(),

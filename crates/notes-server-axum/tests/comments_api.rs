@@ -6,7 +6,7 @@ use notes_core::{
     Comment, CommentAnchor, CommentAttachment, CommentVisibility, Note, NoteMeta,
     NotePermission, StorageBackend, Vault, VaultOwner,
 };
-use notes_server_axum::{routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
+use notes_server_axum::{live::broker::LiveBroker, routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
 use notes_storage_fs::FsStorage;
 use tower::ServiceExt;
 
@@ -69,6 +69,7 @@ async fn create_comment_accepts_structured_anchor_payloads() {
 
     let app = routes::router().with_state(AppState {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
+        live_broker: LiveBroker::default(),
         auth: Arc::new(LocalAuthStore::new("local".into(), "Local User".into())),
         auth_config: AuthConfig::Local,
         root_path: root.clone(),
@@ -171,6 +172,7 @@ async fn list_comments_omits_hidden_legacy_threads() {
 
     let app = routes::router().with_state(AppState {
         storage: AsyncStorageAdapter::new(Arc::new(storage)),
+        live_broker: LiveBroker::default(),
         auth: Arc::new(LocalAuthStore::new("local".into(), "Local User".into())),
         auth_config: AuthConfig::Local,
         root_path: root.clone(),

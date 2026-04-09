@@ -183,6 +183,8 @@ Examples of foundational tasks (adjust based on your project):
 - Services before endpoints
 - Core implementation before integration
 - Story complete before moving to next priority
+- For frontend work: components do not call API layers directly; stores may own API access and
+  composables manage lifecycle hooks around those stores
 
 ### Parallel Opportunities
 

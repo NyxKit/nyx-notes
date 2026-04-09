@@ -1,17 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version change: 1.0.2 → 1.0.3 (PATCH — relaxed frontend cross-domain import rule)
-Modified principles: VI. Frontend Constraints (clarified domain layout vs. import boundaries)
+Version change: 1.0.2 → 1.1.0 (MINOR — clarified frontend data-flow ownership)
+Modified principles: VI. Frontend Constraints (clarified API/store/composable responsibilities)
 Added sections: N/A
 Removed sections: N/A
 Templates requiring updates:
-  - .specify/templates/plan-template.md ⏳
-  - .specify/templates/spec-template.md ⏳
-  - .specify/templates/tasks-template.md ⏳
-  - docs/interface/frontend.md ⏳
-  - docs/conventions/README.md ⏳
-Follow-up TODOs: update frontend docs to reflect intentional cross-domain imports
+  - .specify/templates/plan-template.md ✅
+  - .specify/templates/spec-template.md ✅
+  - .specify/templates/tasks-template.md ✅
+  - docs/interface/frontend.md ✅
+  - docs/conventions/README.md ✅
+Follow-up TODOs: N/A
 -->
 
 # Nyx Notes Core Constitution
@@ -65,7 +65,7 @@ Every layer has a mandatory testing approach, defined in `docs/testing/README.md
 - `notes-storage-fs`: `#[tokio::test]` with a real `FsStorage` on a `tempdir`.
 - `notes-server-axum`: HTTP integration tests using `axum::test` or `reqwest` with a stub
   `AuthStore`.
-- Frontend: Vitest for composables (mocked fetch); Playwright for E2E.
+- Frontend: Vitest for stores/composables with mocked network delivery; Playwright for E2E.
 - CLI: subprocess invocation tests against a temp `NOTES_ROOT`.
 - The OIDC provider MUST be mocked; `serde_yaml` MUST be trusted, not retested.
 
@@ -84,7 +84,13 @@ concern, not a post-hoc addition.
 
 The Vue 3 frontend MUST follow the Composition API exclusively.
 
-- All API calls MUST go through composables; components MUST NOT call `fetch` directly.
+- Components MUST NOT call API wrappers, `fetch`, or transport layers directly.
+- Shared frontend API wrappers (for example `shared/api` and `VaultBase`) MAY sit beneath stores as
+  the frontend data-access layer.
+- Domain stores MAY own frontend API access, subscription state, and payload normalization into
+  domain classes.
+- Composables MUST orchestrate lifecycle behavior around stores (for example mount/unmount,
+  scope changes, and consumer cleanup) rather than duplicating API logic in components.
 - `nyx-kit` MUST be used for all UI primitives; no additional component libraries are permitted.
 - TypeScript types MUST match the Rust types (field names, nullability, optional fields).
 - No semicolons in frontend TypeScript/Vue files; single quotes for strings.
@@ -128,4 +134,4 @@ Conventions are defined in `docs/conventions/README.md`. Key rules:
   considered complete.
 - The checklist in `AGENTS.md` (§ What Must Be Validated) is the compliance gate.
 
-**Version**: 1.0.2 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-03-25
+**Version**: 1.1.0 | **Ratified**: 2026-03-21 | **Last Amended**: 2026-04-09

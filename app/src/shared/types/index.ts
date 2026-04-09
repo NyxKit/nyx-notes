@@ -5,6 +5,7 @@ import type CommentAnchor from '@/comments/classes/CommentAnchor'
 // ─── Shared ───────────────────────────────────────────────────────────────────
 export * from './profile'
 export * from './enums'
+export * from './live'
 export * from './router'
 
 // ─── Auth ────────────────────────────────────────────────────────────────────

@@ -33,6 +33,10 @@
 
 [Gates determined based on constitution file]
 
+When frontend work is involved, explicitly verify that components do not call transport layers
+directly, stores own any frontend API access, and composables orchestrate lifecycle behavior around
+those stores.
+
 ## Project Structure
 
 ### Documentation (this feature)

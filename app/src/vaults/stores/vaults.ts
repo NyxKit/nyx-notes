@@ -1,12 +1,13 @@
 import { ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
-import { getApiRequestEpoch } from '@/shared/api'
+import { getApiRequestEpoch, VaultBase } from '@/shared/api'
 import { fetchVaults, createVault, createServerVault, deleteServerVault, deleteVault, updateVault } from '@/vaults/api'
 import type { Vault, CreateVaultRequest, UpdateVaultRequest } from '@/shared/types'
 
 export const useVaultStore = defineStore('vaults', () => {
   const vaults = ref<Vault[]>([])
   const activeVault = ref<Vault | null>(null)
+  const vaultSubscriptionKey = ref<string | null>(null)
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -24,6 +25,17 @@ export const useVaultStore = defineStore('vaults', () => {
     } finally {
       loading.value = false
     }
+  }
+
+  function subscribeList(serverSlug: string, userContext?: string) {
+    const handle = VaultBase.subscribe<Vault[]>(
+      VaultBase.createVaultListPersonalQuery(serverSlug, userContext),
+      snapshot => {
+        vaults.value = snapshot
+      },
+    )
+    vaultSubscriptionKey.value = handle.key
+    return handle
   }
 
   async function create(body: CreateVaultRequest) {
@@ -65,6 +77,7 @@ export const useVaultStore = defineStore('vaults', () => {
   function $reset() {
     vaults.value = []
     activeVault.value = null
+    vaultSubscriptionKey.value = null
     loading.value = false
     error.value = null
   }
@@ -72,9 +85,11 @@ export const useVaultStore = defineStore('vaults', () => {
   return {
     vaults,
     activeVault,
+    vaultSubscriptionKey,
     loading,
     error,
     load,
+    subscribeList,
     create,
     update,
     remove,

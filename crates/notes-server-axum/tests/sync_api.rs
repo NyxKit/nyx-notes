@@ -3,7 +3,7 @@ use std::{path::PathBuf, sync::Arc, time::{SystemTime, UNIX_EPOCH}};
 use axum::{body::{to_bytes, Body}, http::Request};
 use notes_auth::SecretKeyAuthStore;
 use notes_core::{AuthStore, Note, NoteMeta, NotePermission, Vault, VaultOwner};
-use notes_server_axum::{routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
+use notes_server_axum::{live::broker::LiveBroker, routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
 use notes_storage_fs::FsStorage;
 use tower::ServiceExt;
 
@@ -79,6 +79,7 @@ async fn admin_sync_homes_rewrites_note_author_ids_to_canonical_user_ids() {
 
     let app = routes::router().with_state(AppState {
         storage: storage_adapter,
+        live_broker: LiveBroker::default(),
         auth: Arc::new(auth_store),
         auth_config: AuthConfig::SecretKey,
         root_path: root.clone(),

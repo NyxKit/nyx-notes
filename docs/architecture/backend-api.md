@@ -68,6 +68,26 @@ An Axum HTTP server that exposes note CRUD operations over a REST API. It wraps 
 | `POST` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies` | Add a reply |
 | `DELETE` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies/:reply_id` | Delete a reply |
 
+## Live Subscription Routes
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/live` | Open a server-sent event stream for a typed live scope |
+
+Live subscriptions are typed scope requests rather than arbitrary query strings. The initial rollout supports:
+
+- `vault-list/personal`
+- `vault-list/shared`
+- `note-list`
+- `note`
+
+Delivery contract:
+
+- The first successful event is a complete snapshot for the requested scope
+- Subsequent events replace the prior snapshot for that same scope
+- Authorization is enforced before the listener is attached and remains an API-layer concern
+- Equivalent scope requests should reuse one backend upstream scope where possible
+
 ## Admin Sync
 
 | Method | Path | Description |

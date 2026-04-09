@@ -1,4 +1,4 @@
-use notes_core::{NotePermission, ServerRole};
+use notes_core::{LiveCollection, LiveQuery, LiveScopeKind, NotePermission, ServerRole};
 use serde::{Deserialize, Serialize};
 
 // --- Auth request types ---
@@ -211,4 +211,30 @@ pub struct ServerMetadataResponse {
     pub root_path: Option<String>,
     pub current_user_id: String,
     pub current_user_username: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct LiveSubscribeRequest {
+    pub collection: LiveCollection,
+    pub scope_kind: LiveScopeKind,
+    pub server_slug: String,
+    pub owner_context: Option<String>,
+    pub user_context: Option<String>,
+    pub vault_id: Option<String>,
+    pub note_id: Option<String>,
+}
+
+impl LiveSubscribeRequest {
+    pub fn into_live_query(self) -> LiveQuery {
+        LiveQuery {
+            collection: self.collection,
+            scope_kind: self.scope_kind,
+            server_slug: self.server_slug,
+            owner_context: self.owner_context,
+            user_context: self.user_context,
+            vault_id: self.vault_id,
+            note_id: self.note_id,
+            filters: Vec::new(),
+        }
+    }
 }

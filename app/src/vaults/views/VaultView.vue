@@ -7,15 +7,18 @@ import { NyxGridMode } from 'nyx-kit/types'
 import { noteRoute } from '@/shared/utils'
 import NoteCard from '@/notes/components/NoteCard.vue'
 import { useNoteBrowsingStore, useNotesStore } from '@/notes/stores'
-import { useWorkspaceProfiles } from '@/shared/composables'
+import { useSubscription, useWorkspaceProfiles } from '@/shared/composables'
 import type { BrowseNoteCardModel } from '@/shared/types'
 import { WorkspaceProfileType } from '@/shared/types'
+import { useVaults } from '@/vaults/composables'
 import { useVaultStore } from '@/vaults/stores'
 
 const route = useRoute()
 const router = useRouter()
 const vaultId = computed(() => route.params.vault_id as string)
 const { activeProfile } = useWorkspaceProfiles()
+const serverSlug = computed(() => activeProfile.value?.id || 'main-server')
+useVaults()
 
 const vaultStore = useVaultStore()
 const { vaults, activeVault } = storeToRefs(vaultStore)
@@ -23,7 +26,9 @@ const { load: loadVaults, setActive } = vaultStore
 const notesStore = useNotesStore()
 const noteBrowsingStore = useNoteBrowsingStore()
 const { listLoading } = storeToRefs(notesStore)
-const { notesFor, loadList, create: createNote } = notesStore
+const { notesFor, loadList, subscribeList, create: createNote } = notesStore
+
+useSubscription(vaultId, value => subscribeList(serverSlug.value, value))
 
 onMounted(async () => {
   await loadVaults()
