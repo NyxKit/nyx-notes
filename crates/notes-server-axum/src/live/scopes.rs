@@ -46,7 +46,12 @@ pub fn normalize_query_key(query: &LiveQuery) -> Result<CanonicalQueryKey, AppEr
     normalized_filters.sort();
 
     Ok(CanonicalQueryKey {
-        resource_name: format!("{:?}", query.collection).to_lowercase(),
+        resource_name: match query.collection {
+            LiveCollection::VaultListPersonal => "vault_list_personal".into(),
+            LiveCollection::VaultListShared => "vault_list_shared".into(),
+            LiveCollection::NoteList => "note_list".into(),
+            LiveCollection::Note => "note".into(),
+        },
         scope_kind: query.scope_kind.clone(),
         normalized_identifiers,
         normalized_filters,

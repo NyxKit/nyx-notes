@@ -26,7 +26,7 @@ const commentsStore = useComments()
 const { annotations, setActiveComment, beginComment, load: loadComments, clearLoadedComments } = commentsStore
 
 const { activeProfile } = useWorkspaceProfiles()
-const serverSlug = computed(() => activeProfile.value?.id || 'main-server')
+const serverSlug = computed(() => auth.serverMetadata.value?.slug || 'main-server')
 const noteBrowsingStore = useNoteBrowsingStore()
 
 function toggleFavorite() {

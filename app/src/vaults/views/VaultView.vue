@@ -2,6 +2,7 @@
 import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuth } from '@/auth/composables'
 import { NyxButton, NyxGrid, NyxIcon } from 'nyx-kit/components'
 import { NyxGridMode } from 'nyx-kit/types'
 import { noteRoute } from '@/shared/utils'
@@ -16,8 +17,9 @@ import { useVaultStore } from '@/vaults/stores'
 const route = useRoute()
 const router = useRouter()
 const vaultId = computed(() => route.params.vault_id as string)
+const auth = useAuth()
 const { activeProfile } = useWorkspaceProfiles()
-const serverSlug = computed(() => activeProfile.value?.id || 'main-server')
+const serverSlug = computed(() => auth.serverMetadata.value?.slug || 'main-server')
 useVaults()
 
 const vaultStore = useVaultStore()

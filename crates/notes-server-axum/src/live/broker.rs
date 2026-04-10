@@ -3,10 +3,13 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use tokio::sync::broadcast;
+
 #[derive(Debug, Clone, Default)]
 struct BrokerEntry {
     listeners: usize,
     version: u64,
+    tx: Option<broadcast::Sender<u64>>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -18,8 +21,22 @@ impl LiveBroker {
     pub fn attach(&self, key: &str) -> usize {
         let mut inner = self.inner.lock().expect("live broker lock poisoned");
         let entry = inner.entry(key.to_string()).or_default();
+        if entry.tx.is_none() {
+            let (tx, _rx) = broadcast::channel(32);
+            entry.tx = Some(tx);
+        }
         entry.listeners += 1;
         entry.listeners
+    }
+
+    pub fn subscribe(&self, key: &str) -> Option<broadcast::Receiver<u64>> {
+        let mut inner = self.inner.lock().expect("live broker lock poisoned");
+        let entry = inner.entry(key.to_string()).or_default();
+        if entry.tx.is_none() {
+            let (tx, _rx) = broadcast::channel(32);
+            entry.tx = Some(tx);
+        }
+        entry.tx.as_ref().map(|tx| tx.subscribe())
     }
 
     pub fn release(&self, key: &str) -> usize {
@@ -52,6 +69,9 @@ impl LiveBroker {
         let mut inner = self.inner.lock().expect("live broker lock poisoned");
         let entry = inner.entry(key.to_string()).or_default();
         entry.version += 1;
+        if let Some(tx) = &entry.tx {
+            let _ = tx.send(entry.version);
+        }
         entry.version
     }
 

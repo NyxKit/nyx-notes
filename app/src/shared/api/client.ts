@@ -28,6 +28,14 @@ export function getApiRequestEpoch() {
   return _requestEpoch
 }
 
+export function getApiToken() {
+  return _token
+}
+
+export function getApiBaseUrl() {
+  return _baseUrl
+}
+
 export const api = ofetch.create({
   onRequest({ options }) {
     options.baseURL = options.baseURL ?? _baseUrl

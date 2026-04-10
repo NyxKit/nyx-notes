@@ -25,7 +25,7 @@ function createQueryKey(query: LiveQuery) {
 }
 
 class SubscriptionManager {
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private records = new Map<string, InternalRecord<any>>()
 
   connect(query: LiveQuery, reconnect: ReconnectHandler) {

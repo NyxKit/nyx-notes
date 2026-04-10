@@ -1,6 +1,7 @@
-use std::{path::PathBuf, sync::Arc, time::{SystemTime, UNIX_EPOCH}};
+use std::{path::PathBuf, sync::Arc, time::{Duration, SystemTime, UNIX_EPOCH}};
 
-use axum::{body::{to_bytes, Body}, http::{header, Request, StatusCode}};
+use axum::{body::Body, http::{header, Request, StatusCode}};
+use http_body_util::BodyExt;
 use notes_auth::SecretKeyAuthStore;
 use notes_core::{AuthStore, Note, NoteMeta, NotePermission, StorageBackend, Vault, VaultOwner};
 use notes_server_axum::{live::broker::LiveBroker, routes, storage_adapter::AsyncStorageAdapter, types::AuthConfig, AppState};
@@ -89,7 +90,7 @@ async fn seeded_app() -> (axum::Router, String, String, String) {
 async fn live_personal_vault_scope_returns_sse_snapshot() {
     let (app, _admin_token, alice_token, root) = seeded_app().await;
 
-    let response = app
+    let response = app.clone()
         .oneshot(
             Request::get("/api/live?collection=vault_list_personal&scope_kind=collection&server_slug=main-server")
                 .header("authorization", format!("Bearer {alice_token}"))
@@ -101,9 +102,9 @@ async fn live_personal_vault_scope_returns_sse_snapshot() {
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.headers().get(header::CONTENT_TYPE).unwrap(), "text/event-stream");
-    let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
-    let text = String::from_utf8(body.to_vec()).unwrap();
-    assert!(text.contains("event: snapshot"));
+    let mut body = response.into_body();
+    let frame = tokio::time::timeout(Duration::from_secs(2), body.frame()).await.unwrap().unwrap().unwrap();
+    let text = String::from_utf8(frame.into_data().unwrap().to_vec()).unwrap();
     assert!(text.contains("\"type\":\"snapshot\""));
     assert!(text.contains("\"slug\":\"writing\""));
 
@@ -114,7 +115,7 @@ async fn live_personal_vault_scope_returns_sse_snapshot() {
 async fn live_note_scope_returns_sse_snapshot() {
     let (app, _admin_token, alice_token, root) = seeded_app().await;
 
-    let response = app
+    let response = app.clone()
         .oneshot(
             Request::get("/api/live?collection=note&scope_kind=document&server_slug=main-server&vault_id=writing&note_id=note-1")
                 .header("authorization", format!("Bearer {alice_token}"))
@@ -125,8 +126,9 @@ async fn live_note_scope_returns_sse_snapshot() {
         .unwrap();
 
     assert_eq!(response.status(), StatusCode::OK);
-    let body = to_bytes(response.into_body(), usize::MAX).await.unwrap();
-    let text = String::from_utf8(body.to_vec()).unwrap();
+    let mut body = response.into_body();
+    let frame = tokio::time::timeout(Duration::from_secs(2), body.frame()).await.unwrap().unwrap().unwrap();
+    let text = String::from_utf8(frame.into_data().unwrap().to_vec()).unwrap();
     assert!(text.contains("\"title\":\"Draft\""));
     assert!(text.contains("\"content\":\"Hello live\""));
 
@@ -137,7 +139,7 @@ async fn live_note_scope_returns_sse_snapshot() {
 async fn live_note_scope_requires_note_id_for_document_queries() {
     let (app, _admin_token, alice_token, root) = seeded_app().await;
 
-    let response = app
+    let response = app.clone()
         .oneshot(
             Request::get("/api/live?collection=note&scope_kind=document&server_slug=main-server&vault_id=writing")
                 .header("authorization", format!("Bearer {alice_token}"))
@@ -149,6 +151,65 @@ async fn live_note_scope_requires_note_id_for_document_queries() {
 
     assert_eq!(response.status(), StatusCode::UNPROCESSABLE_ENTITY);
 
+    let _ = std::fs::remove_dir_all(root);
+}
+
+#[tokio::test]
+async fn live_note_scope_pushes_updates_to_connected_clients() {
+    let (app, _admin_token, alice_token, root) = seeded_app().await;
+
+    let response = app.clone()
+        .oneshot(
+            Request::get("/api/live?collection=note_list&scope_kind=collection&server_slug=main-server&vault_id=writing")
+                .header("authorization", format!("Bearer {alice_token}"))
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let mut body = response.into_body();
+    let first = tokio::time::timeout(Duration::from_secs(2), body.frame()).await.unwrap().unwrap().unwrap();
+    let first_text = String::from_utf8(first.into_data().unwrap().to_vec()).unwrap();
+    assert!(first_text.contains("Draft"));
+
+    let create_response = app.clone()
+        .oneshot(
+            Request::post("/api/vaults/writing/notes")
+                .header("authorization", format!("Bearer {alice_token}"))
+                .header("content-type", "application/json")
+                .body(Body::from(serde_json::json!({
+                    "title": "Second",
+                    "content": "live update",
+                    "tags": [],
+                    "category": null,
+                    "images": [],
+                    "permission": "edit"
+                }).to_string()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(create_response.status(), StatusCode::CREATED);
+
+    let second = tokio::time::timeout(Duration::from_secs(10), async {
+        loop {
+            if let Some(frame) = body.frame().await {
+                let frame = frame.unwrap();
+                if let Ok(data) = frame.into_data() {
+                    let text = String::from_utf8(data.to_vec()).unwrap();
+                    if text.contains("Second") {
+                        return text;
+                    }
+                }
+            }
+        }
+    }).await.unwrap();
+
+    assert!(second.contains("Second"));
     let _ = std::fs::remove_dir_all(root);
 }
 

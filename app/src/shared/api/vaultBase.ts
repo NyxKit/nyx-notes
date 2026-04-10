@@ -1,4 +1,4 @@
-import { api } from '@/shared/api/client'
+import { getApiBaseUrl, getApiToken } from '@/shared/api/client'
 import { subscriptionManager } from './subscriptionManager'
 import { LiveCollection, LiveScopeKind, type LiveQuery } from '@/shared/types'
 import { fetchVaults } from '@/vaults/api'
@@ -31,8 +31,37 @@ interface SubscriptionEntry {
   query: LiveQuery
   refCount: number
   onUpdate: (snapshot: unknown) => void
-  eventSource?: EventSource
+  abortController?: AbortController
   reconnectAttempts: number
+}
+
+function parseSseFrame(frame: string) {
+  let event = 'message'
+  const dataLines: string[] = []
+
+  for (const line of frame.split('\n')) {
+    if (line.startsWith('event:')) {
+      event = line.slice(6).trim()
+    } else if (line.startsWith('data:')) {
+      dataLines.push(line.slice(5).trim())
+    }
+  }
+
+  return { event, data: dataLines.join('\n') }
+}
+
+function liveUrl(query: LiveQuery) {
+  const path = `/api/live?${toSearchParams(query).toString()}`
+  const base = getApiBaseUrl()
+  if (!base || base === '/') return path
+  return new URL(path, base).toString()
+}
+
+function liveHeaders() {
+  const headers = new Headers()
+  const token = getApiToken()
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+  return headers
 }
 
 class NyxBaseClass {
@@ -100,13 +129,6 @@ class NyxBaseClass {
           onUpdate(snapshot as T)
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response: any = await api(`/api/live?${toSearchParams(query).toString()}`)
-        if (response?.data !== undefined) {
-          subscriptionManager.publish(query, response.data)
-          onUpdate(response.data as T)
-        }
-
         if (this.subscriptions.has(vaultKey)) {
           this.startLiveConnection(query, vaultKey)
         }
@@ -131,35 +153,75 @@ class NyxBaseClass {
   private startLiveConnection(query: LiveQuery, vaultKey: string) {
     const entry = this.subscriptions.get(vaultKey)
     if (!entry) return
-    if (entry.eventSource) return
+    if (entry.abortController) return
     if (entry.reconnectAttempts >= this.maxReconnectAttempts) {
       subscriptionManager.fail(query, 'Max reconnection attempts reached')
       return
     }
 
-    const url = `/api/live?${toSearchParams(query).toString()}`
+    const controller = new AbortController()
+    entry.abortController = controller
 
-    try {
-      const eventSource = new EventSource(url)
+    void (async () => {
+      try {
+        const response = await fetch(liveUrl(query), {
+          method: 'GET',
+          headers: liveHeaders(),
+          signal: controller.signal,
+        })
 
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
-          if (data.snapshot !== undefined) {
-            subscriptionManager.publish(query, data.snapshot)
-            entry.onUpdate(data.snapshot)
-          }
-          if (data.keep_alive === true) {
-            entry.reconnectAttempts = 0
-          }
-        } catch (parseError) {
-          console.error('Failed to parse SSE message:', parseError)
+        if (!response.ok || !response.body) {
+          throw new Error(`Live request failed with ${response.status}`)
         }
-      }
 
-      eventSource.onerror = () => {
-        eventSource.close()
-        entry.eventSource = undefined
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+
+          while (buffer.includes('\n\n')) {
+            const index = buffer.indexOf('\n\n')
+            const frame = buffer.slice(0, index)
+            buffer = buffer.slice(index + 2)
+            const { data } = parseSseFrame(frame)
+            if (!data) continue
+
+            try {
+              const payload = JSON.parse(data)
+              if (payload.type === 'snapshot' && payload.data !== undefined) {
+                subscriptionManager.publish(query, payload.data)
+                entry.onUpdate(payload.data)
+                entry.reconnectAttempts = 0
+              }
+            } catch (parseError) {
+              console.error('Failed to parse live payload:', parseError)
+            }
+          }
+        }
+
+        if (!controller.signal.aborted && this.subscriptions.has(vaultKey)) {
+          entry.abortController = undefined
+          entry.reconnectAttempts += 1
+          const delay = this.baseRetryDelay * Math.pow(2, entry.reconnectAttempts - 1)
+          const cappedDelay = Math.min(delay, 30000)
+
+          if (entry.reconnectAttempts < this.maxReconnectAttempts) {
+            setTimeout(() => {
+              if (this.subscriptions.has(vaultKey)) this.startLiveConnection(query, vaultKey)
+            }, cappedDelay)
+          } else {
+            subscriptionManager.fail(query, `Failed to connect after ${entry.reconnectAttempts} attempts`)
+          }
+        }
+      } catch (error) {
+        if (controller.signal.aborted) return
+
+        entry.abortController = undefined
         entry.reconnectAttempts += 1
 
         const delay = this.baseRetryDelay * Math.pow(2, entry.reconnectAttempts - 1)
@@ -167,20 +229,14 @@ class NyxBaseClass {
 
         if (entry.reconnectAttempts < this.maxReconnectAttempts && this.subscriptions.has(vaultKey)) {
           setTimeout(() => {
-            if (this.subscriptions.has(vaultKey)) {
-              this.startLiveConnection(query, vaultKey)
-            }
+            if (this.subscriptions.has(vaultKey)) this.startLiveConnection(query, vaultKey)
           }, cappedDelay)
         } else {
-          subscriptionManager.fail(query, `Failed to connect after ${entry.reconnectAttempts} attempts`)
+          const message = error instanceof Error ? error.message : String(error)
+          subscriptionManager.fail(query, `Live stream error: ${message}`)
         }
       }
-
-      entry.eventSource = eventSource
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
-      subscriptionManager.fail(query, `EventSource error: ${message}`)
-    }
+    })()
   }
 
   private release(vaultKey: string) {
@@ -190,7 +246,7 @@ class NyxBaseClass {
     entry.refCount = Math.max(0, entry.refCount - 1)
 
     if (entry.refCount === 0) {
-      entry.eventSource?.close()
+      entry.abortController?.abort()
       this.subscriptions.delete(vaultKey)
     }
   }
