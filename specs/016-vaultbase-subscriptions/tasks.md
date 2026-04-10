@@ -36,7 +36,7 @@
 - [X] T008 Wire the live subscription route into the router in crates/notes-server-axum/src/routes/mod.rs and crates/notes-server-axum/src/routes/subscriptions.rs
 - [X] T009 [P] Implement frontend live subscription enums and query identity types in app/src/shared/types/live.ts and app/src/shared/types/index.ts
 - [X] T010 Implement the shared frontend subscription manager in app/src/shared/api/subscriptionManager.ts
-- [X] T011 Implement the VaultBase data-access layer beneath domain stores in app/src/shared/api/vaultBase.ts and app/src/shared/api/index.ts
+- [X] T011 Implement the NyxBase data-access layer beneath domain stores in app/src/shared/api/vaultBase.ts and app/src/shared/api/index.ts
 - [X] T012 Implement reusable composable lifecycle helpers for calling store-level acquire/release subscription behavior in app/src/shared/composables/useSubscription.ts and app/src/shared/composables/index.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel.
@@ -53,15 +53,15 @@
 
 - [X] T013 [P] [US1] Add Axum integration coverage for vault-list, note-list, and note live subscription scopes in crates/notes-server-axum/tests/subscriptions_api.rs
 - [X] T014 [P] [US1] Add frontend subscription manager snapshot/reconnect tests in app/src/shared/api/subscriptionManager.spec.ts
-- [X] T015 [P] [US1] Add VaultBase live scope tests in app/src/shared/api/vaultBase.spec.ts
+- [X] T015 [P] [US1] Add NyxBase live scope tests in app/src/shared/api/vaultBase.spec.ts
 
 ### Implementation for User Story 1
 
 - [X] T016 [US1] Implement SSE snapshot delivery for typed live scopes in crates/notes-server-axum/src/routes/subscriptions.rs
 - [X] T017 [US1] Publish vault and note updates from write handlers into the broker in crates/notes-server-axum/src/routes/vaults.rs and crates/notes-server-axum/src/routes/notes.rs
 - [X] T018 [US1] Add latest-snapshot replay and reconnect handling to the shared manager in app/src/shared/api/subscriptionManager.ts
-- [X] T019 [US1] Adapt the vault store to own live vault list subscriptions through VaultBase in app/src/vaults/stores/vaults.ts
-- [X] T020 [US1] Adapt the notes store to own live note list and note document subscriptions through VaultBase in app/src/notes/stores/notes.ts
+- [X] T019 [US1] Adapt the vault store to own live vault list subscriptions through NyxBase in app/src/vaults/stores/vaults.ts
+- [X] T020 [US1] Adapt the notes store to own live note list and note document subscriptions through NyxBase in app/src/notes/stores/notes.ts
 - [X] T021 [US1] Update useVaults lifecycle behavior to call store-level subscribe/unsubscribe methods on mount/unmount in app/src/vaults/composables/useVaults.ts
 - [X] T022 [US1] Update note-facing composables and views to call store-level live note subscription behavior in app/src/notes/composables/useGlobalNoteBrowsing.ts, app/src/vaults/views/VaultView.vue, and app/src/notes/views/NoteView.vue
 
@@ -121,7 +121,7 @@
 
 - [ ] T037 [P] Add view-level Vitest validation coverage for live vault and note updates in app/src/vaults/views/VaultView.spec.ts and app/src/notes/views/NoteView.spec.ts
 - [X] T038 Harden transient interruption and error-state handling across backend and frontend in crates/notes-server-axum/src/routes/subscriptions.rs and app/src/shared/api/subscriptionManager.ts
-- [X] T039 [P] Clean up obsolete direct-fetch flows superseded by VaultBase in app/src/vaults/api/vaults.ts, app/src/notes/api/notes.ts, and related composables/stores
+- [X] T039 [P] Clean up obsolete direct-fetch flows superseded by NyxBase in app/src/vaults/api/vaults.ts, app/src/notes/api/notes.ts, and related composables/stores
 - [X] T040 Run and document quickstart validation outcomes in specs/016-vaultbase-subscriptions/quickstart.md
 
 ---
@@ -165,11 +165,11 @@
 # Parallel test preparation for User Story 1:
 Task: "Add Axum integration coverage for vault-list, note-list, and note live subscription scopes in crates/notes-server-axum/tests/subscriptions_api.rs"
 Task: "Add frontend subscription manager snapshot/reconnect tests in app/src/shared/api/subscriptionManager.spec.ts"
-Task: "Add VaultBase live scope tests in app/src/shared/api/vaultBase.spec.ts"
+Task: "Add NyxBase live scope tests in app/src/shared/api/vaultBase.spec.ts"
 
 # Parallel store integration for User Story 1 after manager replay logic exists:
-Task: "Adapt the vault store to consume live vault list snapshots from VaultBase in app/src/vaults/stores/vaults.ts"
-Task: "Adapt the notes store to consume live note list and note document snapshots from VaultBase in app/src/notes/stores/notes.ts"
+Task: "Adapt the vault store to consume live vault list snapshots from NyxBase in app/src/vaults/stores/vaults.ts"
+Task: "Adapt the notes store to consume live note list and note document snapshots from NyxBase in app/src/notes/stores/notes.ts"
 ```
 
 ---
@@ -197,7 +197,7 @@ Task: "Adapt the notes store to consume live note list and note document snapsho
 With multiple developers:
 
 1. One developer drives backend broker/live route infrastructure
-2. One developer builds frontend `VaultBase` and subscription manager
+2. One developer builds frontend `NyxBase` and subscription manager
 3. One developer prepares store/composable adoption and tests
 4. After Phase 2, developers can split across US1-US3 by story while coordinating on shared interfaces
 

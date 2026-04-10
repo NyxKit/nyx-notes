@@ -35,7 +35,7 @@ interface SubscriptionEntry {
   reconnectAttempts: number
 }
 
-class VaultBaseClass {
+class NyxBaseClass {
   private subscriptions = new Map<string, SubscriptionEntry>()
   private maxReconnectAttempts = 5
   private baseRetryDelay = 1000
@@ -232,4 +232,4 @@ class VaultBaseClass {
   }
 }
 
-export const VaultBase = new VaultBaseClass()
+export const NyxBase = new NyxBaseClass()

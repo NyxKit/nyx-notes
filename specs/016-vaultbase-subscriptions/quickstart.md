@@ -14,25 +14,25 @@ Validate that the new centralized subscription model provides live vault and not
 
 ### ✅ Scenario 1: Vault list auto-updates
 **Status**: Implemented
-- VaultBase subscribes to vault_list_personal scope on mount
+- NyxBase subscribes to vault_list_personal scope on mount
 - Backend publishes to broker on vault create/delete/update
 - Frontend receives live updates via SSE
 
 ### ✅ Scenario 2: Note list auto-updates
 **Status**: Implemented
-- VaultBase subscribes to note_list scope per vault
+- NyxBase subscribes to note_list scope per vault
 - Backend publishes on note CRUD operations
 - Notes store updates reactively via subscription callback
 
 ### ✅ Scenario 3: Note document auto-updates
 **Status**: Implemented
-- VaultBase subscribes to note document scope
+- NyxBase subscribes to note document scope
 - NoteView uses useSubscription to call subscribeNote
 - Active note updates via live snapshot
 
 ### ✅ Scenario 4: Shared subscription reuse
 **Status**: Implemented and tested
-- VaultBase singleton tracks refCount per vault key
+- NyxBase singleton tracks refCount per vault key
 - First subscriber loads snapshot + starts EventSource
 - Second+ subscriber increments refCount, reuses connection
 - Only refCount=0 triggers cleanup
@@ -45,7 +45,7 @@ Validate that the new centralized subscription model provides live vault and not
 
 ### ✅ Scenario 6: Transient interruption handling
 **Status**: Hardened
-- VaultBase retries initial snapshot up to 3 times
+- NyxBase retries initial snapshot up to 3 times
 - EventSource reconnect with exponential backoff (max 5 attempts)
 - Max retry delay capped at 30 seconds
 - subscriptionManager fails with descriptive error after max retries
@@ -60,7 +60,7 @@ Validate that the new centralized subscription model provides live vault and not
 ### Frontend
 ```typescript
 // Subscribe to live updates
-const handle = VaultBase.subscribe(query, (snapshot) => {
+const handle = NyxBase.subscribe(query, (snapshot) => {
   store.value = snapshot
 })
 
@@ -68,8 +68,8 @@ const handle = VaultBase.subscribe(query, (snapshot) => {
 handle.release()
 
 // Query builders
-VaultBase.createNoteListQuery(serverSlug, vaultId)
-VaultBase.createNoteQuery(serverSlug, vaultId, noteId)
+NyxBase.createNoteListQuery(serverSlug, vaultId)
+NyxBase.createNoteQuery(serverSlug, vaultId, noteId)
 ```
 
 ### Backend Routes

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
-import { getApiRequestEpoch, VaultBase } from '@/shared/api'
+import { getApiRequestEpoch, NyxBase } from '@/shared/api'
 import {
   fetchNotes,
   fetchNote,
@@ -54,8 +54,8 @@ export const useNotesStore = defineStore('notes', () => {
   }
 
   function subscribeList(serverSlug: string, vaultId: string) {
-    const handle = VaultBase.subscribe<NoteMeta[]>(
-      VaultBase.createNoteListQuery(serverSlug, vaultId),
+    const handle = NyxBase.subscribe<NoteMeta[]>(
+      NyxBase.createNoteListQuery(serverSlug, vaultId),
       snapshot => {
         notesByVault.value[vaultId] = snapshot
       },
@@ -80,8 +80,8 @@ export const useNotesStore = defineStore('notes', () => {
   }
 
   function subscribeNote(serverSlug: string, vaultId: string, id: string) {
-    const handle = VaultBase.subscribe<Note>(
-      VaultBase.createNoteQuery(serverSlug, vaultId, id),
+    const handle = NyxBase.subscribe<Note>(
+      NyxBase.createNoteQuery(serverSlug, vaultId, id),
       snapshot => {
         activeNote.value = snapshot
       },

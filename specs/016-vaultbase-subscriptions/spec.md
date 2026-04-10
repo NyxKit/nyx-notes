@@ -5,8 +5,8 @@
 **Status**: Draft  
 **Input**: User description: "this feature will be centralized around optimizing en centralizing data flow. we need:
 - subscriptions => think of firebase collection/document subscriptions, for our backend
-- this means abstracting a new layer out of the current api into a full-fletched \"VaultBase\"
-- this means the domain stores are then calling VaultBase.subscribe with simple queries: collection (vaults vs notes - vaultId/noteId), server, user, ...)
+- this means abstracting a new layer out of the current api into a full-fletched \"NyxBase\"
+- this means the domain stores are then calling NyxBase.subscribe with simple queries: collection (vaults vs notes - vaultId/noteId), server, user, ...)
 - composables are then used to subscribe/unsubscribe on mount/unmount
 - useVaults talks with the vault store but also subscribes and unsubscribes on mount/unmount
 - since multiple composables can subscribe, to prevent multiple subscriptions (n) and having n redundant calls, we need a subscription manager as well
@@ -97,7 +97,7 @@ As a frontend developer extending the app, I want composables to manage subscrib
 
 ### Key Entities *(include if feature involves data)*
 
-- **VaultBase Query**: A normalized request that describes which data scope should be observed, including collection type and the business identifiers needed to resolve that scope.
+- **NyxBase Query**: A normalized request that describes which data scope should be observed, including collection type and the business identifiers needed to resolve that scope.
 - **Subscription Handle**: A tracked consumer registration that represents one caller's active interest in a specific query and can be released without affecting unrelated callers.
 - **Shared Subscription**: The canonical active observation for a deduplicated query, including its current lifecycle state, latest delivered result, and reference count.
 - **Observed Dataset**: The vault, note, or other scoped data payload currently being kept in sync for consumers.
@@ -108,7 +108,7 @@ As a frontend developer extending the app, I want composables to manage subscrib
 - The first rollout focuses on the existing vault and note domains, while leaving room to extend the same subscription model to additional domains later.
 - Equivalent queries are defined by the full set of business identifiers required to address a data scope, not by which component or composable requested them.
 - Consumers continue reading rendered state from domain stores; the new capability changes how stores are fed, not where views read data from.
-- Stores own `VaultBase` access and payload normalization; composables own lifecycle orchestration around those store methods.
+- Stores own `NyxBase` access and payload normalization; composables own lifecycle orchestration around those store methods.
 - A single consumer may change query scope over time, and the system should treat that as release-plus-resubscribe rather than mutating an existing query in place.
 - Permission enforcement remains authoritative at the backend boundary even when data is delivered through a long-lived subscription channel.
 

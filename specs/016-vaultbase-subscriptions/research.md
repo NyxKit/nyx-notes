@@ -10,7 +10,7 @@
 
 ## Decision 2: Keep Pinia stores as the only frontend read surface
 
-- **Decision**: `VaultBase` and the subscription manager write into domain stores; components and views continue to read only from Pinia-backed state.
+- **Decision**: `NyxBase` and the subscription manager write into domain stores; components and views continue to read only from Pinia-backed state.
 - **Rationale**: The repo already centers state in domain stores. Preserving stores as the single read surface avoids split-brain state between transport-level refs and domain state.
 - **Alternatives considered**:
   - Returning live payload refs directly from composables: faster to prototype, but creates competing data sources.

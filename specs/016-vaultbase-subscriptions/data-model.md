@@ -1,6 +1,6 @@
 # Data Model: Centralized Subscription Data Flow
 
-## 1. VaultBase Query
+## 1. NyxBase Query
 
 - **Purpose**: Describes one requested live data scope.
 - **Fields**:

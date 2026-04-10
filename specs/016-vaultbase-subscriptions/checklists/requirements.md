@@ -32,4 +32,4 @@
 ## Notes
 
 - Validation pass completed with no outstanding clarification markers.
-- The specification preserves the user-requested concepts of centralized subscriptions, a shared subscription manager, and a VaultBase-style access layer while describing them in outcome-oriented terms.
+- The specification preserves the user-requested concepts of centralized subscriptions, a shared subscription manager, and a NyxBase-style access layer while describing them in outcome-oriented terms.

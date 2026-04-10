@@ -85,7 +85,7 @@ concern, not a post-hoc addition.
 The Vue 3 frontend MUST follow the Composition API exclusively.
 
 - Components MUST NOT call API wrappers, `fetch`, or transport layers directly.
-- Shared frontend API wrappers (for example `shared/api` and `VaultBase`) MAY sit beneath stores as
+- Shared frontend API wrappers (for example `shared/api` and `NyxBase`) MAY sit beneath stores as
   the frontend data-access layer.
 - Domain stores MAY own frontend API access, subscription state, and payload normalization into
   domain classes.

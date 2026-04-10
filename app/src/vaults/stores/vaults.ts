@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
-import { getApiRequestEpoch, VaultBase } from '@/shared/api'
+import { getApiRequestEpoch, NyxBase } from '@/shared/api'
 import { fetchVaults, createVault, createServerVault, deleteServerVault, deleteVault, updateVault } from '@/vaults/api'
 import type { Vault, CreateVaultRequest, UpdateVaultRequest } from '@/shared/types'
 
@@ -28,8 +28,8 @@ export const useVaultStore = defineStore('vaults', () => {
   }
 
   function subscribeList(serverSlug: string, userContext?: string) {
-    const handle = VaultBase.subscribe<Vault[]>(
-      VaultBase.createVaultListPersonalQuery(serverSlug, userContext),
+    const handle = NyxBase.subscribe<Vault[]>(
+      NyxBase.createVaultListPersonalQuery(serverSlug, userContext),
       snapshot => {
         vaults.value = snapshot
       },

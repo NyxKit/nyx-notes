@@ -22,21 +22,21 @@ describe('subscriptionManager', () => {
       vault_id: 'writing',
     }
 
-    subscriptionManager.acquire(query)
-    const record1 = subscriptionManager.get(query)
-    expect(record1?.refCount).toBe(1)
+      const handle1 = subscriptionManager.acquire(query)
+      const record1 = subscriptionManager.get(query)
+      expect(record1?.refCount).toBe(1)
 
-    subscriptionManager.acquire(query)
-    const record2 = subscriptionManager.get(query)
-    expect(record2?.refCount).toBe(2)
+      const handle2 = subscriptionManager.acquire(query)
+      const record2 = subscriptionManager.get(query)
+      expect(record2?.refCount).toBe(2)
 
-    subscriptionManager.acquire(query).release()
-    const recordAfterRelease = subscriptionManager.get(query)
-    expect(recordAfterRelease?.refCount).toBe(1)
+      handle1.release()
+      const recordAfterRelease = subscriptionManager.get(query)
+      expect(recordAfterRelease?.refCount).toBe(1)
 
-    subscriptionManager.acquire(query).release()
-    expect(subscriptionManager.get(query)).toBeUndefined()
-  })
+      handle2.release()
+      expect(subscriptionManager.get(query)).toBeUndefined()
+    })
 
     it('deduplicates multiple listeners for the same query', () => {
       const query = {

@@ -25,7 +25,7 @@ vi.stubGlobal('EventSource', vi.fn().mockImplementation(() => ({
   close: vi.fn(),
 })))
 
-describe('VaultBase', () => {
+describe('NyxBase', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     const { subscriptionManager } = await import('./subscriptionManager')
@@ -33,9 +33,9 @@ describe('VaultBase', () => {
   })
 
   it('creates note list queries with the expected scope', async () => {
-    const { VaultBase } = await import('./vaultBase')
+    const { NyxBase } = await import('./vaultBase')
 
-    expect(VaultBase.createNoteListQuery('main-server', 'writing')).toEqual({
+    expect(NyxBase.createNoteListQuery('main-server', 'writing')).toEqual({
       collection: LiveCollection.NoteList,
       scope_kind: LiveScopeKind.Collection,
       server_slug: 'main-server',
@@ -44,10 +44,10 @@ describe('VaultBase', () => {
   })
 
   it('loads an initial note list snapshot before live updates', async () => {
-    const { VaultBase } = await import('./vaultBase')
+    const { NyxBase } = await import('./vaultBase')
 
-    const query = VaultBase.createNoteListQuery('main-server', 'writing')
-    const handle = VaultBase.subscribe(query, vi.fn())
+    const query = NyxBase.createNoteListQuery('main-server', 'writing')
+    const handle = NyxBase.subscribe(query, vi.fn())
 
     await vi.waitFor(() => {
       expect(fetchNotesMock).toHaveBeenCalledWith('writing')
