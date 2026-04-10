@@ -36,7 +36,7 @@
 - [X] T008 Wire the live subscription route into the router in crates/notes-server-axum/src/routes/mod.rs and crates/notes-server-axum/src/routes/subscriptions.rs
 - [X] T009 [P] Implement frontend live subscription enums and query identity types in app/src/shared/types/live.ts and app/src/shared/types/index.ts
 - [X] T010 Implement the shared frontend subscription manager in app/src/shared/api/subscriptionManager.ts
-- [X] T011 Implement the NyxBase data-access layer beneath domain stores in app/src/shared/api/vaultBase.ts and app/src/shared/api/index.ts
+- [X] T011 Implement the NyxBase data-access layer beneath domain stores in app/src/shared/api/nyxBase.ts and app/src/shared/api/index.ts
 - [X] T012 Implement reusable composable lifecycle helpers for calling store-level acquire/release subscription behavior in app/src/shared/composables/useSubscription.ts and app/src/shared/composables/index.ts
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel.
@@ -53,7 +53,7 @@
 
 - [X] T013 [P] [US1] Add Axum integration coverage for vault-list, note-list, and note live subscription scopes in crates/notes-server-axum/tests/subscriptions_api.rs
 - [X] T014 [P] [US1] Add frontend subscription manager snapshot/reconnect tests in app/src/shared/api/subscriptionManager.spec.ts
-- [X] T015 [P] [US1] Add NyxBase live scope tests in app/src/shared/api/vaultBase.spec.ts
+- [X] T015 [P] [US1] Add NyxBase live scope tests in app/src/shared/api/nyxBase.spec.ts
 
 ### Implementation for User Story 1
 
@@ -84,7 +84,7 @@
 
 - [X] T025 [US2] Implement canonical query-key normalization and registry ownership in app/src/shared/api/subscriptionManager.ts
 - [X] T026 [US2] Add shared handle reference tracking and delayed release behavior in app/src/shared/api/subscriptionManager.ts
-- [X] T027 [US2] Replay latest shared snapshots to late subscribers in app/src/shared/api/subscriptionManager.ts and app/src/shared/api/vaultBase.ts
+- [X] T027 [US2] Replay latest shared snapshots to late subscribers in app/src/shared/api/subscriptionManager.ts and app/src/shared/api/nyxBase.ts
 - [X] T028 [US2] Ensure backend broker reuses one upstream scope per normalized key in crates/notes-server-axum/src/live/broker.rs and crates/notes-server-axum/src/live/scopes.rs
 - [X] T029 [US2] Integrate shared subscription reuse into vault and note store/composable orchestration in app/src/vaults/stores/vaults.ts, app/src/notes/stores/notes.ts, app/src/vaults/composables/useVaults.ts, and app/src/notes/composables/useGlobalNoteBrowsing.ts
 
@@ -165,7 +165,7 @@
 # Parallel test preparation for User Story 1:
 Task: "Add Axum integration coverage for vault-list, note-list, and note live subscription scopes in crates/notes-server-axum/tests/subscriptions_api.rs"
 Task: "Add frontend subscription manager snapshot/reconnect tests in app/src/shared/api/subscriptionManager.spec.ts"
-Task: "Add NyxBase live scope tests in app/src/shared/api/vaultBase.spec.ts"
+Task: "Add NyxBase live scope tests in app/src/shared/api/nyxBase.spec.ts"
 
 # Parallel store integration for User Story 1 after manager replay logic exists:
 Task: "Adapt the vault store to consume live vault list snapshots from NyxBase in app/src/vaults/stores/vaults.ts"

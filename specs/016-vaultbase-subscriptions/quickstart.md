@@ -52,7 +52,7 @@ Validate that the new centralized subscription model provides live vault and not
 
 ## Test Coverage
 
-- Frontend: subscriptionManager.dedupe.spec.ts, subscriptionManager.generation.spec.ts, useSubscription.spec.ts, vaultBase.spec.ts
+- Frontend: subscriptionManager.dedupe.spec.ts, subscriptionManager.generation.spec.ts, useSubscription.spec.ts, nyxBase.spec.ts
 - Backend: subscriptions_api.rs (live scopes, broker fanout, version tracking)
 
 ## API Reference

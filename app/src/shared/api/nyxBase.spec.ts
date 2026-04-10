@@ -27,7 +27,7 @@ describe('NyxBase', () => {
   })
 
   it('creates note list queries with the expected scope', async () => {
-    const { NyxBase } = await import('./vaultBase')
+    const { NyxBase } = await import('./nyxBase')
 
     expect(NyxBase.createNoteListQuery('main-server', 'writing')).toEqual({
       collection: LiveCollection.NoteList,
@@ -38,7 +38,7 @@ describe('NyxBase', () => {
   })
 
   it('loads an initial note list snapshot before live updates', async () => {
-    const { NyxBase } = await import('./vaultBase')
+    const { NyxBase } = await import('./nyxBase')
 
     const query = NyxBase.createNoteListQuery('main-server', 'writing')
     const handle = NyxBase.subscribe(query, vi.fn())
@@ -61,7 +61,7 @@ describe('NyxBase', () => {
 
     setApiToken('secret-token')
 
-    const { NyxBase } = await import('./vaultBase')
+    const { NyxBase } = await import('./nyxBase')
     NyxBase.subscribe(NyxBase.createNoteListQuery('main-server', 'writing'), vi.fn())
 
     await vi.waitFor(() => {

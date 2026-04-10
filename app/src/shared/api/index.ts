@@ -1,3 +1,3 @@
 export * from './client'
 export * from './subscriptionManager'
-export * from './vaultBase'
+export * from './nyxBase'
