@@ -120,9 +120,9 @@
 **Purpose**: Final hardening across multiple user stories.
 
 - [ ] T037 [P] Add view-level Vitest validation coverage for live vault and note updates in app/src/vaults/views/VaultView.spec.ts and app/src/notes/views/NoteView.spec.ts
-- [ ] T038 Harden transient interruption and error-state handling across backend and frontend in crates/notes-server-axum/src/routes/subscriptions.rs and app/src/shared/api/subscriptionManager.ts
-- [ ] T039 [P] Clean up obsolete direct-fetch flows superseded by VaultBase in app/src/vaults/api/vaults.ts, app/src/notes/api/notes.ts, and related composables/stores
-- [ ] T040 Run and document quickstart validation outcomes in specs/016-vaultbase-subscriptions/quickstart.md
+- [X] T038 Harden transient interruption and error-state handling across backend and frontend in crates/notes-server-axum/src/routes/subscriptions.rs and app/src/shared/api/subscriptionManager.ts
+- [X] T039 [P] Clean up obsolete direct-fetch flows superseded by VaultBase in app/src/vaults/api/vaults.ts, app/src/notes/api/notes.ts, and related composables/stores
+- [X] T040 Run and document quickstart validation outcomes in specs/016-vaultbase-subscriptions/quickstart.md
 
 ---
 

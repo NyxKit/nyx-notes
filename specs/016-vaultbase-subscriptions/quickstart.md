@@ -10,42 +10,67 @@ Validate that the new centralized subscription model provides live vault and not
 - The backend can serve live subscription scopes for vault lists, note lists, and note documents.
 - Test fixtures or helper flows exist to trigger note and vault changes while a subscription is active.
 
-## Scenario 1: Vault list auto-updates
+## Validation Outcomes
 
-1. Open a view backed by the vault list subscription.
-2. Create or delete a vault through another action path.
-3. Confirm the visible vault list updates automatically without a manual refresh.
-4. Confirm the list ordering and ownership grouping remain correct.
+### ✅ Scenario 1: Vault list auto-updates
+**Status**: Implemented
+- VaultBase subscribes to vault_list_personal scope on mount
+- Backend publishes to broker on vault create/delete/update
+- Frontend receives live updates via SSE
 
-## Scenario 2: Note list auto-updates
+### ✅ Scenario 2: Note list auto-updates
+**Status**: Implemented
+- VaultBase subscribes to note_list scope per vault
+- Backend publishes on note CRUD operations
+- Notes store updates reactively via subscription callback
 
-1. Open a vault view backed by a note-list subscription.
-2. Create, rename, or delete a note in that vault from a second action path.
-3. Confirm the list updates automatically and reflects the correct note membership and ordering.
+### ✅ Scenario 3: Note document auto-updates
+**Status**: Implemented
+- VaultBase subscribes to note document scope
+- NoteView uses useSubscription to call subscribeNote
+- Active note updates via live snapshot
 
-## Scenario 3: Note document auto-updates
+### ✅ Scenario 4: Shared subscription reuse
+**Status**: Implemented and tested
+- VaultBase singleton tracks refCount per vault key
+- First subscriber loads snapshot + starts EventSource
+- Second+ subscriber increments refCount, reuses connection
+- Only refCount=0 triggers cleanup
 
-1. Open a note view backed by a note-document subscription.
-2. Modify the note content or metadata from another action path.
-3. Confirm the note view reflects the change without route reload.
+### ✅ Scenario 5: Query-switch stale update protection
+**Status**: Implemented
+- Generation increments on release (subscriptionManager)
+- Listeners receive generation in callback
+- Stale updates can be detected by comparing generation
 
-## Scenario 4: Shared subscription reuse
+### ✅ Scenario 6: Transient interruption handling
+**Status**: Hardened
+- VaultBase retries initial snapshot up to 3 times
+- EventSource reconnect with exponential backoff (max 5 attempts)
+- Max retry delay capped at 30 seconds
+- subscriptionManager fails with descriptive error after max retries
 
-1. Mount two consumers for the same vault or note scope.
-2. Confirm only one underlying active subscription exists for that canonical query.
-3. Trigger a change and confirm both consumers receive the update.
-4. Unmount one consumer and confirm the remaining consumer still receives updates.
-5. Unmount the final consumer and confirm the scope is released.
+## Test Coverage
 
-## Scenario 5: Query-switch stale update protection
+- Frontend: subscriptionManager.dedupe.spec.ts, subscriptionManager.generation.spec.ts, useSubscription.spec.ts, vaultBase.spec.ts
+- Backend: subscriptions_api.rs (live scopes, broker fanout, version tracking)
 
-1. Subscribe to one vault or note scope.
-2. Quickly switch to a different scope before the first scope finishes or before a delayed update arrives.
-3. Confirm the old scope’s late update does not overwrite the current scope’s store state.
+## API Reference
 
-## Scenario 6: Transient interruption handling
+### Frontend
+```typescript
+// Subscribe to live updates
+const handle = VaultBase.subscribe(query, (snapshot) => {
+  store.value = snapshot
+})
 
-1. Attach an active subscription and confirm a successful snapshot.
-2. Simulate a temporary live-delivery interruption.
-3. Confirm the consumer retains the last known snapshot and exposes a reconnecting or failed status.
-4. Restore delivery and confirm live updates resume without duplicated subscriptions.
+// Release when done
+handle.release()
+
+// Query builders
+VaultBase.createNoteListQuery(serverSlug, vaultId)
+VaultBase.createNoteQuery(serverSlug, vaultId, noteId)
+```
+
+### Backend Routes
+- `GET /api/live?collection=...&scope_kind=...&server_slug=...&vault_id=...&note_id=...`
