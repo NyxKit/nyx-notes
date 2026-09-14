@@ -2,6 +2,8 @@
 
 A self-hosted, Markdown-first notes app.
 
+[SVG logo and favicon](app/public/nyx-notes.svg) · [Logo usage](docs/interface/frontend.md#project-logo)
+
 - Notes are stored as plain `.md` files on disk — the filesystem is the **source of truth**
 - Backend: portable Rust server (Axum) — runs on any Linux server, NAS, or local machine
 - Frontend: Vue 3 SPA using [nyx-kit](https://github.com/nyxkit/nyx-kit) and TipTap, with one local workspace profile plus multiple remote server profiles per client, global search/favorites across reachable profiles, and note cards that show source server and vault

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="320" viewBox="0 0 256 320" fill="none" role="img" aria-labelledby="nyx-notes-title nyx-notes-desc">
+  <title id="nyx-notes-title">Nyx Notes</title>
+  <desc id="nyx-notes-desc">A lavender N forms the sides of a note, with rounded purple edges and short text lines beside its diagonal.</desc>
+  <g stroke-linecap="round" stroke-linejoin="round">
+    <path stroke="#49435f" stroke-width="14" d="M96 80h88M154.667 133.333H184M72 186.667h29.333M72 240h88"/>
+    <path stroke="#8a83a2" stroke-width="20" d="M40 80V44a20 20 0 0 1 20-20h136a20 20 0 0 1 20 20v36M40 240v36a20 20 0 0 0 20 20h136a20 20 0 0 0 20-20v-36"/>
+    <path stroke="#cbc2e4" stroke-width="20" d="M40 240V80l176 160V80"/>
+  </g>
+</svg>

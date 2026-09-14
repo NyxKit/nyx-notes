@@ -16,6 +16,27 @@ The palette is rooted in deep obsidian tones and a low-saturation, modern purple
 *   **The "Glass & Gradient" Rule:** For floating action buttons or the vault switcher, use Glassmorphism. Apply `surface-variant` (#25252b) at 60% opacity with a `backdrop-filter: blur(20px)`. This creates a "frosted" look that feels integrated rather than pasted on.
 *   **Signature Textures:** Use a subtle linear gradient for primary CTAs: `primary` (#cbc2e4) to `primary-container` (#49435f) at a 135-degree angle. This adds "visual soul" and depth that flat colors lack.
 
+### Project Logo
+
+The canonical mark is [`app/public/nyx-notes.svg`](app/public/nyx-notes.svg): a capital
+N forming the sides of a connected, rounded note outline, with text strokes in the
+open areas beside its diagonal. Keep the N visually dominant. Draw the N above
+the separately colored top and bottom outline strokes, so the letter's rounded
+ends and joins define the visible connections.
+Align text strokes on four shared horizontal rows within the N, spaced 53⅓ viewBox
+units vertically from y = 80 to 240. Include unbroken rows aligned with the top and
+bottom of its stems, inset where they approach the diagonal. All endpoints facing
+the diagonal sit 56 viewBox units horizontally from its centerline so strokes
+remain separated at small sizes. Omit fragments that cannot fit with that clearance.
+Use matching 20-unit strokes for the N and outer outline, and 14-unit text strokes.
+Inset the text to x = 72–184 and connect the outer outline tips to the N at y = 80
+and 240. Use this SVG as the application favicon.
+
+Use exactly three solid purple shades: `primary` (`#cbc2e4`) for the N, the rounded
+RGB midpoint (`#8a83a2`) for the outline, and `primary-container` (`#49435f`) for
+the text strokes. Keep the background transparent and favor the dark app surface
+when displaying it. See [logo usage](docs/interface/frontend.md#project-logo).
+
 ## 3. Typography: The Editorial Voice
 We use a dual-font approach to separate the "Act of Organizing" from the "Act of Writing."
 

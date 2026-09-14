@@ -4,6 +4,37 @@
 
 A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to the Axum backend API, adapts its auth UI to the server's `AUTH_MODE`, and uses `NyxEditor` from `nyx-kit` for Markdown editing and line-based discussion annotations.
 
+## Project Logo
+
+The canonical logo is [`app/public/nyx-notes.svg`](../../app/public/nyx-notes.svg),
+available to the frontend at `/nyx-notes.svg` and used as the SVG favicon in
+`app/index.html`. It follows the supplied hand-drawn
+concept: a prominent capital N, separately colored rounded top and bottom strokes completing
+a note silhouette, and short horizontal text lines on either side of the diagonal.
+Text follows four evenly spaced rows at y = 80, 133.333, 186.667, and 240
+in the SVG viewBox, contained within the N's height. The top and bottom rows align
+with the ends of its stems, inset where they approach the diagonal; interior strokes
+share those horizontal baselines on both sides of the N, with consistent clearance
+from its diagonal. Endpoints facing the diagonal, including the first and last
+rows, sit 56 viewBox units horizontally from its centerline, leaving roughly
+21 units of visible perpendicular clearance to avoid merging at small sizes.
+Omit fragments where that clearance leaves no room for a visible stroke or dot.
+The N and both outer outline strokes use a matching 20-unit stroke width; text
+uses 14 units. Text stays within x = 72 to 184 for clearance from the thicker stems.
+The outline tips meet the N at y = 80 and 240, forming a connected note silhouette.
+Render the N after the outer outline so the letter's rounded ends and joins remain
+visible above the outline at all four connections. Keep them as separate colored paths.
+Check favicon rendering at 16px and 32px.
+
+Use three solid shades of the primary purple: `#cbc2e4` for the N,
+`#8a83a2` (the rounded RGB midpoint of primary and primary-container) for the note
+outline, and `#49435f` for the text lines. The SVG has a transparent background,
+rounded stroke ends, and no font or external asset dependencies. Its `256 × 320`
+viewBox preserves the portrait proportions of a note. Prefer the dark `surface`
+background from [DESIGN.md](../../DESIGN.md) and a displayed height of at least
+64px to retain the interior line detail. Supply meaningful alt text when embedding
+it as an image, or empty alt text when adjacent text already names Nyx Notes.
+
 ## Stack
 
 | Concern | Technology |
