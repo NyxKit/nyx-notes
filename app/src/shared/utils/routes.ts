@@ -38,12 +38,16 @@ export function vaultRoute(vault: Pick<Vault, 'slug' | 'owner'>): RouteLocationR
 }
 
 export function noteRoute(vault: Pick<Vault, 'slug' | 'owner'>, noteId?: string): RouteLocationRaw {
+  if (!noteId) {
+    return vaultRoute(vault)
+  }
+
   if (vault.slug === 'feedback' && vault.owner.type === VaultOwnerType.Server) {
     return {
       name: noteId ? RouteName.FeedbackNote : RouteName.Feedback,
       params: {
         server_slug: vault.owner.server_slug,
-        ...(noteId ? { id: noteId } : {}),
+        ...(noteId ? { note_id: noteId } : {}),
       },
     }
   }
@@ -55,7 +59,7 @@ export function noteRoute(vault: Pick<Vault, 'slug' | 'owner'>, noteId?: string)
         server_slug: vault.owner.server_slug,
         home_slug: vault.owner.home_slug,
         vault_id: vault.slug,
-        ...(noteId ? { id: noteId } : {}),
+        ...(noteId ? { note_id: noteId } : {}),
       },
     }
   }
@@ -66,7 +70,7 @@ export function noteRoute(vault: Pick<Vault, 'slug' | 'owner'>, noteId?: string)
       params: {
         server_slug: vault.owner.server_slug,
         vault_id: vault.slug,
-        ...(noteId ? { id: noteId } : {}),
+        ...(noteId ? { note_id: noteId } : {}),
       },
     }
   }
@@ -132,20 +136,20 @@ export function noteCrumbRouteFromParams(
   noteId: string,
 ): RouteLocationRaw {
   if (serverSlug && vaultSlug === 'feedback') {
-    return { name: RouteName.FeedbackNote, params: { server_slug: serverSlug, id: noteId } }
+    return { name: RouteName.FeedbackNote, params: { server_slug: serverSlug, note_id: noteId } }
   }
 
   if (serverSlug && homeSlug) {
     return {
       name: RouteName.UserNote,
-      params: { server_slug: serverSlug, home_slug: homeSlug, vault_id: vaultSlug, id: noteId },
+      params: { server_slug: serverSlug, home_slug: homeSlug, vault_id: vaultSlug, note_id: noteId },
     }
   }
 
   if (serverSlug) {
     return {
       name: RouteName.ServerNote,
-      params: { server_slug: serverSlug, vault_id: vaultSlug, id: noteId },
+      params: { server_slug: serverSlug, vault_id: vaultSlug, note_id: noteId },
     }
   }
 

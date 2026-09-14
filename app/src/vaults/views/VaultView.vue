@@ -1,91 +1,26 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuth } from '@/auth/composables'
-import { NyxButton, NyxGrid, NyxIcon } from 'nyx-kit/components'
-import { NyxGridMode } from 'nyx-kit/types'
+import { NyxButton, NyxIcon } from 'nyx-kit/components'
 import { noteRoute } from '@/shared/utils'
-import NoteCard from '@/notes/components/NoteCard.vue'
-import { useNoteBrowsingStore, useNotesStore } from '@/notes/stores'
-import { useSubscription, useWorkspaceProfiles } from '@/shared/composables'
-import type { BrowseNoteCardModel } from '@/shared/types'
-import { WorkspaceProfileType } from '@/shared/types'
-import { useVaults } from '@/vaults/composables'
+import { NotesGrid } from '@/notes/components'
 import { useVaultStore } from '@/vaults/stores'
 
 const route = useRoute()
 const router = useRouter()
 const vaultId = computed(() => route.params.vault_id as string)
-const auth = useAuth()
-const { activeProfile } = useWorkspaceProfiles()
-const serverSlug = computed(() => auth.serverMetadata.value?.slug || 'main-server')
-useVaults()
 
 const vaultStore = useVaultStore()
 const { vaults, activeVault } = storeToRefs(vaultStore)
-const { load: loadVaults, setActive } = vaultStore
-const notesStore = useNotesStore()
-const noteBrowsingStore = useNoteBrowsingStore()
-const { listLoading } = storeToRefs(notesStore)
-const { notesFor, loadList, subscribeList, create: createNote } = notesStore
+const { setActive } = vaultStore
 
-useSubscription(vaultId, value => subscribeList(serverSlug.value, value))
+const vault = computed(() => vaults.value.find(v => v.slug === vaultId.value) ?? null)
 
-onMounted(async () => {
-  await loadVaults()
-  const vault = vaults.value.find(v => v.slug === vaultId.value) ?? null
-  if (vault) setActive(vault)
-  await loadList(vaultId.value)
-})
-
-const sortedNotes = computed<BrowseNoteCardModel[]>(() =>
-  notesFor(vaultId.value)
-    .slice()
-    .sort((a, b) => {
-      const favorite = Number(noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', b.vault_id, b.id))
-        - Number(noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', a.vault_id, a.id))
-      if (favorite !== 0) return favorite
-
-      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
-    })
-    .map(note => ({
-        note_id: note.id,
-        vault_id: note.vault_id,
-        profile_id: activeProfile.value?.id ?? 'local',
-        title: note.title || 'Untitled',
-        description: note.description,
-        tags: note.tags,
-        images: note.images ?? [],
-        updated_at: note.updated_at,
-        updated_label: formatDate(note.updated_at),
-        href: noteRoute(activeVault.value!, note.id),
-        server_label: activeProfile.value?.display_name ?? 'Main Server',
-        server_id: activeProfile.value?.type === WorkspaceProfileType.Remote ? activeProfile.value.server_id : undefined,
-        vault_name: activeVault.value?.name ?? 'Vault',
-        vault_slug: activeVault.value?.slug ?? '',
-        is_favorite: noteBrowsingStore.isFavorite(activeProfile.value?.id ?? 'local', note.vault_id, note.id),
-    }))
-)
-
-function formatDate(iso: string) {
-  const d = new Date(iso)
-  const now = Date.now()
-  const diff = now - d.getTime()
-  const mins = Math.floor(diff / 60_000)
-  if (mins < 60) return mins <= 1 ? 'just now' : `${mins}m ago`
-  const hrs = Math.floor(mins / 60)
-  if (hrs < 24) return `${hrs}h ago`
-  const days = Math.floor(hrs / 24)
-  if (days < 7) return `${days}d ago`
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-}
+watch(vault, currentVault => setActive(currentVault), { immediate: true })
 
 async function createFirst() {
-  const meta = await createNote(vaultId.value, { title: '', content: '' })
-  if (activeVault.value) {
-    router.push(noteRoute(activeVault.value, meta.id))
-  }
+  if (activeVault.value) router.push(noteRoute(activeVault.value))
 }
 </script>
 
@@ -93,7 +28,7 @@ async function createFirst() {
   <div class="vault-view">
     <Teleport to="#layout-header-actions" defer>
       <NyxButton
-        v-if="sortedNotes.length > 0 && !listLoading"
+        v-if="activeVault"
         :gradient="true"
         @click="createFirst"
       >
@@ -102,33 +37,33 @@ async function createFirst() {
     </Teleport>
 
     <main class="vault-view__body">
-      <div v-if="listLoading" class="vault-view__canvas vault-view__canvas--center">
-        <div class="vault-view__skeleton-grid">
-          <div v-for="n in 6" :key="n" class="vault-view__skeleton-card" />
-        </div>
-      </div>
-
-      <div v-else-if="sortedNotes.length > 0" class="vault-view__canvas vault-view__canvas--overview">
-        <NyxGrid title="Notes" :mode="NyxGridMode.Masonry" :columns="5">
-          <NoteCard
-            v-for="note in sortedNotes"
-            :key="note.note_id"
-            :note="note"
-            :image="note.images?.[0]"
-          />
-        </NyxGrid>
-      </div>
-
-      <div v-else class="vault-view__canvas vault-view__canvas--center">
-        <div class="vault-view__welcome-card">
-          <div class="vault-view__welcome-icon">
-            <NyxIcon name="file-text" :size="32" />
+      <NotesGrid
+        class="vault-view__canvas vault-view__canvas--overview"
+        title="Notes"
+        :vault="activeVault ?? undefined"
+        :vault-id="vaultId"
+      >
+        <template #loading>
+          <div class="vault-view__canvas--center">
+            <div class="vault-view__skeleton-grid">
+              <div v-for="n in 6" :key="n" class="vault-view__skeleton-card" />
+            </div>
           </div>
-          <h1 class="vault-view__heading">This vault is empty.</h1>
-          <p class="vault-view__desc">Start writing your first note. It will appear here once saved.</p>
-          <NyxButton :gradient="true" @click="createFirst">New Note</NyxButton>
-        </div>
-      </div>
+        </template>
+
+        <template #empty>
+          <div class="vault-view__canvas--center">
+            <div class="vault-view__welcome-card">
+              <div class="vault-view__welcome-icon">
+                <NyxIcon name="file-text" :size="32" />
+              </div>
+              <h1 class="vault-view__heading">This vault is empty.</h1>
+              <p class="vault-view__desc">Start writing your first note. It will appear here once saved.</p>
+              <NyxButton :gradient="true" @click="createFirst">New Note</NyxButton>
+            </div>
+          </div>
+        </template>
+      </NotesGrid>
     </main>
 
     <footer class="vault-view__footer">

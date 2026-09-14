@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { NyxSelectOption } from 'nyx-kit/types'
 import { GlobalNoteBrowseView } from '@/notes/components'
@@ -9,26 +8,18 @@ import { GlobalBrowseSortMode } from '@/shared/types'
 const browsingStore = useNoteBrowsingStore()
 const {
   favoriteResults,
-  favoriteRefs,
   favoritesSortMode,
   favoritesLoading,
   favoritesError,
   favoritesExcludedProfilesCount,
 } = storeToRefs(browsingStore)
-const { loadFavorites, setFavoritesSortMode } = browsingStore
+const { setFavoritesSortMode } = browsingStore
 
 const sortOptions: NyxSelectOption[] = [
   { label: 'Recent', value: GlobalBrowseSortMode.Recent },
   { label: 'Grouped by origin', value: GlobalBrowseSortMode.Grouped },
 ]
 
-onMounted(async () => {
-  await loadFavorites()
-})
-
-watch(favoriteRefs, async () => {
-  await loadFavorites()
-}, { deep: true })
 </script>
 
 <template>

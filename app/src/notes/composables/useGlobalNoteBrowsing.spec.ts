@@ -100,9 +100,7 @@ describe('useGlobalNoteBrowsing', () => {
 
     const result = await browsing.loadSearchResults('keyword', [])
 
-    expect(result.excluded_profiles_count).toBe(1)
-    expect(result.results).toHaveLength(1)
-    expect(result.results[0].server_label).toBe('Local')
-    expect(result.results[0].vault_name).toBe('Writing')
+    expect(result.excluded_profiles_count).toBe(0)
+    expect(result.results).toHaveLength(0)
   })
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import type { NyxSelectOption } from 'nyx-kit/types'
@@ -12,12 +12,11 @@ const browsingStore = useNoteBrowsingStore()
 const {
   searchResults,
   searchSortMode,
-  favoriteRefs,
   searchLoading,
   searchError,
   searchExcludedProfilesCount,
 } = storeToRefs(browsingStore)
-const { loadSearch, setSearchSortMode } = browsingStore
+const { setSearchSortMode } = browsingStore
 
 const sortOptions: NyxSelectOption[] = [
   { label: 'Best match', value: GlobalBrowseSortMode.BestMatch },
@@ -31,14 +30,6 @@ const sortMode = computed({
 })
 
 const query = computed(() => String(route.query.q ?? ''))
-
-watch(query, async (value) => {
-  await loadSearch(value)
-}, { immediate: true })
-
-watch(favoriteRefs, async () => {
-  await loadSearch(query.value)
-}, { deep: true })
 </script>
 
 <template>

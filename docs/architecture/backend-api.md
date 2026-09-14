@@ -51,22 +51,22 @@ An Axum HTTP server that exposes note CRUD operations over a REST API. It wraps 
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/api/vaults/:vault_id/notes` | List notes in a vault |
-| `GET` | `/api/vaults/:vault_id/notes/:id` | Fetch a single note |
+| `GET` | `/api/vaults/:vault_id/notes/:note_id` | Fetch a single note |
 | `POST` | `/api/vaults/:vault_id/notes` | Create a note using a stable note ID |
-| `PUT` | `/api/vaults/:vault_id/notes/:id` | Update a note |
-| `DELETE` | `/api/vaults/:vault_id/notes/:id` | Delete a note |
-| `PATCH` | `/api/vaults/:vault_id/notes/:id/permission` | Change note-level permission |
+| `PUT` | `/api/vaults/:vault_id/notes/:note_id` | Update a note |
+| `DELETE` | `/api/vaults/:vault_id/notes/:note_id` | Delete a note |
+| `PATCH` | `/api/vaults/:vault_id/notes/:note_id/permission` | Change note-level permission |
 
 ## Comment Routes
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/vaults/:vault_id/notes/:id/comments` | List visible comment threads for a note |
-| `POST` | `/api/vaults/:vault_id/notes/:id/comments` | Create a line-based comment thread |
-| `PATCH` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id` | Resolve or reopen a thread |
-| `DELETE` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id` | Delete a thread |
-| `POST` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies` | Add a reply |
-| `DELETE` | `/api/vaults/:vault_id/notes/:id/comments/:comment_id/replies/:reply_id` | Delete a reply |
+| `GET` | `/api/vaults/:vault_id/notes/:note_id/comments` | List visible comment threads for a note |
+| `POST` | `/api/vaults/:vault_id/notes/:note_id/comments` | Create a line-based comment thread |
+| `PATCH` | `/api/vaults/:vault_id/notes/:note_id/comments/:comment_id` | Resolve or reopen a thread |
+| `DELETE` | `/api/vaults/:vault_id/notes/:note_id/comments/:comment_id` | Delete a thread |
+| `POST` | `/api/vaults/:vault_id/notes/:note_id/comments/:comment_id/replies` | Add a reply |
+| `DELETE` | `/api/vaults/:vault_id/notes/:note_id/comments/:comment_id/replies/:reply_id` | Delete a reply |
 
 ## Live Subscription Routes
 

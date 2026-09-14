@@ -3,43 +3,22 @@ import { watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuth } from '@/auth/composables'
-import { useWorkspaceProfiles } from '@/shared/composables'
 import { AuthMode, ServerRole, RouteName } from '@/shared/types'
 import { useVaultStore } from '@/vaults/stores'
-import { useNotesStore } from '@/notes/stores'
 import { VaultSwitcher } from '@/vaults/components'
 import AppBreadcrumbs from './AppBreadcrumbs.vue'
 import SidebarNav from './SidebarNav.vue'
 import SidebarNavItem from './SidebarNavItem.vue'
 import { NoteList, NoteSearch } from '@/notes/components'
-import type { Vault } from '@/shared/types'
 import { useFeedbackDialog } from '@/feedback/composables'
 import { FeedbackModal } from '@/feedback/views'
 
 const route = useRoute()
 const router = useRouter()
 const vaultStore = useVaultStore()
-const notesStore = useNotesStore()
-const { apiEpoch, isAuthenticated, authMode, serverMetadata } = useAuth()
-const { activeProfile } = useWorkspaceProfiles()
+const { authMode, serverMetadata } = useAuth()
 const { openFeedbackDialog } = useFeedbackDialog()
 const { vaults } = storeToRefs(vaultStore)
-const { load } = vaultStore
-const { loadAll } = notesStore
-
-async function refreshWorkspace() {
-  if (!isAuthenticated.value) return
-
-  await load()
-  await loadAll(vaults.value.map(v => v.slug))
-
-  if (route.params.vault_id) {
-    const currentVault = vaults.value.find(v => v.slug === route.params.vault_id) ?? null
-    if (currentVault) {
-      vaultStore.setActive(currentVault as Vault)
-    }
-  }
-}
 
 function openFeedback() {
   if (serverMetadata.value?.role === ServerRole.Admin) {
@@ -50,12 +29,6 @@ function openFeedback() {
   openFeedbackDialog()
 }
 
-watch([activeProfile, apiEpoch, authMode], async () => {
-  await refreshWorkspace()
-}, {
-  immediate: true,
-})
-
 watch(
   [() => route.params.vault_id as string | undefined, vaults],
   ([vaultId]) => {
@@ -65,7 +38,7 @@ watch(
 
     const currentVault = vaults.value.find(v => v.slug === vaultId) ?? null
     if (currentVault) {
-      vaultStore.setActive(currentVault as Vault)
+      vaultStore.setActive(currentVault)
     }
   },
   { immediate: true }

@@ -9,6 +9,7 @@ A Vue 3 SPA that lets users browse, create, and edit Markdown notes. It talks to
 Frontend data flow follows this ownership chain:
 
 - filesystem/database -> backend REST API -> frontend API wrapper -> domain store -> composable lifecycle hooks -> component
+- `App.vue` bootstraps the active workspace subscriptions and primes vault/note stores before routed views render
 - Shared API wrappers in `shared/api/` own transport details and raw request/response handling
 - Domain stores own domain-facing data access and normalize raw payloads into domain classes
 - Composables subscribe, unsubscribe, and react to lifecycle changes by calling store methods
@@ -38,8 +39,8 @@ individual files.
 
 ```
 app/src/
-  main.ts
-  App.vue
+    main.ts
+    App.vue                # root workspace bootstrap: auth-aware vault + note subscriptions
   vite-env.d.ts
 
   vaults/
@@ -63,22 +64,24 @@ app/src/
       VaultSettingsView.vue  # rename vault, change icon, change permission, delete vault
       index.ts               # exports vault views
 
-  notes/
-    index.ts                 # re-exports the notes barrels below
-    classes/                  # domain objects: NoteMeta, Note
-    api/notes.ts             # note CRUD API calls
-    api/index.ts             # exports note API functions
-    composables/
-      useGlobalNoteBrowsing.ts  # cross-profile browse loading for search and favorites
-      index.ts                  # exports note composables
-    components/
-      GlobalNoteBrowseView.vue # shared browse layout for global search and favorites
-      NoteCard.vue           # single note card (title, origin context, distilled description, metadata, link)
-      NoteEditor.vue         # thin wrapper around <NyxEditor> from nyx-kit
-      NoteList.vue           # sidebar: recent-notes feed across reachable profiles and vaults
-      NoteSearch.vue         # sidebar: global search input rendered below the vault switcher
-      NoteToolbar.vue        # save, delete, tags, permission selector
-      index.ts               # exports note components
+    notes/
+      index.ts                 # re-exports the notes barrels below
+      classes/                  # domain objects: NoteMeta, Note
+      api/notes.ts             # note CRUD API calls
+      api/index.ts             # exports note API functions
+      composables/
+        useNotes.ts             # vault note-list subscription lifecycle helper
+        useGlobalNoteBrowsing.ts  # cross-profile browse loading for search and favorites
+        index.ts                  # exports note composables
+      components/
+        GlobalNoteBrowseView.vue # shared browse layout for global search and favorites
+        NoteCard.vue           # single note card (title, origin context, distilled description, metadata, link)
+        NotesGrid.vue          # shared vault/feedback notes grid; owns vault note-list subscriptions
+        NoteEditor.vue         # thin wrapper around <NyxEditor> from nyx-kit
+        NoteList.vue           # sidebar: recent-notes feed across reachable profiles and vaults
+        NoteSearch.vue         # sidebar: global search input rendered below the vault switcher
+        NoteToolbar.vue        # save, delete, tags, permission selector
+        index.ts               # exports note components
     stores/
       notes.ts               # useNotesStore — vault-keyed notes cache, $reset()
       noteBrowsing.ts        # useNoteBrowsingStore — global search/favorites derived state
@@ -87,7 +90,7 @@ app/src/
     views/
       GlobalSearchView.vue   # main-window global search results
       FavoritesView.vue      # main-window global favorites results
-      NoteView.vue           # editor for a specific note (:vault_id/:id)
+      NoteView.vue           # editor for a specific note (:vault_id/:note_id)
       index.ts               # exports note views
 
   comments/
@@ -218,10 +221,10 @@ app/src/
 
 ### `VaultView` (`/vaults/:vault_id`)
 
-- Fetches notes for the vault from `GET /api/vaults/:vault_id/notes`
-- **Notes present**: renders a `NyxGrid` overview in `masonry` mode containing `NoteCard` links (sorted by `updated_at` desc); each note card navigates to `/vaults/:vault_id/notes/:id` via an internal `RouterLink` anchor that preserves standard browser link affordances
+- Renders `NotesGrid` for the vault note masonry; `NotesGrid` owns the live note-list subscription via `useNotes` and reuses the store-backed note state
+- `NotesGrid` renders `NoteCard` links (sorted by `updated_at` desc); each note card navigates to `/vaults/:vault_id/notes/:note_id` via an internal `RouterLink` anchor that preserves standard browser link affordances
 - `NoteCard` shows the note title, source server and vault, a distilled description generated from the first actual paragraph of saved content, and supporting metadata such as tags and update time
-- **No notes**: renders a getting-started prompt with a "New Note" CTA that creates a blank note and navigates to the editor
+- The empty state remains a vault-specific getting-started prompt with a "New Note" CTA that creates a blank note and navigates to the editor
 - Header shows vault name and a persistent "New Note" action button
 
 ### `GlobalSearchView` (`/notes/search`)
@@ -255,7 +258,7 @@ The frontend uses a shared browse-card family for browse-and-select surfaces onl
 - `NyxCard` remains the visual shell for both card components, but the anchor is the user-facing interactive surface
 - Overview layouts use `NyxGrid`: `HomeView` uses `grid` mode for vault cards and `VaultView` uses `masonry` mode for note cards
 
-### `NoteView` (`/vaults/:vault_id/notes/:id`)
+### `NoteView` (`/vaults/:vault_id/notes/:note_id`)
 
 - Center panel: `NoteEditor` — TipTap editor for the selected note (read-only if the user has `comment` access)
 - Right panel: `CommentSidebar` — comment threads, aligned to their annotated text
@@ -267,10 +270,10 @@ The frontend uses a shared browse-card family for browse-and-select surfaces onl
 ### `FeedbackVaultView` (`/feedback`)
 
 - Admin-only shared feedback overview
-- Uses a masonry grid of note cards
+- Reuses `NotesGrid` for the masonry grid shell while supplying feedback note cards from the feedback store and the feedback vault metadata for routing
 - Clicking a card opens `FeedbackNoteView`
 
-### `FeedbackNoteView` (`/feedback/:id`)
+### `FeedbackNoteView` (`/feedback/:note_id`)
 
 - Admin-only feedback detail view
 - Reuses the note editor shell for title/body editing
@@ -385,7 +388,7 @@ All authenticated routes are nested under the `AppLayout` parent route. `AppLayo
   /                        → HomeView
   /server-vaults           → ServerVaultsView
   /vaults/:vault_id        → VaultView
-  /vaults/:vault_id/notes/:id? → NoteView
+  /vaults/:vault_id/notes/:note_id → NoteView
   /vaults/:vault_id/settings  → VaultSettingsView
   /teams/:team_id/settings    → TeamSettingsView
 /login                     → LoginView
@@ -396,7 +399,7 @@ All authenticated routes are nested under the `AppLayout` parent route. `AppLayo
 | `/` | `HomeView` (child of `AppLayout`) | Auth required (inherited) |
 | `/server-vaults` | `ServerVaultsView` (child of `AppLayout`) | Auth required (inherited) |
 | `/vaults/:vault_id` | `VaultView` (child of `AppLayout`) | Auth required (inherited) |
-| `/vaults/:vault_id/notes/:id` | `NoteView` (child of `AppLayout`) | Auth required (inherited) |
+| `/vaults/:vault_id/notes/:note_id` | `NoteView` (child of `AppLayout`) | Auth required (inherited) |
 | `/vaults/:vault_id/settings` | `VaultSettingsView` (child of `AppLayout`) | Auth required (inherited) |
 | `/teams/:team_id/settings` | `TeamSettingsView` (child of `AppLayout`) | Auth required (inherited) |
 | `/login` | `LoginView` | Redirect to `/` if already authed |
@@ -457,7 +460,7 @@ Rendered in `NoteToolbar` as a segmented control or dropdown. Only visible when 
 [ Restricted ]  [ Comment ]  [ Edit ]
 ```
 
-On change: calls `PATCH /api/vaults/:vault_id/notes/:id/permission`. No full save required.
+On change: calls `PATCH /api/vaults/:vault_id/notes/:note_id/permission`. No full save required.
 
 ### Read-Only Editor State
 
@@ -540,10 +543,10 @@ Legacy comments without a reliable structured anchor are retained in storage but
 
 ### User Interaction Flow
 
-1. **Creating a comment**: User selects text inside the editor → `NyxEditor` emits `annotation:create` with the selection anchor → `CommentComposer` opens → on submit, `POST /api/vaults/:vault_id/notes/:id/comments`
+1. **Creating a comment**: User selects text inside the editor → `NyxEditor` emits `annotation:create` with the selection anchor → `CommentComposer` opens → on submit, `POST /api/vaults/:vault_id/notes/:note_id/comments`
 2. **Viewing comments**: `CommentSidebar` renders open and resolved threads using `anchor.line_preview` for context while `NyxEditor` renders matching visible annotations
 3. **Replying**: Inside `CommentThread`, a reply input is available for visible unresolved threads
-4. **Resolving**: A "Resolve" button on each thread calls `PATCH /api/vaults/:vault_id/notes/:id/comments/:commentId` with `{ resolved: true }` and the annotation styling updates to the resolved state
+4. **Resolving**: A "Resolve" button on each thread calls `PATCH /api/vaults/:vault_id/notes/:note_id/comments/:commentId` with `{ resolved: true }` and the annotation styling updates to the resolved state
 5. **Detached comments**: If a stored anchor can no longer be matched confidently, the thread remains visible in a detached state with its saved line preview
 6. **Legacy comments**: Older note-level comments without a reliable anchor stay stored but do not appear in the default line-discussion experience
 7. **Focusing annotations**: Clicking an annotation in the editor opens the comment sidebar automatically if it is closed and highlights the matching thread
@@ -551,7 +554,7 @@ Legacy comments without a reliable structured anchor are retained in storage but
 
 ### `CommentSidebar.vue`
 
-- Fetches `GET /api/vaults/:vault_id/notes/:id/comments` on note load
+- Fetches `GET /api/vaults/:vault_id/notes/:note_id/comments` on note load
 - Renders `CommentThread` for each visible comment, ordered by attached note position first and detached threads after that
 - Uses `anchor.line_preview` as the sidebar context for the selected-text anchor
 - Synchronizes active thread focus with `NyxEditor` annotation focus/blur events

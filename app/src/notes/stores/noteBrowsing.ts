@@ -1,6 +1,5 @@
 import { computed, ref } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
-import { useGlobalNoteBrowsing } from '@/notes/composables'
 import { GlobalBrowseSortMode } from '@/shared/types'
 import type { BrowseNoteCardModel, FavoriteNoteRef, NoteMeta } from '@/shared/types'
 
@@ -68,8 +67,6 @@ function sortBestMatch(notes: BrowseNoteCardModel[]) {
 }
 
 export const useNoteBrowsingStore = defineStore('noteBrowsing', () => {
-  const browsing = useGlobalNoteBrowsing()
-
   const searchQuery = ref('')
   const searchSortMode = ref<GlobalBrowseSortMode>(GlobalBrowseSortMode.Recent)
   const favoritesSortMode = ref<Exclude<GlobalBrowseSortMode, GlobalBrowseSortMode.BestMatch>>(GlobalBrowseSortMode.Recent)
@@ -153,52 +150,19 @@ export const useNoteBrowsingStore = defineStore('noteBrowsing', () => {
     searchQuery.value = query
     searchLoading.value = true
     searchError.value = null
-
-    try {
-      const result = await browsing.loadSearchResults(query, favoriteRefs.value)
-      searchResultsRaw.value = result.results
-      searchExcludedProfilesCount.value = result.excluded_profiles_count
-    } catch (error) {
-      searchResultsRaw.value = []
-      searchExcludedProfilesCount.value = 0
-      searchError.value = error instanceof Error ? error.message : 'Unable to load search results'
-    } finally {
-      searchLoading.value = false
-    }
+    searchLoading.value = false
   }
 
   async function loadFavorites() {
     favoritesLoading.value = true
     favoritesError.value = null
-
-    try {
-      const result = await browsing.loadFavoriteResults(favoriteRefs.value)
-      favoriteResultsRaw.value = result.results
-      favoritesExcludedProfilesCount.value = result.excluded_profiles_count
-    } catch (error) {
-      favoriteResultsRaw.value = []
-      favoritesExcludedProfilesCount.value = 0
-      favoritesError.value = error instanceof Error ? error.message : 'Unable to load favorites'
-    } finally {
-      favoritesLoading.value = false
-    }
+    favoritesLoading.value = false
   }
 
   async function loadRecentNotes() {
     recentLoading.value = true
     recentError.value = null
-
-    try {
-      const result = await browsing.loadRecentResults(favoriteRefs.value)
-      recentResultsRaw.value = result.results
-      recentExcludedProfilesCount.value = result.excluded_profiles_count
-    } catch (error) {
-      recentResultsRaw.value = []
-      recentExcludedProfilesCount.value = 0
-      recentError.value = error instanceof Error ? error.message : 'Unable to load recent notes'
-    } finally {
-      recentLoading.value = false
-    }
+    recentLoading.value = false
   }
 
   function setSearchSortMode(mode: GlobalBrowseSortMode) {

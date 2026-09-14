@@ -2,9 +2,8 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { useAuth } from '@/auth/composables'
 import { vaultRoute } from '@/shared/utils'
-import { useSubscription, useWorkspaceProfiles } from '@/shared/composables'
+import { useWorkspaceProfiles } from '@/shared/composables'
 import { useVaultStore } from '@/vaults/stores'
 import { useNotesStore, useNoteBrowsingStore } from '@/notes/stores'
 import { useEditorStore } from '@/notes/stores'
@@ -18,15 +17,13 @@ import { RoutePath } from '@/shared/types'
 
 const route = useRoute()
 const router = useRouter()
-const auth = useAuth()
 const isCommentsOpen = ref(false)
 const showDeleteConfirm = ref(false)
 const editorStore = useEditorStore()
 const commentsStore = useComments()
-const { annotations, setActiveComment, beginComment, load: loadComments, clearLoadedComments } = commentsStore
+const { annotations, setActiveComment, beginComment, clearLoadedComments } = commentsStore
 
 const { activeProfile } = useWorkspaceProfiles()
-const serverSlug = computed(() => auth.serverMetadata.value?.slug || 'main-server')
 const noteBrowsingStore = useNoteBrowsingStore()
 
 function toggleFavorite() {
@@ -61,10 +58,10 @@ async function confirmDelete() {
 
 const vaultStore = useVaultStore()
 const { vaults } = storeToRefs(vaultStore)
-const { load: loadVaults, setActive } = vaultStore
+const { setActive } = vaultStore
 const notesStore = useNotesStore()
 const { activeNote } = storeToRefs(notesStore)
-const { loadNote, subscribeNote, remove, clearActive } = notesStore
+const { remove, clearActive } = notesStore
 
 const LAST_NOTE_KEY = 'nyx_last_note'
 
@@ -93,7 +90,7 @@ async function pruneIfEmpty() {
 onBeforeRouteLeave(pruneIfEmpty)
 
 watch(
-  () => [route.params.vault_id, route.params.id] as [string, string],
+  () => [route.params.vault_id, route.params.note_id] as [string, string],
   async ([vaultId, noteId], prev) => {
     // When switching notes, prune the previous one if it was empty
     if (prev?.[1]) await pruneIfEmpty()
@@ -105,44 +102,27 @@ watch(
       return
     }
 
-    if (!vaults.value.length) await loadVaults()
-
     if (!vaults.value.length) {
       localStorage.removeItem(LAST_NOTE_KEY)
-      router.replace(auth.personalOverviewRoute.value)
+      router.replace({ name: 'home' })
       return
     }
 
     clearLoadedComments()
     editorStore.reset()
-    await loadNote(vaultId, noteId)
-    const resolvedVaultId = activeNote.value?.meta.vault_id ?? vaultId
-    const currentVault = vaults.value.find(v => v.slug === resolvedVaultId) ?? null
+    const currentVault = vaults.value.find(v => v.slug === vaultId) ?? null
     if (currentVault) setActive(currentVault)
-    await loadComments(vaultId, noteId)
 
     localStorage.setItem(LAST_NOTE_KEY, JSON.stringify({ vaultId, noteId }))
   },
   { immediate: true }
 )
 
-useSubscription(
-  () => ({
-    vaultId: route.params.vault_id as string | undefined,
-    noteId: route.params.id as string | undefined,
-  }),
-  value => {
-    if (!value.vaultId || !value.noteId) return null
-    return subscribeNote(serverSlug.value, value.vaultId, value.noteId)
-  },
-)
-
 // Ensure vault is set when navigating to section pages without a note id
 watch(
   () => route.params.vault_id as string,
   async (vaultId) => {
-    if (!vaultId || route.params.id) return
-    if (!vaults.value.length) await loadVaults()
+    if (!vaultId || route.params.note_id) return
     const vault = vaults.value.find(v => v.slug === vaultId)
     if (vault) setActive(vault)
   },

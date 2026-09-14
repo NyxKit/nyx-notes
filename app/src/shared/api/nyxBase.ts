@@ -20,9 +20,16 @@ function toSearchParams(query: LiveQuery) {
 }
 
 function createVaultKey(query: LiveQuery): string {
-  if (query.vault_id) {
-    return `vault_${query.vault_id}`
+  switch (query.collection) {
+    case LiveCollection.VaultListPersonal:
+    case LiveCollection.VaultListShared:
+      return `vaults_${query.collection}_${query.server_slug}_${query.user_context ?? 'all'}`
+    case LiveCollection.NoteList:
+      return `vault_${query.vault_id}_notes`
+    case LiveCollection.Note:
+      return `vault_${query.vault_id}_note_${query.note_id}`
   }
+
   return `server_${query.server_slug}`
 }
 
@@ -249,6 +256,13 @@ class NyxBaseClass {
       entry.abortController?.abort()
       this.subscriptions.delete(vaultKey)
     }
+  }
+
+  reset() {
+    for (const entry of this.subscriptions.values()) {
+      entry.abortController?.abort()
+    }
+    this.subscriptions.clear()
   }
 
   createVaultListPersonalQuery(serverSlug: string, userContext?: string): LiveQuery {

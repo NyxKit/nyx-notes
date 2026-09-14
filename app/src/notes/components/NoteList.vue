@@ -1,28 +1,19 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useNoteBrowsingStore } from '@/notes/stores'
-import { useAuth } from '@/auth/composables'
-import { useWorkspaceProfiles } from '@/shared/composables'
 
 const RECENT_LIMIT = 5
 
 const router = useRouter()
 const route = useRoute()
-const { apiEpoch } = useAuth()
-const { activeProfile, profiles } = useWorkspaceProfiles()
 const noteBrowsingStore = useNoteBrowsingStore()
 const { recentResults } = storeToRefs(noteBrowsingStore)
-const { loadRecentNotes } = noteBrowsingStore
 
 const recentNotes = computed(() => {
   return recentResults.value.slice(0, RECENT_LIMIT)
 })
-
-watch([apiEpoch, profiles, activeProfile], async () => {
-  await loadRecentNotes()
-}, { immediate: true, deep: true })
 
 </script>
 
@@ -41,7 +32,7 @@ watch([apiEpoch, profiles, activeProfile], async () => {
         v-for="note in recentNotes"
         :key="`${note.profile_id}:${note.vault_id}:${note.note_id}`"
         class="note-list__item"
-        :class="{ 'note-list__item--active': route.params.vault_id === note.vault_id && route.params.id === note.note_id }"
+        :class="{ 'note-list__item--active': route.params.vault_id === note.vault_id && route.params.note_id === note.note_id }"
         @click="router.push(note.href)"
       >
         <div class="note-list__title">

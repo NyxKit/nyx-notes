@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue'
+import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { NyxButton } from 'nyx-kit/components'
@@ -13,11 +13,9 @@ import { RouteName } from '@/shared/types'
 const route = useRoute()
 const router = useRouter()
 const feedbackStore = useFeedbackStore()
-const { activeFeedback, loading, saving } = storeToRefs(feedbackStore)
-const { load, save, remove } = feedbackStore
+const { activeFeedback, saving } = storeToRefs(feedbackStore)
+const { save, remove } = feedbackStore
 const { defaultFeedbackRequest } = useFeedbackSubmissionContext()
-
-const feedbackId = computed(() => String(route.params.id ?? ''))
 
 const title = computed({
   get: () => activeFeedback.value?.meta.title ?? '',
@@ -58,22 +56,12 @@ async function deleteItem() {
   await remove(id)
   router.push({ name: RouteName.Feedback, params: { server_slug: route.params.server_slug } })
 }
-
-onMounted(async () => {
-  if (feedbackId.value) await load(feedbackId.value)
-})
-
-watch(feedbackId, async (id) => {
-  if (id) await load(id)
-})
 </script>
 
 <template>
 <div class="feedback-note-view">
     <main class="feedback-note-view__body">
-      <div v-if="loading" class="feedback-note-view__loading">Loading feedback…</div>
-
-      <template v-else-if="activeFeedback">
+      <template v-if="activeFeedback">
         <CreateEditNote v-model:title="title" v-model:content="description" />
 
         <div class="feedback-note-view__meta">
@@ -109,10 +97,6 @@ watch(feedbackId, async (id) => {
   flex: 1;
   overflow: auto;
   padding: 1.5rem;
-}
-
-.feedback-note-view__loading {
-  color: var(--nyx-c-text-3);
 }
 
 .feedback-note-view__meta {

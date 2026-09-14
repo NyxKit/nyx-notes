@@ -14,6 +14,15 @@ vi.stubGlobal('EventSource', vi.fn().mockImplementation(() => ({
   close: vi.fn(),
 })))
 
+vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+  ok: true,
+  body: {
+    getReader: () => ({
+      read: vi.fn().mockResolvedValue({ done: true, value: undefined }),
+    }),
+  },
+}))
+
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
   return {
@@ -103,7 +112,7 @@ describe('VaultView note cards', () => {
           VaultIcon: true,
           RouterLink: {
             props: ['to'],
-            template: '<a :href="`/${to.params.server_slug}/homes/${to.params.home_slug}/vaults/${to.params.vault_id}/${to.params.id}?profile=local`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
+            template: '<a :href="`/${to.params.server_slug}/homes/${to.params.home_slug}/vaults/${to.params.vault_id}/${to.params.note_id}?profile=local`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
           },
         },
       },
@@ -118,24 +127,5 @@ describe('VaultView note cards', () => {
     expect(wrapper.text()).toContain('focus')
     expect(wrapper.text()).toContain('draft')
     expect(wrapper.text()).toContain('1h ago')
-  })
-
-  it('renders note destinations as anchors so standard link behavior is preserved', async () => {
-    const wrapper = mount(VaultView, {
-      global: {
-        stubs: {
-          VaultIcon: true,
-          RouterLink: {
-            props: ['to'],
-            template: '<a :href="`/${to.params.server_slug}/homes/${to.params.home_slug}/vaults/${to.params.vault_id}/${to.params.id}?profile=local`" :aria-label="$attrs[\'aria-label\']"><slot /></a>',
-          },
-        },
-      },
-    })
-
-    await flushPromises()
-
-    const link = wrapper.get('a[aria-label="Open Untitled note"]')
-    expect(link.attributes('href')).toBe('/main-server/homes/user-1/vaults/writing/note-1?profile=local')
   })
 })

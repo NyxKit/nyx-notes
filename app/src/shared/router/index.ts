@@ -33,7 +33,7 @@ const router = createRouter({
           component: () => import('@/feedback/views').then(({ FeedbackVaultView }) => FeedbackVaultView),
         },
         {
-          path: ':server_slug/feedback/:id',
+          path: ':server_slug/feedback/:note_id',
           name: RouteName.FeedbackNote,
           component: () => import('@/feedback/views').then(({ FeedbackNoteView }) => FeedbackNoteView),
         },
@@ -60,12 +60,12 @@ const router = createRouter({
           component: () => import('@/vaults/views').then(({ VaultView }) => VaultView),
         },
         {
-          path: ':server_slug/homes/:home_slug/:vault_id/:id?',
+          path: ':server_slug/homes/:home_slug/:vault_id/:note_id',
           name: RouteName.UserNote,
           component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
         },
         {
-          path: ':server_slug/vaults/:vault_id/:id?',
+          path: ':server_slug/vaults/:vault_id/:note_id',
           name: RouteName.ServerNote,
           component: () => import('@/notes/views').then(({ NoteView }) => NoteView),
         },

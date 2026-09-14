@@ -23,7 +23,9 @@ describe('NyxBase', () => {
     setApiToken(null)
     vi.stubGlobal('fetch', fetchMock)
     const { subscriptionManager } = await import('./subscriptionManager')
+    const { NyxBase } = await import('./nyxBase')
     subscriptionManager.reset()
+    NyxBase.reset()
   })
 
   it('creates note list queries with the expected scope', async () => {
@@ -45,8 +47,18 @@ describe('NyxBase', () => {
 
     await vi.waitFor(() => {
       expect(fetchNotesMock).toHaveBeenCalledWith('writing')
-      expect(handle.key).toBe('vault_writing')
+      expect(handle.key).toBe('vault_writing_notes')
     })
+  })
+
+  it('uses distinct keys for note lists and note documents', async () => {
+    const { NyxBase } = await import('./nyxBase')
+
+    const listHandle = NyxBase.subscribe(NyxBase.createNoteListQuery('main-server', 'writing'), vi.fn())
+    const noteHandle = NyxBase.subscribe(NyxBase.createNoteQuery('main-server', 'writing', 'note-1'), vi.fn())
+
+    expect(listHandle.key).toBe('vault_writing_notes')
+    expect(noteHandle.key).toBe('vault_writing_note_note-1')
   })
 
   it('sends the bearer token on live stream requests', async () => {

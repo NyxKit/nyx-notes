@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useWorkspaceProfiles } from '@/shared/composables'
+import { useRoute } from 'vue-router'
 
-const { activeProfileId } = useWorkspaceProfiles()
-const routerViewKey = computed(() => activeProfileId.value ?? 'no-profile')
+const route = useRoute()
+const routerViewKey = computed(() => route.fullPath)
 </script>
 
 <template>

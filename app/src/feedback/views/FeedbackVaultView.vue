@@ -1,22 +1,21 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useRouter } from 'vue-router'
-import { NyxButton, NyxGrid, NyxIcon } from 'nyx-kit/components'
+import { NyxButton, NyxIcon } from 'nyx-kit/components'
 import { NyxGridMode, NyxTheme } from 'nyx-kit/types'
 import { noteRoute } from '@/shared/utils'
 import { useAuth } from '@/auth/composables'
 import { useFeedbackStore } from '@/feedback/stores'
 import { useFeedbackSubmissionContext } from '@/feedback/composables'
+import { NotesGrid } from '@/notes/components'
 import NoteCard from '@/notes/components/NoteCard.vue'
-import { AuthMode, NotePermission, VaultOwnerType } from '@/shared/types'
+import { NotePermission, VaultOwnerType } from '@/shared/types'
 import type { BrowseNoteCardModel, Vault } from '@/shared/types'
 
-const router = useRouter()
-const { serverMetadata, apiEpoch, authMode, token, isAuthenticated } = useAuth()
+const { serverMetadata } = useAuth()
 const feedbackStore = useFeedbackStore()
-const { feedbackItems, listLoading, error } = storeToRefs(feedbackStore)
-const { loadList, create } = feedbackStore
+const { feedbackItems, error } = storeToRefs(feedbackStore)
+const { create } = feedbackStore
 const { defaultFeedbackRequest } = useFeedbackSubmissionContext()
 
 const feedbackVault = computed<Vault>(() => ({
@@ -35,7 +34,7 @@ const sortedFeedback = computed<BrowseNoteCardModel[]>(() =>
   feedbackItems.value
     .slice()
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
-      .map(item => ({
+    .map(item => ({
         note_id: item.id,
         vault_id: item.vault_id,
         profile_id: serverMetadata.value?.slug ?? 'main-server',
@@ -46,22 +45,12 @@ const sortedFeedback = computed<BrowseNoteCardModel[]>(() =>
         updated_at: item.updated_at,
         updated_label: formatDate(item.updated_at),
         href: noteRoute(feedbackVault.value, item.id),
-      server_label: serverMetadata.value?.name ?? 'Main Server',
-      server_id: serverMetadata.value?.slug,
-      vault_name: 'Feedback',
-      vault_slug: 'feedback',
-      is_favorite: false,
-    }))
-)
-
-watch(
-  [apiEpoch, () => serverMetadata.value?.slug, authMode, token, isAuthenticated],
-  async () => {
-    if (authMode.value !== AuthMode.Local && !token.value) return
-    if (!isAuthenticated.value) return
-    await loadList()
-  },
-  { immediate: true }
+        server_label: serverMetadata.value?.name ?? 'Main Server',
+        server_id: serverMetadata.value?.slug,
+        vault_name: 'Feedback',
+        vault_slug: 'feedback',
+        is_favorite: false,
+      }))
 )
 
 function formatDate(iso: string) {
@@ -78,44 +67,30 @@ function formatDate(iso: string) {
 }
 
 async function createDraft() {
-  const meta = await create(defaultFeedbackRequest({
+  await create(defaultFeedbackRequest({
     title: 'Untitled',
     description: '',
   }))
-
-  router.push(noteRoute(feedbackVault.value, meta.id))
 }
 </script>
 
 <template>
   <div class="feedback-vault-view">
-    <Teleport to="#layout-header-actions" defer>
-      <NyxButton
-        v-if="!listLoading"
-        :gradient="true"
-        @click="createDraft"
-      >
-        New Feedback
-      </NyxButton>
+      <Teleport to="#layout-header-actions" defer>
+      <NyxButton :gradient="true" @click="createDraft">New Feedback</NyxButton>
     </Teleport>
 
     <main class="feedback-vault-view__body">
-      <div v-if="listLoading" class="feedback-vault-view__canvas feedback-vault-view__canvas--center">
-        <div class="feedback-vault-view__skeleton-grid">
-          <div v-for="n in 6" :key="n" class="feedback-vault-view__skeleton-card" />
-        </div>
-      </div>
-
-      <div v-else-if="sortedFeedback.length > 0" class="feedback-vault-view__canvas feedback-vault-view__canvas--overview">
-        <NyxGrid title="Feedback" :mode="NyxGridMode.Masonry" :columns="5">
-          <NoteCard
-            v-for="item in sortedFeedback"
-            :key="item.note_id"
-            :note="item"
-            :theme="item.tags.includes('bug') ? NyxTheme.Danger : NyxTheme.Info"
-            :image="item.images?.[0]"
-          />
-        </NyxGrid>
+      <div v-if="sortedFeedback.length > 0" class="feedback-vault-view__canvas feedback-vault-view__canvas--overview">
+        <NotesGrid title="Feedback" :vault="feedbackVault" :notes="sortedFeedback" :mode="NyxGridMode.Masonry" :columns="5">
+          <template #card="{ note }">
+            <NoteCard
+              :note="note"
+              :theme="note.tags.includes('bug') ? NyxTheme.Danger : NyxTheme.Info"
+              :image="note.images?.[0]"
+            />
+          </template>
+        </NotesGrid>
       </div>
 
       <div v-else-if="error" class="feedback-vault-view__canvas feedback-vault-view__canvas--center">

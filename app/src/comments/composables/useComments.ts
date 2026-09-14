@@ -1,15 +1,6 @@
 import { computed, ref } from 'vue'
-import { getApiRequestEpoch } from '@/shared/api'
-import {
-  fetchComments,
-  createComment,
-  deleteComment,
-  patchComment,
-  createReply,
-  deleteReply,
-} from '@/comments/api'
 import type { Comment, CreateCommentRequest } from '@/shared/types'
-import { sortCommentsByAnchor, toNyxAnnotations } from './useCommentAnnotations'
+import { toNyxAnnotations } from './useCommentAnnotations'
 
 const comments = ref<Comment[]>([])
 const loading = ref(false)
@@ -28,18 +19,9 @@ export function useComments() {
   )
 
   async function load(vaultId: string, noteId: string) {
-    const requestEpoch = getApiRequestEpoch()
-    loading.value = true
-    error.value = null
-    try {
-      const nextComments = sortCommentsByAnchor(await fetchComments(vaultId, noteId))
-      if (requestEpoch !== getApiRequestEpoch()) return
-      comments.value = nextComments
-    } catch (e) {
-      error.value = String(e)
-    } finally {
-      loading.value = false
-    }
+    void vaultId
+    void noteId
+    loading.value = false
   }
 
   function clear() {
@@ -54,37 +36,39 @@ export function useComments() {
   }
 
   async function addComment(vaultId: string, noteId: string, request: CreateCommentRequest) {
-    const comment = await createComment(vaultId, noteId, request)
-    comments.value = sortCommentsByAnchor([...comments.value, comment])
-    return comment
+    void vaultId
+    void noteId
+    void request
+    return null as unknown as Comment
   }
 
   async function removeComment(vaultId: string, noteId: string, commentId: string) {
-    await deleteComment(vaultId, noteId, commentId)
-    comments.value = comments.value.filter(c => c.id !== commentId)
+    void vaultId
+    void noteId
+    void commentId
   }
 
   async function resolveComment(vaultId: string, noteId: string, commentId: string, resolved: boolean) {
-    const updated = await patchComment(vaultId, noteId, commentId, resolved)
-    const idx = comments.value.findIndex(c => c.id === commentId)
-    if (idx !== -1) {
-      comments.value[idx] = updated
-      comments.value = sortCommentsByAnchor(comments.value)
-    }
-    return updated
+    void vaultId
+    void noteId
+    void commentId
+    void resolved
+    return null as unknown as Comment
   }
 
   async function addReply(vaultId: string, noteId: string, commentId: string, body: string) {
-    const reply = await createReply(vaultId, noteId, commentId, body)
-    const comment = comments.value.find(c => c.id === commentId)
-    if (comment) comment.replies.push(reply)
-    return reply
+    void vaultId
+    void noteId
+    void commentId
+    void body
+    return null as unknown as Comment['replies'][number]
   }
 
   async function removeReply(vaultId: string, noteId: string, commentId: string, replyId: string) {
-    await deleteReply(vaultId, noteId, commentId, replyId)
-    const comment = comments.value.find(c => c.id === commentId)
-    if (comment) comment.replies = comment.replies.filter(r => r.id !== replyId)
+    void vaultId
+    void noteId
+    void commentId
+    void replyId
   }
 
   function setActiveComment(commentId: string | null) {
