@@ -15,7 +15,6 @@ const router = useRouter()
 
 <style scoped>
 .team-settings-placeholder {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   gap: 1rem;

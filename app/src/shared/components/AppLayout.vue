@@ -114,9 +114,10 @@ watch(
   --app-shell-header-height: 3.25rem;
 
   display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: var(--app-shell-header-height) 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: var(--app-shell-header-height) minmax(0, 1fr);
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--nyx-c-bg);
   color: var(--nyx-c-text-1);

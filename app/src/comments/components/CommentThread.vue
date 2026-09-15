@@ -18,7 +18,7 @@ const emit = defineEmits<{
   focus: []
 }>()
 
-const { currentUser, authMode } = useAuth()
+const { currentUserId, authMode } = useAuth()
 const { resolveComment, removeComment, addReply, removeReply } = useComments()
 
 const replyBody = ref('')
@@ -29,7 +29,7 @@ const confirmDeleteReplyId = ref<string | null>(null)
 const replyPendingDelete = () => props.comment.replies.find(reply => reply.id === confirmDeleteReplyId.value) ?? null
 
 const isAuthor = (authorId: string) =>
-  authMode.value === 'local' || currentUser.value?.id === authorId
+  authMode.value === 'local' || currentUserId.value === authorId
 
 async function onResolve() {
   await resolveComment(props.vaultId, props.noteId, props.comment.id, !props.comment.resolved)

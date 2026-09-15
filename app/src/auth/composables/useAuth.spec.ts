@@ -5,6 +5,11 @@ vi.mock('@/auth/api', () => ({
   login: vi.fn(),
 }))
 
+vi.mock('@/shared/api', async importOriginal => ({
+  ...await importOriginal<typeof import('@/shared/api')>(),
+  api: vi.fn(),
+}))
+
 describe('useAuth', () => {
   beforeEach(() => {
     localStorage.clear()
@@ -89,5 +94,44 @@ describe('useAuth', () => {
 
     expect(auth.sessions.value[alpha.id]?.token).toBeUndefined()
     expect(auth.sessions.value[bravo.id]?.token).toBe('token-b')
+  })
+
+  it('uses server identity after login and clears it on logout or failed metadata refresh', async () => {
+    const authApi = await import('@/auth/api')
+    const { api } = await import('@/shared/api')
+    vi.mocked(authApi.fetchAuthMode).mockResolvedValue({ mode: 'secret_key' })
+    vi.mocked(authApi.login).mockResolvedValue({ token: 'token', expires_in: 60 })
+    vi.mocked(api).mockResolvedValue({ current_user_id: 'user-123', current_user_username: 'arnedecant' })
+    const { useWorkspaceProfiles } = await import('@/shared/composables')
+    const { useAuth } = await import('./useAuth')
+    useWorkspaceProfiles().addRemoteProfile({
+      display_name: 'Server', server_url: 'https://notes.example.com',
+      username: 'arnedecant', password: 'password',
+    })
+    const auth = useAuth()
+    await auth.bootstrapActiveProfile()
+    expect(auth.currentUserId.value).toBe('user-123')
+
+    vi.mocked(api).mockRejectedValueOnce(new Error('Offline'))
+    await auth.refreshServerMetadata()
+    expect(auth.currentUserId.value).toBeNull()
+
+    await auth.refreshServerMetadata()
+    expect(auth.currentUserId.value).toBe('user-123')
+    auth.logout()
+    expect(auth.currentUserId.value).toBeNull()
+  })
+
+  it('does not restore an old profile identity from a late metadata response', async () => {
+    const { api } = await import('@/shared/api')
+    const { useAuth } = await import('./useAuth')
+    const auth = useAuth()
+    let resolveMetadata!: (value: unknown) => void
+    vi.mocked(api).mockImplementationOnce(() => new Promise(resolve => { resolveMetadata = resolve }))
+    const pending = auth.refreshServerMetadata()
+    auth.logout()
+    resolveMetadata({ current_user_id: 'previous-user' })
+    await pending
+    expect(auth.currentUserId.value).toBeNull()
   })
 })

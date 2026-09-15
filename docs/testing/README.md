@@ -91,11 +91,15 @@ What to test:
 **E2E tests** (Playwright): full browser against a running dev server.
 
 What to test:
+- Shared layout: navigate into settings and vault settings from another page, scroll to the bottom, and verify the final section and padding fit within the viewport at desktop and compact window sizes; direct loads must behave the same way.
+- Browser titles: note/vault routes use their names before `| Nyx Notes`, saved note renames update the title, blank names use `Untitled`, and navigation to settings replaces the previous note title.
 - First-run setup: choose local mode and enter the app without a login screen
 - First-run setup: connect to an existing remote `secret_key` server and enter the app with a saved remote profile
 - Profile switcher: switching between local and remote profiles loads the correct workspace and clears stale content from the previous profile
 - Secret-key admin flow: open `Users`, create a user, edit it, reject duplicate email/username, block self-delete, and delete an eligible user
 - Login → note list loads → open note → edit → save persists
+- Autosave: hold the save response open and sample multiline text position on every animation frame through saving and completion in Chromium and Firefox; preserve the editor's DOM instance, focus, and caret.
+- Restored secret-key session: an author can type and autosave a restricted home-vault note using the server-provided user ID; a different user retains read-only comment access, and shared edit access remains writable.
 - Sidebar search: typing in `NoteSearch` routes to global search and updates results live without explicit submit
 - Sidebar recent notes: the list shows the most recently updated notes across reachable/authenticated profiles and vaults, with source server/vault labels
 - Global search: the same query returns the same eligible cross-profile/cross-vault result set regardless of current vault page
