@@ -49,6 +49,29 @@ it as an image, or empty alt text when adjacent text already names Nyx Notes.
 
 ## Application Layout
 
+### Browser tab titles
+
+- Use `<note title> | Nyx Notes` on note routes and `<vault name> | Nyx Notes`
+  on vault routes, keeping the distinguishing text first for narrow browser tabs.
+- Untitled notes use `Untitled | Nyx Notes`. Titles update after note or vault
+  renames are saved and when route data finishes loading.
+- Other pages use their page label, such as `Settings | Nyx Notes`,
+  `Vault Settings | Nyx Notes`, or `Search | Nyx Notes`.
+- The initial HTML title and home/loading fallback are `Nyx Notes`. Never use a
+  previously opened note's title for a different route while its data loads.
+
+### Viewport and scrolling
+
+The authenticated app shell owns the viewport height (`100dvh`, with a `100vh`
+fallback). Its header has a fixed height; the content row and column can shrink
+to the remaining space using `minmax(0, 1fr)`. Routed pages use that content area,
+not their own viewport-height minimum. The shell body provides scrolling for
+ordinary pages; editor and browse views may manage scrolling inside their panels.
+The final page section and its bottom padding must remain reachable, regardless
+of viewport height or the order in which lazy-loaded routes are visited.
+
+### Source organization
+
 `src/` is organised into domain folders. Each domain owns its views, components, stores,
 composables, and API module. Cross-domain code lives in `shared/`. Entry points stay at
 the `src/` root.
@@ -292,7 +315,7 @@ TipTap, the Markdown extension, annotation rendering, and all editor internals l
 <!-- components/NoteEditor.vue -->
 <NyxEditor
   v-model="draftContent"
-  :editable="canEdit"
+  :disabled="!canEdit"
   :annotations="annotations"
   @annotation:create="onAnnotationCreate"
   @annotation:focus="onAnnotationFocus"
@@ -301,6 +324,12 @@ TipTap, the Markdown extension, annotation rendering, and all editor internals l
 ```
 
 The editor works in **Markdown storage mode**: content passed in and emitted out is always raw Markdown. The rich ProseMirror document tree is internal to NyxEditor.
+
+The toolbar gives its metadata row a minimum line height and positions `Saving…`
+outside normal layout flow, with room beside the tags. Showing or hiding the
+indicator cannot change the row's height. Starting
+or completing an autosave must not move the writing canvas, remount the editor,
+or disturb focus and the caret.
 
 ## Vault Switcher (`VaultSwitcher.vue`)
 
@@ -459,6 +488,12 @@ On change: calls `PATCH /api/vaults/:vault_id/notes/:id/permission`. No full sav
 
 ### Read-Only Editor State
 
+Ownership checks for notes, comments, and replies use `useAuth().currentUserId`,
+derived from the authenticated `/api/server` response's `current_user_id`.
+Use the stable user ID, not the username or home route slug. Clear this identity
+when bootstrapping another profile or signing out; failed metadata requests must
+not retain the previous identity. Local mode retains its existing editing behavior.
+
 When the current user has `comment` access (not the owner, note is `comment` permission):
 - TipTap editor is initialized with `editable: false`
 - Save and delete buttons are hidden
@@ -466,17 +501,16 @@ When the current user has `comment` access (not the owner, note is `comment` per
 - The comment sidebar remains fully functional
 
 ```ts
-const isOwner = computed(() => note.value?.meta.author_id === currentUser.value?.uid)
+const { currentUserId, authMode } = useAuth()
+const isOwner = computed(() =>
+  authMode.value === 'local' || note.value?.meta.author_id === currentUserId.value
+)
 const canEdit = computed(() =>
   isOwner.value || note.value?.meta.permission === 'edit'
 )
 
-const editor = useEditor({
-  editable: canEdit.value,
-  // ...
-})
-
-watch(canEdit, (val) => editor.value?.setEditable(val))
+// NoteEditor passes :disabled="!canEdit" to NyxEditor, which keeps TipTap's
+// editable state synchronized when permissions change.
 ```
 
 ### Shared Notes in the Note List

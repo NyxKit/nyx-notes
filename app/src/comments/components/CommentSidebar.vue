@@ -10,7 +10,7 @@ const props = defineProps<{
   note: Note
 }>()
 
-const { authMode, currentUser } = useAuth()
+const { authMode, currentUserId } = useAuth()
 const { comments, loading, draftComment, cancelDraftComment, submitDraftComment, setActiveComment, activeCommentId, activeTab } = useComments()
 
 const showComposer = ref(false)
@@ -18,7 +18,7 @@ const submitting = ref(false)
 const threadRefs = ref<Record<string, HTMLElement | null>>({})
 
 const isNoteAuthor = computed(() =>
-  authMode.value === 'local' || currentUser.value?.id === props.note.meta.author_id
+  authMode.value === 'local' || currentUserId.value === props.note.meta.author_id
 )
 
 const openComments = computed(() => comments.value.filter(c => !c.resolved))

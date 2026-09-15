@@ -34,7 +34,10 @@ const emit = defineEmits<{
       </div>
 
       <span class="note-toolbar__status">
-        <span v-if="props.saving" class="note-toolbar__saving">Saving…</span>
+        <span
+          class="note-toolbar__saving"
+          :class="{ 'note-toolbar__saving--visible': props.saving }"
+        >Saving…</span>
       </span>
     </div>
   </div>
@@ -56,6 +59,9 @@ const emit = defineEmits<{
 }
 
 .note-toolbar__meta {
+  position: relative;
+  min-height: 1lh;
+  padding-inline-end: 4rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -68,14 +74,22 @@ const emit = defineEmits<{
 }
 
 .note-toolbar__status {
-  margin-left: auto;
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  white-space: nowrap;
 }
 
 .note-toolbar__saving {
+  visibility: hidden;
   font-size: 0.6875rem;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--nyx-c-text-3);
+}
+
+.note-toolbar__saving--visible {
+  visibility: visible;
 }
 
 </style>

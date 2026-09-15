@@ -9,7 +9,7 @@ import {
 import { useWorkspaceProfiles } from '@/shared/composables'
 import { readProfilePassword } from '@/shared/utils'
 import { RouteName } from '@/shared/types'
-import type { AuthMode, ProfileSession, RemoteWorkspaceProfile, ServerMetadata, User } from '@/shared/types'
+import type { AuthMode, ProfileSession, RemoteWorkspaceProfile, ServerMetadata } from '@/shared/types'
 
 const SESSION_STORAGE_KEY = 'nyx_profile_sessions'
 
@@ -18,8 +18,8 @@ type StoredSessions = Record<string, ProfileSession>
 const authMode = ref<AuthMode | null>(null)
 const oidcIssuer = ref<string | null>(null)
 const token = ref<string | null>(null)
-const currentUser = ref<User | null>(null)
 const serverMetadata = ref<ServerMetadata | null>(null)
+const currentUserId = computed(() => serverMetadata.value?.current_user_id ?? null)
 
 function slugifyClient(value: string) {
   return value
@@ -114,7 +114,7 @@ export function useAuth() {
     bootstrapping.value = true
     resetApiClientContext()
     token.value = null
-    currentUser.value = null
+    serverMetadata.value = null
     oidcIssuer.value = null
     authMode.value = null
 
@@ -291,7 +291,6 @@ export function useAuth() {
   function logout() {
     const profile = activeProfile.value
     token.value = null
-    currentUser.value = null
     serverMetadata.value = null
     resetApiClientContext()
 
@@ -326,9 +325,13 @@ export function useAuth() {
   }
 
   async function refreshServerMetadata() {
+    const requestEpoch = getApiRequestEpoch()
     try {
-      serverMetadata.value = await api<ServerMetadata>('/api/server')
+      const metadata = await api<ServerMetadata>('/api/server')
+      if (requestEpoch !== getApiRequestEpoch()) return
+      serverMetadata.value = metadata
     } catch {
+      if (requestEpoch !== getApiRequestEpoch()) return
       serverMetadata.value = null
     }
   }
@@ -346,7 +349,7 @@ export function useAuth() {
 
   const personalOverviewRoute = computed(() => {
     const serverSlug = serverMetadata.value?.slug || slugifyClient(activeProfile.value?.display_name ?? 'Main Server')
-    const homeSlug = serverMetadata.value?.current_user_username || serverMetadata.value?.current_user_id || currentUser.value?.id
+    const homeSlug = serverMetadata.value?.current_user_username || currentUserId.value
 
     if (!serverSlug || !homeSlug) {
       return { name: RouteName.Home }
@@ -378,7 +381,7 @@ export function useAuth() {
     authMode,
     oidcIssuer,
     token,
-    currentUser,
+    currentUserId,
     serverMetadata,
     bootstrapping,
     serverInitialized,

@@ -191,9 +191,7 @@ const permissionOptions: NyxSelectOption[] = [
 
 <style scoped>
 .settings-page {
-  min-height: 100vh;
   padding: 2rem 1rem;
-  overflow-y: auto;
 }
 
 .settings-page__inner {

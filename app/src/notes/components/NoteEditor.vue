@@ -27,7 +27,7 @@ const emit = defineEmits<{
   'blur-comment': [commentId: string]
 }>()
 
-const { authMode, currentUser } = useAuth()
+const { authMode, currentUserId } = useAuth()
 const notesStore = useNotesStore()
 const { saving } = storeToRefs(notesStore)
 const { save, updatePermission } = notesStore
@@ -49,7 +49,7 @@ watch(
 
 // Read-only when non-author and vault permission is not 'edit'
 const isAuthor = computed(() =>
-  authMode.value === 'local' || currentUser.value?.id === props.note.meta.author_id
+  authMode.value === 'local' || currentUserId.value === props.note.meta.author_id
 )
 
 const readonly = computed(() =>
